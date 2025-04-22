@@ -44,6 +44,26 @@ export default {
 					DEFAULT: 'hsl(var(--accent))',
 					foreground: 'hsl(var(--accent-foreground))'
 				},
+        // FastTrackJusticeAI colors
+        scroll: {
+          dawn: '#1EAEDB', // Blue for DAWN phase
+          rise: '#FEC6A1', // Gold for RISE phase
+          ascend: '#FFFFFF', // White for ASCEND phase
+        },
+        principle: {
+          strong: '#F2FCE2', // Green for strong principles
+          medium: '#FEF7CD', // Yellow for medium principles
+          weak: '#ea384c', // Red for weak principles
+        },
+        justice: {
+          primary: '#9b87f5', // Primary purple
+          secondary: '#7E69AB', // Secondary purple
+          tertiary: '#6E59A5', // Tertiary purple
+          dark: '#1A1F2C', // Dark purple
+          light: '#D6BCFA', // Light purple
+          neutral: '#8E9196', // Neutral gray
+          charcoal: '#403E43', // Charcoal gray
+        },
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'
