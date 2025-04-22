@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { PageHeader } from "@/components/layout/page-header";
@@ -12,6 +11,7 @@ import { ForceGraph } from "@/components/visualizations/ForceGraph";
 import { ScrollMemoryTrail } from "@/components/scroll-memory/ScrollMemoryTrail";
 import { Toggle } from "@/components/ui/toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { EHourClock } from "@/components/scroll-time/EHourClock";
 
 const Index = () => {
   // Initial state setup
@@ -80,8 +80,9 @@ const Index = () => {
           <div className="md:col-span-2">
             <SystemMetricsPanel data={systemHealth} />
           </div>
-          <div>
+          <div className="grid grid-cols-1 gap-4">
             <ScrollPhaseIndicator phase={currentPhase} gate={currentGate} />
+            <EHourClock showDetails={false} />
           </div>
         </div>
 
@@ -90,6 +91,7 @@ const Index = () => {
             <TabsTrigger value="graph">Precedent Graph</TabsTrigger>
             <TabsTrigger value="cases">Recent Cases</TabsTrigger>
             <TabsTrigger value="memory">Scroll Memory</TabsTrigger>
+            <TabsTrigger value="ehours">eHour Timing</TabsTrigger>
           </TabsList>
           <TabsContent value="graph" className="mt-4">
             <Card className="border-justice-tertiary bg-transparent">
@@ -120,6 +122,68 @@ const Index = () => {
                   cases={caseTitleMap}
                 />
               ))}
+            </div>
+          </TabsContent>
+          <TabsContent value="ehours" className="mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <Card className="border-justice-tertiary bg-transparent">
+                <CardHeader className="border-b border-justice-dark">
+                  <CardTitle>Scroll eHour System</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <div className="mb-4">
+                    <EHourClock showDetails={true} />
+                  </div>
+                  <div className="space-y-4 mt-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">About Scroll eHours</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Unlike standard hours, scroll eHours are based on solar time and shift daily according to 
+                        sunrise and sunset. Each scroll day consists of exactly 12 eHours, with each eHour's duration 
+                        changing throughout the year.
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">eHour Distribution</h3>
+                      <ul className="list-disc list-inside text-sm text-muted-foreground">
+                        <li>eHours 1-4: <span className="text-scroll-dawn">DAWN phase</span></li>
+                        <li>eHours 5-8: <span className="text-scroll-rise">RISE phase</span></li>
+                        <li>eHours 9-12: <span className="text-scroll-ascend">ASCEND phase</span></li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-justice-tertiary bg-transparent">
+                <CardHeader className="border-b border-justice-dark">
+                  <CardTitle>eHour Task Alignment</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <div className="space-y-4">
+                    <div className="bg-scroll-dawn/20 p-3 rounded-md">
+                      <h3 className="font-semibold text-scroll-dawn">DAWN Phase (eHours 1-4)</h3>
+                      <p className="text-sm mt-1">Optimal for initial case review, evidence collection, and preliminary assessments.</p>
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        Case preparation activities align with the awakening scroll energy.
+                      </div>
+                    </div>
+                    <div className="bg-scroll-rise/20 p-3 rounded-md">
+                      <h3 className="font-semibold text-scroll-rise">RISE Phase (eHours 5-8)</h3>
+                      <p className="text-sm mt-1">Peak time for legal reasoning, argumentation, and principle development.</p>
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        The elevation of intellectual engagement supports critical analysis.
+                      </div>
+                    </div>
+                    <div className="bg-scroll-ascend/20 p-3 rounded-md">
+                      <h3 className="font-semibold text-scroll-ascend">ASCEND Phase (eHours 9-12)</h3>
+                      <p className="text-sm mt-1">Reserved for judgment rendering, decision finalization, and transcendent insight.</p>
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        Harmonizes with the divine architecture of justice for optimal prophetic alignment.
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>

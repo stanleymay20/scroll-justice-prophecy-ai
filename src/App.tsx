@@ -11,6 +11,7 @@ import ScrollMemory from "./pages/ScrollMemory";
 import PrinciplesPage from "./pages/PrinciplesPage";
 import CaseSearch from "./pages/CaseSearch";
 import Analytics from "./pages/Analytics";
+import ScrollTimePage from "./pages/ScrollTimePage";
 import NotFound from "./pages/NotFound";
 
 // Create a client
@@ -47,6 +48,7 @@ const App = () => {
             <Route path="/principles" element={<PrinciplesPage />} />
             <Route path="/search" element={<CaseSearch />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/scroll-time" element={<ScrollTimePage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

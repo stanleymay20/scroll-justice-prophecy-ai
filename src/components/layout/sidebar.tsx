@@ -1,6 +1,7 @@
 
 import { mainNavItems, SidebarNav } from "@/components/ui/sidebar-nav";
 import { ScrollPhase, ScrollGate } from "@/types";
+import { CompactEHourClock } from "@/components/scroll-time/CompactEHourClock";
 
 interface SidebarProps {
   currentPhase: ScrollPhase;
@@ -43,6 +44,9 @@ export function Sidebar({ currentPhase, currentGate }: SidebarProps) {
           <h1 className="text-2xl font-bold text-justice-light">FastTrackJusticeAI</h1>
           <div className={`text-sm mt-2 font-medium ${getPhaseTextColor(currentPhase)}`}>
             {currentPhase} - Gate {currentGate}
+          </div>
+          <div className="mt-2">
+            <CompactEHourClock />
           </div>
         </div>
       </div>
