@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,10 +11,19 @@ import { cases, principles, scrollMemories, systemHealth, graphData } from "@/se
 import { ForceGraph } from "@/components/visualizations/ForceGraph";
 import { ScrollMemoryTrail } from "@/components/scroll-memory/ScrollMemoryTrail";
 import { Toggle } from "@/components/ui/toggle";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   // Initial state setup
   const [judicialMode, setJudicialMode] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const isMobile = useIsMobile();
+  
+  // Mark component as loaded after mount
+  useEffect(() => {
+    console.log("Index page mounted");
+    setIsLoaded(true);
+  }, []);
   
   // Helper to map case IDs to titles for display
   const caseTitleMap = cases.reduce((acc, c) => ({
@@ -26,13 +35,24 @@ const Index = () => {
   const currentPhase = scrollMemories[0]?.scroll_phase || "DAWN";
   const currentGate = scrollMemories[0]?.gate || 3;
 
+  if (!isLoaded) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-background">
+        <div className="text-center p-4">
+          <div className="text-2xl font-semibold mb-2 text-primary">FastTrackJusticeAI</div>
+          <p className="text-sm text-muted-foreground">Loading system...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row min-h-screen">
       {/* Sidebar */}
       <Sidebar currentPhase={currentPhase} currentGate={currentGate} />
 
       {/* Main content */}
-      <div className="flex-1 p-8 bg-gradient-to-b from-justice-dark to-black min-h-screen">
+      <div className="flex-1 p-4 md:p-8 bg-gradient-to-b from-justice-dark to-black min-h-screen overflow-x-hidden">
         <PageHeader 
           heading="FastTrackJusticeAI Dashboard" 
           text="Global Justice Intelligence with Scroll Memory"
@@ -41,8 +61,8 @@ const Index = () => {
           onExport={() => console.log("Export requested")}
         />
 
-        <div className="mt-8 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">System Overview</h2>
+        <div className="mt-4 md:mt-8 flex flex-col md:flex-row md:items-center justify-between">
+          <h2 className="text-lg md:text-xl font-semibold text-white mb-2 md:mb-0">System Overview</h2>
           <div className="flex items-center space-x-2">
             <Toggle
               variant="outline"
@@ -56,7 +76,7 @@ const Index = () => {
           </div>
         </div>
         
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           <div className="md:col-span-2">
             <SystemMetricsPanel data={systemHealth} />
           </div>
@@ -65,8 +85,8 @@ const Index = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="graph" className="mt-8">
-          <TabsList className="bg-justice-dark/50">
+        <Tabs defaultValue="graph" className="mt-4 md:mt-8">
+          <TabsList className="bg-justice-dark/50 w-full overflow-x-auto">
             <TabsTrigger value="graph">Precedent Graph</TabsTrigger>
             <TabsTrigger value="cases">Recent Cases</TabsTrigger>
             <TabsTrigger value="memory">Scroll Memory</TabsTrigger>
@@ -77,7 +97,7 @@ const Index = () => {
                 <CardTitle>Live Precedent Graph Explorer</CardTitle>
               </CardHeader>
               <CardContent className="p-0 flex justify-center">
-                <ForceGraph data={graphData} height={500} />
+                <ForceGraph data={graphData} height={isMobile ? 300 : 500} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -92,7 +112,7 @@ const Index = () => {
             </Card>
           </TabsContent>
           <TabsContent value="memory" className="mt-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
               {scrollMemories.map(memory => (
                 <ScrollMemoryTrail 
                   key={memory.trail_id}
@@ -105,30 +125,30 @@ const Index = () => {
         </Tabs>
 
         {judicialMode && (
-          <div className="mt-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-white">Prophetic Alignment</h2>
+          <div className="mt-4 md:mt-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+              <h2 className="text-lg md:text-xl font-semibold text-white">Prophetic Alignment</h2>
             </div>
-            <Card className="border-justice-tertiary bg-justice-dark text-white p-6">
-              <div className="text-center p-4">
-                <div className="text-2xl font-semibold mb-2">Divine Architecture Insight</div>
-                <p className="italic text-justice-light max-w-3xl mx-auto">
+            <Card className="border-justice-tertiary bg-justice-dark text-white p-4 md:p-6">
+              <div className="text-center p-2 md:p-4">
+                <div className="text-xl md:text-2xl font-semibold mb-2">Divine Architecture Insight</div>
+                <p className="italic text-justice-light max-w-3xl mx-auto text-sm md:text-base">
                   "The principles of equality and human dignity appear in alignment with Gate 3 scroll prophecies. 
                   Current legal evolution trajectory shows 87% concordance with the DAWN phase revelations on justice and mercy equilibrium."
                 </p>
               </div>
-              <div className="flex justify-center mt-4 space-x-4">
-                <div className="bg-justice-tertiary/20 p-3 rounded-lg text-center">
-                  <div className="text-sm text-muted-foreground">Alignment Score</div>
-                  <div className="text-2xl font-bold text-justice-light">87%</div>
+              <div className="flex flex-wrap justify-center mt-4 space-x-2 md:space-x-4">
+                <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
+                  <div className="text-xs md:text-sm text-muted-foreground">Alignment Score</div>
+                  <div className="text-xl md:text-2xl font-bold text-justice-light">87%</div>
                 </div>
-                <div className="bg-justice-tertiary/20 p-3 rounded-lg text-center">
-                  <div className="text-sm text-muted-foreground">Scroll Phase</div>
-                  <div className="text-2xl font-bold text-scroll-dawn">DAWN</div>
+                <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
+                  <div className="text-xs md:text-sm text-muted-foreground">Scroll Phase</div>
+                  <div className="text-xl md:text-2xl font-bold text-scroll-dawn">DAWN</div>
                 </div>
-                <div className="bg-justice-tertiary/20 p-3 rounded-lg text-center">
-                  <div className="text-sm text-muted-foreground">Gate</div>
-                  <div className="text-2xl font-bold text-justice-light">3</div>
+                <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
+                  <div className="text-xs md:text-sm text-muted-foreground">Gate</div>
+                  <div className="text-xl md:text-2xl font-bold text-justice-light">3</div>
                 </div>
               </div>
             </Card>
