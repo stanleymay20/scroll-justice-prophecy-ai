@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,8 @@ import Index from "./pages/Index";
 import PrecedentExplorer from "./pages/PrecedentExplorer";
 import ScrollMemory from "./pages/ScrollMemory";
 import PrinciplesPage from "./pages/PrinciplesPage";
+import CaseSearch from "./pages/CaseSearch";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +25,8 @@ const App = () => (
           <Route path="/precedent" element={<PrecedentExplorer />} />
           <Route path="/scroll-memory" element={<ScrollMemory />} />
           <Route path="/principles" element={<PrinciplesPage />} />
+          <Route path="/search" element={<CaseSearch />} />
+          <Route path="/analytics" element={<Analytics />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
