@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { PageHeader } from "@/components/layout/page-header";
@@ -12,6 +13,9 @@ import { ScrollMemoryTrail } from "@/components/scroll-memory/ScrollMemoryTrail"
 import { Toggle } from "@/components/ui/toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { EHourClock } from "@/components/scroll-time/EHourClock";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Gavel, BookText, Check } from "lucide-react";
 
 const Index = () => {
   const [judicialMode, setJudicialMode] = useState(false);
@@ -80,7 +84,102 @@ const Index = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="graph" className="mt-4 md:mt-8">
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-transparent border-justice-tertiary">
+            <CardHeader className="border-b border-justice-dark">
+              <CardTitle className="flex items-center">
+                <Gavel className="w-5 h-5 mr-2" />
+                Case Classification
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="text-sm text-muted-foreground mb-4">
+                Automatically categorize legal cases across 200+ legal domains with our advanced AI system.
+              </div>
+              <ul className="text-sm space-y-2 mb-4">
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Precise legal taxonomy mapping</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Jurisdiction-aware analysis</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Precedent matching</span>
+                </li>
+              </ul>
+              <Button asChild className="w-full bg-justice-primary hover:bg-justice-secondary">
+                <Link to="/case-classification">Open Classification Tool</Link>
+              </Button>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-transparent border-justice-tertiary">
+            <CardHeader className="border-b border-justice-dark">
+              <CardTitle className="flex items-center">
+                <BookText className="w-5 h-5 mr-2" />
+                Case Summarization
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="text-sm text-muted-foreground mb-4">
+                Extract key information from lengthy case documents with our NLP-powered summarization engine.
+              </div>
+              <ul className="text-sm space-y-2 mb-4">
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Key party identification</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Critical fact extraction</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Legal issue highlighting</span>
+                </li>
+              </ul>
+              <Button asChild className="w-full bg-justice-primary hover:bg-justice-secondary">
+                <Link to="/case-classification?tab=summarize">Open Summarization Tool</Link>
+              </Button>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-transparent border-justice-tertiary">
+            <CardHeader className="border-b border-justice-dark">
+              <CardTitle className="flex items-center">
+                <BarChart3 className="w-5 h-5 mr-2" />
+                Outcome Prediction
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="text-sm text-muted-foreground mb-4">
+                Leverage historical case data and machine learning to predict potential legal outcomes.
+              </div>
+              <ul className="text-sm space-y-2 mb-4">
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Success probability estimates</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Damages range projections</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Strategic recommendations</span>
+                </li>
+              </ul>
+              <Button asChild className="w-full bg-justice-primary hover:bg-justice-secondary">
+                <Link to="/case-classification?tab=predict">Open Prediction Tool</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="graph" className="mt-6">
           <TabsList className="bg-justice-dark/50 w-full overflow-x-auto">
             <TabsTrigger value="graph">Precedent Graph</TabsTrigger>
             <TabsTrigger value="cases">Recent Cases</TabsTrigger>
@@ -183,33 +282,69 @@ const Index = () => {
         </Tabs>
 
         {judicialMode && (
-          <div className="mt-4 md:mt-8">
+          <div className="mt-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-semibold text-white">Prophetic Alignment</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-white">Judicial Insights & Recommendations</h2>
             </div>
-            <Card className="border-justice-tertiary bg-justice-dark text-white p-4 md:p-6">
-              <div className="text-center p-2 md:p-4">
-                <div className="text-xl md:text-2xl font-semibold mb-2">Divine Architecture Insight</div>
-                <p className="italic text-justice-light max-w-3xl mx-auto text-sm md:text-base">
-                  "The principles of equality and human dignity appear in alignment with Gate 3 scroll prophecies. 
-                  Current legal evolution trajectory shows 87% concordance with the DAWN phase revelations on justice and mercy equilibrium."
-                </p>
-              </div>
-              <div className="flex flex-wrap justify-center mt-4 space-x-2 md:space-x-4">
-                <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
-                  <div className="text-xs md:text-sm text-muted-foreground">Alignment Score</div>
-                  <div className="text-xl md:text-2xl font-bold text-justice-light">87%</div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="border-justice-tertiary bg-justice-dark text-white p-4 md:p-6">
+                <div className="text-center p-2 md:p-4 mb-4">
+                  <div className="text-xl md:text-2xl font-semibold mb-2">Divine Architecture Insight</div>
+                  <p className="italic text-justice-light max-w-3xl mx-auto text-sm md:text-base">
+                    "The principles of equality and human dignity appear in alignment with Gate 3 scroll prophecies. 
+                    Current legal evolution trajectory shows 87% concordance with the DAWN phase revelations on justice and mercy equilibrium."
+                  </p>
                 </div>
-                <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
-                  <div className="text-xs md:text-sm text-muted-foreground">Scroll Phase</div>
-                  <div className="text-xl md:text-2xl font-bold text-scroll-dawn">DAWN</div>
+                <div className="flex flex-wrap justify-center mt-4 space-x-2 md:space-x-4">
+                  <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
+                    <div className="text-xs md:text-sm text-muted-foreground">Alignment Score</div>
+                    <div className="text-xl md:text-2xl font-bold text-justice-light">87%</div>
+                  </div>
+                  <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
+                    <div className="text-xs md:text-sm text-muted-foreground">Scroll Phase</div>
+                    <div className="text-xl md:text-2xl font-bold text-scroll-dawn">DAWN</div>
+                  </div>
+                  <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
+                    <div className="text-xs md:text-sm text-muted-foreground">Gate</div>
+                    <div className="text-xl md:text-2xl font-bold text-justice-light">3</div>
+                  </div>
                 </div>
-                <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
-                  <div className="text-xs md:text-sm text-muted-foreground">Gate</div>
-                  <div className="text-xl md:text-2xl font-bold text-justice-light">3</div>
+              </Card>
+              
+              <Card className="border-justice-tertiary bg-justice-dark text-white p-4 md:p-6">
+                <h3 className="text-lg font-semibold mb-4">Judicial Recommendations</h3>
+                
+                <div className="space-y-3">
+                  <div className="bg-justice-tertiary/20 p-3 rounded-lg">
+                    <h4 className="font-medium text-justice-primary">Case Classification</h4>
+                    <p className="text-sm mt-1">
+                      Recommended to apply DAWN phase principles for initial case categorization, emphasizing equality considerations in contractual disputes.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-justice-tertiary/20 p-3 rounded-lg">
+                    <h4 className="font-medium text-justice-primary">Evidence Handling</h4>
+                    <p className="text-sm mt-1">
+                      Gate 3 alignment suggests prioritizing documentary evidence over testimonial during the current scroll phase for optimal judicial outcomes.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-justice-tertiary/20 p-3 rounded-lg">
+                    <h4 className="font-medium text-justice-primary">Strategic Timing</h4>
+                    <p className="text-sm mt-1">
+                      Schedule critical case decisions during eHours 9-12 (ASCEND) to maximize divine architectural resonance with judicial wisdom.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Card>
+                
+                <div className="mt-4">
+                  <Button asChild className="w-full bg-justice-primary hover:bg-justice-secondary">
+                    <Link to="/case-classification">Apply Judicial Insights to Cases</Link>
+                  </Button>
+                </div>
+              </Card>
+            </div>
           </div>
         )}
       </div>

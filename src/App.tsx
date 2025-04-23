@@ -13,6 +13,7 @@ import CaseSearch from "./pages/CaseSearch";
 import Analytics from "./pages/Analytics";
 import ScrollTimePage from "./pages/ScrollTimePage";
 import LegalSystems from "./pages/LegalSystems";
+import CaseClassification from "./pages/CaseClassification";
 import NotFound from "./pages/NotFound";
 
 // Create a client
@@ -47,8 +48,6 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/precedent" element={<PrecedentExplorer />} />
@@ -57,11 +56,14 @@ const App = () => {
             <Route path="/search" element={<CaseSearch />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/scroll-time" element={<ScrollTimePage />} />
+            <Route path="/case-classification" element={<CaseClassification />} />
             <Route path="/legal-systems" element={<LegalSystems />} />
             <Route path="/docs" element={<Navigate to="/legal-systems" />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <Toaster />
+          <Sonner />
         </TooltipProvider>
       </BrowserRouter>
     </QueryClientProvider>

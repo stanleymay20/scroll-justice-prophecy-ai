@@ -26,9 +26,14 @@ const NotFound = () => {
           <p className="text-gray-500 mb-8">
             The resource at <span className="text-justice-primary">{location.pathname}</span> could not be located in the FastTrackJusticeAI system.
           </p>
-          <Button asChild className="bg-justice-primary hover:bg-justice-secondary transition-all">
-            <Link to="/">Return to Dashboard</Link>
-          </Button>
+          <div className="flex flex-col md:flex-row gap-4 justify-center">
+            <Button asChild className="bg-justice-primary hover:bg-justice-secondary transition-all">
+              <Link to="/">Return to Dashboard</Link>
+            </Button>
+            <Button asChild variant="outline" className="border-justice-primary/30 hover:bg-justice-primary/10">
+              <Link to="/case-classification">Case Analysis Tools</Link>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -2,7 +2,17 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "./button";
-import { ScrollText, BarChart3, Network, BookOpenText, Layers, LayoutDashboard, Search, FileText } from "lucide-react";
+import { 
+  ScrollText, 
+  BarChart3, 
+  Network, 
+  BookOpenText, 
+  Layers, 
+  LayoutDashboard, 
+  Search, 
+  FileText, 
+  Gavel 
+} from "lucide-react";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
@@ -55,6 +65,11 @@ export const mainNavItems = [
     title: "Precedent Explorer",
     href: "/precedent",
     icon: <Network className="w-5 h-5" />,
+  },
+  {
+    title: "Case Classification",
+    href: "/case-classification",
+    icon: <Gavel className="w-5 h-5" />,
   },
   {
     title: "Scroll Memory",
