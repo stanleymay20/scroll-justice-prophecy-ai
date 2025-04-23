@@ -28,14 +28,22 @@ interface ForceGraphProps {
   height?: number;
 }
 
+// Ensure we only import and use the 2D version of the graph
 export function ForceGraph({ data, height = 600 }: ForceGraphProps) {
   const graphRef = useRef<any>();
 
   useEffect(() => {
     if (graphRef.current) {
       // Adjust graph simulation
-      graphRef.current.d3Force('link').distance(() => 100);
-      graphRef.current.d3Force('charge').strength(-120);
+      const linkForce = graphRef.current.d3Force('link');
+      if (linkForce) {
+        linkForce.distance(() => 100);
+      }
+      
+      const chargeForce = graphRef.current.d3Force('charge');
+      if (chargeForce) {
+        chargeForce.strength(-120);
+      }
     }
   }, []);
 
@@ -64,6 +72,9 @@ export function ForceGraph({ data, height = 600 }: ForceGraphProps) {
         linkColor={() => 'rgba(155, 135, 245, 0.3)'}
         cooldownTicks={100}
         onEngineStop={() => graphRef.current?.zoomToFit(400, 50)}
+        // Disable 3D and VR related features
+        enableNodeDrag={true}
+        enableZoomPanInteraction={true}
       />
     </div>
   );
