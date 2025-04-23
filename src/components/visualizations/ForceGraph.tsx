@@ -71,7 +71,6 @@ export function ForceGraph({ data, height = 600 }: ForceGraphProps) {
         linkColor={() => 'rgba(155, 135, 245, 0.3)'}
         cooldownTicks={100}
         onEngineStop={() => graphRef.current?.zoomToFit(400, 50)}
-        // Use proper prop names for the 2D version
         enableNodeDrag={true}
         enableZoomInteraction={true}
       />
