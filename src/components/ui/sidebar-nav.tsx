@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "./button";
-import { ScrollText, BarChart3, Network, BookOpenText, Layers, LayoutDashboard, Search } from "lucide-react";
+import { ScrollText, BarChart3, Network, BookOpenText, Layers, LayoutDashboard, Search, FileText } from "lucide-react";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
@@ -28,7 +28,7 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
           key={item.href}
           variant={location.pathname === item.href ? "default" : "ghost"}
           className={cn(
-            "justify-start w-full",
+            "justify-start w-full transition-all",
             location.pathname === item.href
               ? "bg-justice-primary text-white hover:bg-justice-secondary"
               : "hover:bg-justice-light/10"
@@ -80,5 +80,10 @@ export const mainNavItems = [
     title: "Documentation",
     href: "/docs",
     icon: <BookOpenText className="w-5 h-5" />,
+  },
+  {
+    title: "Legal Systems",
+    href: "/legal-systems",
+    icon: <FileText className="w-5 h-5" />,
   },
 ];

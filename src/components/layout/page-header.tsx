@@ -3,6 +3,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { SystemHealth } from "@/types";
 import { Button } from "@/components/ui/button";
+import { Download, ArrowUpRight } from "lucide-react";
 
 interface PageHeaderProps {
   heading: string;
@@ -26,10 +27,15 @@ export function PageHeader({
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">{heading}</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{heading}</h1>
+          {text && (
+            <p className="text-muted-foreground mt-1 max-w-3xl">{text}</p>
+          )}
+        </div>
         <div className="flex items-center gap-4">
           {systemHealth && (
-            <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-lg">
+            <div className="flex items-center gap-2 bg-muted/20 p-2 rounded-lg border border-white/5 backdrop-blur-sm">
               <div className="flex flex-col">
                 <span className="text-xs text-muted-foreground">System Health</span>
                 <div className="flex items-center">
@@ -47,14 +53,19 @@ export function PageHeader({
             </div>
           )}
           {showExportButton && (
-            <Button onClick={onExport} variant="outline" size="sm">
+            <Button 
+              onClick={onExport} 
+              variant="outline" 
+              size="sm" 
+              className="bg-muted/20 border border-white/10 hover:bg-white/10"
+            >
+              <Download className="w-4 h-4 mr-2" />
               Export Data
             </Button>
           )}
           {children}
         </div>
       </div>
-      {text && <p className="text-muted-foreground">{text}</p>}
     </div>
   );
 }
