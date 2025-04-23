@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { PageHeader } from "@/components/layout/page-header";
@@ -15,7 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { EHourClock } from "@/components/scroll-time/EHourClock";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Gavel, BookText, Check } from "lucide-react";
+import { Gavel, BookText, Check, BarChart2 } from "lucide-react";
 
 const Index = () => {
   const [judicialMode, setJudicialMode] = useState(false);
@@ -150,7 +149,7 @@ const Index = () => {
           <Card className="bg-transparent border-justice-tertiary">
             <CardHeader className="border-b border-justice-dark">
               <CardTitle className="flex items-center">
-                <BarChart3 className="w-5 h-5 mr-2" />
+                <BarChart2 className="w-5 h-5 mr-2" />
                 Outcome Prediction
               </CardTitle>
             </CardHeader>

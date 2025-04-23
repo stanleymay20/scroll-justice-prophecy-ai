@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { PageHeader } from "@/components/layout/page-header";
@@ -9,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { scrollMemories, systemHealth } from "@/services/mockData";
-import { Gavel, BookText, Check } from "lucide-react";
+import { Gavel, BookText, Check, BarChart2 } from "lucide-react";
 
 const CaseClassification = () => {
   const [caseText, setCaseText] = useState("");
@@ -18,11 +17,9 @@ const CaseClassification = () => {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  // Get the current scroll phase and gate from the first memory
   const currentPhase = scrollMemories[0]?.scroll_phase || "DAWN";
   const currentGate = scrollMemories[0]?.gate || 3;
 
-  // Mock classification result types
   const mockClassification = {
     primary_category: "Contract Dispute",
     subcategory: "Employment Contract",
@@ -69,7 +66,6 @@ const CaseClassification = () => {
     
     setLoading(true);
     
-    // Simulate API call with a delay
     setTimeout(() => {
       switch (analysisType) {
         case "classify":
@@ -246,12 +242,11 @@ const CaseClassification = () => {
                 Summarize
               </TabsTrigger>
               <TabsTrigger value="predict" className="flex items-center">
-                <BarChart3 className="w-4 h-4 mr-2" />
+                <BarChart2 className="w-4 h-4 mr-2" />
                 Predict
               </TabsTrigger>
             </TabsList>
 
-            {/* Common input form for all tabs */}
             <Card className="mt-4 border-justice-tertiary bg-transparent">
               <CardHeader className="border-b border-justice-dark">
                 <CardTitle>Case Input</CardTitle>
@@ -299,7 +294,6 @@ const CaseClassification = () => {
               </CardContent>
             </Card>
 
-            {/* Results section */}
             {result && (
               <Card className="mt-4 border-justice-tertiary bg-transparent">
                 <CardHeader className="border-b border-justice-dark">
@@ -317,7 +311,6 @@ const CaseClassification = () => {
           </Tabs>
         </div>
 
-        {/* Judicial Recommendations Section */}
         <Card className="mt-6 border-justice-tertiary bg-transparent">
           <CardHeader className="border-b border-justice-dark">
             <CardTitle>Judicial Recommendations</CardTitle>

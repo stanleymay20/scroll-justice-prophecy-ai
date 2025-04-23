@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "./button";
 import { 
   ScrollText, 
-  BarChart3, 
+  BarChart2, 
   Network, 
   BookOpenText, 
   Layers, 
@@ -89,7 +89,7 @@ export const mainNavItems = [
   {
     title: "Analytics",
     href: "/analytics",
-    icon: <BarChart3 className="w-5 h-5" />,
+    icon: <BarChart2 className="w-5 h-5" />,
   },
   {
     title: "Documentation",
