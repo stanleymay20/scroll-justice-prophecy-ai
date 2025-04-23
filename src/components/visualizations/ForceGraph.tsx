@@ -28,7 +28,6 @@ interface ForceGraphProps {
   height?: number;
 }
 
-// Ensure we only import and use the 2D version of the graph
 export function ForceGraph({ data, height = 600 }: ForceGraphProps) {
   const graphRef = useRef<any>();
 
@@ -72,9 +71,9 @@ export function ForceGraph({ data, height = 600 }: ForceGraphProps) {
         linkColor={() => 'rgba(155, 135, 245, 0.3)'}
         cooldownTicks={100}
         onEngineStop={() => graphRef.current?.zoomToFit(400, 50)}
-        // Disable 3D and VR related features
+        // Use proper prop names for the 2D version
         enableNodeDrag={true}
-        enableZoomPanInteraction={true}
+        enableZoomInteraction={true}
       />
     </div>
   );
