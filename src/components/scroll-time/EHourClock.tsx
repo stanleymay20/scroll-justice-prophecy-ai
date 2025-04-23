@@ -115,8 +115,7 @@ export function EHourClock({ className = "", showDetails = true }: EHourClockPro
           
           <Progress 
             value={eHourData.progress * 100} 
-            className="w-full h-2"
-            indicatorClassName={eHourPhaseColor}
+            className={`w-full h-2 ${eHourPhaseColor.includes("bg-") ? eHourPhaseColor : ""}`}
           />
           
           {showDetails && (
