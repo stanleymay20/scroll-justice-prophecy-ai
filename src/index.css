@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -52,6 +53,41 @@
     color-scheme: dark;
   }
 
+  /* Premium UI Styling */
+  button, 
+  .card, 
+  input,
+  textarea,
+  select {
+    @apply transition-all duration-200;
+  }
+
+  button:not(:disabled):active {
+    @apply transform scale-95;
+  }
+
+  .glass-card {
+    @apply backdrop-blur-lg bg-white/5 border border-white/10;
+  }
+
+  /* Premium UI animation classes */
+  .hover-lift {
+    @apply transition-transform duration-300 ease-out;
+  }
+  
+  .hover-lift:hover {
+    @apply -translate-y-1;
+  }
+  
+  .premium-glow {
+    box-shadow: 0 0 15px rgba(155, 135, 245, 0.3);
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-justice-light via-white to-justice-primary;
+  }
+
+  /* Scrollbar styles */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -69,4 +105,29 @@
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--justice-tertiary) / 0.5);
   }
+  
+  /* Focus outline for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-justice-primary ring-opacity-60;
+  }
+}
+
+/* Animation keyframes */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Card and container styles */
+.premium-card {
+  @apply border border-justice-tertiary/30 bg-gradient-to-b from-justice-dark/80 to-black/80 backdrop-blur-sm;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2), 0 0 10px rgba(155, 135, 245, 0.1) inset;
 }

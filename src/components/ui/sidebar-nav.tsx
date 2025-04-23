@@ -11,7 +11,9 @@ import {
   LayoutDashboard, 
   Search, 
   FileText, 
-  Gavel 
+  Gavel,
+  Files,
+  Upload
 } from "lucide-react";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
@@ -19,6 +21,8 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
     href: string;
     title: string;
     icon?: React.ReactNode;
+    badge?: string;
+    highlight?: boolean;
   }[];
 }
 
@@ -38,7 +42,7 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
           key={item.href}
           variant={location.pathname === item.href ? "default" : "ghost"}
           className={cn(
-            "justify-start w-full transition-all",
+            "justify-start w-full transition-all relative group",
             location.pathname === item.href
               ? "bg-justice-primary text-white hover:bg-justice-secondary"
               : "hover:bg-justice-light/10"
@@ -48,6 +52,15 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
           <Link to={item.href}>
             {item.icon}
             <span className="ml-2">{item.title}</span>
+            {item.badge && (
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-justice-secondary px-1.5 py-0.5 rounded-full text-[10px]">
+                {item.badge}
+              </span>
+            )}
+            {item.highlight && (
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-scroll-rise animate-pulse-glow"></span>
+            )}
+            <span className="absolute inset-y-0 left-0 w-1 bg-justice-light scale-y-0 origin-bottom transition-transform duration-150 group-hover:scale-y-100"></span>
           </Link>
         </Button>
       ))}
@@ -70,6 +83,13 @@ export const mainNavItems = [
     title: "Case Classification",
     href: "/case-classification",
     icon: <Gavel className="w-5 h-5" />,
+    highlight: true,
+  },
+  {
+    title: "Document Upload",
+    href: "/document-upload",
+    icon: <Upload className="w-5 h-5" />,
+    badge: "New",
   },
   {
     title: "Scroll Memory",
@@ -100,5 +120,11 @@ export const mainNavItems = [
     title: "Legal Systems",
     href: "/legal-systems",
     icon: <FileText className="w-5 h-5" />,
+  },
+  {
+    title: "File Manager",
+    href: "/file-manager",
+    icon: <Files className="w-5 h-5" />,
+    badge: "New",
   },
 ];
