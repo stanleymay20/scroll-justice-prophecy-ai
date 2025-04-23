@@ -1,6 +1,6 @@
 
 import { useRef, useEffect } from 'react';
-import { ForceGraph2D } from 'react-force-graph';
+import ForceGraph2D from 'react-force-graph-2d';
 import { Graph, ScrollPhase, PrincipleStrength } from '@/types';
 
 // Helper function to get scroll phase color

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { PageHeader } from "@/components/layout/page-header";
@@ -15,24 +14,20 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { EHourClock } from "@/components/scroll-time/EHourClock";
 
 const Index = () => {
-  // Initial state setup
   const [judicialMode, setJudicialMode] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const isMobile = useIsMobile();
   
-  // Mark component as loaded after mount
   useEffect(() => {
     console.log("Index page mounted");
     setIsLoaded(true);
   }, []);
   
-  // Helper to map case IDs to titles for display
   const caseTitleMap = cases.reduce((acc, c) => ({
     ...acc,
     [c.case_id]: c.title
   }), {} as Record<string, string>);
   
-  // Get the current scroll phase and gate from the first memory
   const currentPhase = scrollMemories[0]?.scroll_phase || "DAWN";
   const currentGate = scrollMemories[0]?.gate || 3;
 
@@ -49,10 +44,8 @@ const Index = () => {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
-      {/* Sidebar */}
       <Sidebar currentPhase={currentPhase} currentGate={currentGate} />
 
-      {/* Main content */}
       <div className="flex-1 p-4 md:p-8 bg-gradient-to-b from-justice-dark to-black min-h-screen overflow-x-hidden">
         <PageHeader 
           heading="FastTrackJusticeAI Dashboard" 
