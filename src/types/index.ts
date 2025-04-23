@@ -1,3 +1,4 @@
+
 // FastTrackJusticeAI Types
 
 export type ScrollPhase = 'DAWN' | 'RISE' | 'ASCEND';
@@ -117,6 +118,7 @@ export interface ModelTrainingStatus {
 }
 
 export interface TrainingParameters {
+  name?: string;  // Added name property as optional
   jurisdictions: string[];
   principles: string[];
   case_count: number;
@@ -146,3 +148,4 @@ export interface GlobalLegalMetrics {
   international_alignment: number;
   human_rights_compliance: number;
 }
+

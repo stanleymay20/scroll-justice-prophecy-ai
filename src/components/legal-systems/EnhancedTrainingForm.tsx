@@ -19,6 +19,7 @@ interface EnhancedTrainingFormProps {
 
 export function EnhancedTrainingForm({ availableJurisdictions, onStartTraining }: EnhancedTrainingFormProps) {
   const [trainingParams, setTrainingParams] = useState<TrainingParameters>({
+    name: "Global Legal AI v1.0",
     jurisdictions: ["US", "UK", "CA", "UN", "ICC"],
     principles: ["Equal Protection", "Right to Privacy", "Human Rights", "Rule of Law"],
     case_count: 10000,
@@ -97,9 +98,9 @@ export function EnhancedTrainingForm({ availableJurisdictions, onStartTraining }
               </label>
               <Input 
                 placeholder="Enter model name..." 
-                defaultValue="Global Legal AI v1.0"
+                value={trainingParams.name || ""}
                 className="bg-justice-dark/50 border-justice-tertiary text-white"
-                onChange={(e) => setTrainingParams({...trainingParams, name: e.target.value})}
+                onChange={(e) => setTrainingParams(prev => ({...prev, name: e.target.value}))}
               />
             </div>
             
