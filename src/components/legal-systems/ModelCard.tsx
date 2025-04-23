@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Check, Loader2, AlertTriangle, Clock } from "lucide-react";
+import { Check, Loader2, AlertTriangle, Clock, Globe, Scale, BookOpen } from "lucide-react";
 
 interface ModelCardProps {
   model: ModelTrainingStatus;
@@ -90,6 +90,44 @@ export function ModelCard({ model }: ModelCardProps) {
           </div>
         </div>
         
+        {model.international_compliance && model.status !== "idle" && (
+          <div className="mt-4 space-y-2">
+            <div className="text-muted-foreground mb-1">International Compliance</div>
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center">
+                <Globe className="h-3 w-3 mr-1" />
+                <span>International</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Progress value={model.international_compliance * 100} className="h-1.5 w-16" />
+                <span>{(model.international_compliance * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center">
+                <Scale className="h-3 w-3 mr-1" />
+                <span>UN Charter</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Progress value={model.un_compliance ? model.un_compliance * 100 : 0} className="h-1.5 w-16" />
+                <span>{model.un_compliance ? (model.un_compliance * 100).toFixed(0) : 0}%</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center">
+                <BookOpen className="h-3 w-3 mr-1" />
+                <span>ICC Rome Statute</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Progress value={model.icc_compliance ? model.icc_compliance * 100 : 0} className="h-1.5 w-16" />
+                <span>{model.icc_compliance ? (model.icc_compliance * 100).toFixed(0) : 0}%</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {model.jurisdiction_coverage.length > 0 && (
           <div className="mt-4">
             <div className="text-muted-foreground mb-2">Jurisdiction Coverage</div>
@@ -97,6 +135,19 @@ export function ModelCard({ model }: ModelCardProps) {
               {model.jurisdiction_coverage.map((jur, index) => (
                 <Badge key={index} variant="outline" className="bg-justice-secondary/10">
                   {jur}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {model.languages_supported && model.languages_supported.length > 0 && (
+          <div className="mt-4">
+            <div className="text-muted-foreground mb-2">Languages</div>
+            <div className="flex flex-wrap gap-1">
+              {model.languages_supported.map((lang, index) => (
+                <Badge key={index} variant="outline" className="bg-justice-primary/10">
+                  {lang}
                 </Badge>
               ))}
             </div>

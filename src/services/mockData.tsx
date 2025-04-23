@@ -1,6 +1,6 @@
-import { Case, Principle, ScrollMemory, SystemHealth, Graph, ScrollPhase, ScrollGate, PrincipleStrength, Jurisdiction, ModelTrainingStatus } from '@/types';
+import { Case, Principle, ScrollMemory, SystemHealth, Graph, ScrollPhase, ScrollGate, PrincipleStrength, Jurisdiction, ModelTrainingStatus, GlobalLegalMetrics } from '@/types';
 
-// Mock Jurisdictions
+// Mock Jurisdictions with expanded international coverage
 export const jurisdictions: Jurisdiction[] = [
   {
     id: "JUR-001",
@@ -11,7 +11,11 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.92,
     active: true,
     cases_count: 5243,
-    principles_count: 87
+    principles_count: 87,
+    international_relevance: 9.4,
+    un_recognized: true,
+    icc_jurisdiction: false,
+    language_codes: ["en"]
   },
   {
     id: "JUR-002",
@@ -22,7 +26,11 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.89,
     active: true,
     cases_count: 2147,
-    principles_count: 64
+    principles_count: 64,
+    international_relevance: 8.7,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    language_codes: ["en", "fr"]
   },
   {
     id: "JUR-003",
@@ -33,7 +41,11 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.95,
     active: true,
     cases_count: 4892,
-    principles_count: 92
+    principles_count: 92,
+    international_relevance: 9.2,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    language_codes: ["en"]
   },
   {
     id: "JUR-004",
@@ -44,7 +56,11 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.75,
     active: true,
     cases_count: 3211,
-    principles_count: 76
+    principles_count: 76,
+    international_relevance: 9.0,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    language_codes: ["fr"]
   },
   {
     id: "JUR-005",
@@ -55,7 +71,72 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.78,
     active: true,
     cases_count: 3678,
-    principles_count: 81
+    principles_count: 81,
+    international_relevance: 8.8,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    language_codes: ["de"]
+  },
+  // International and regional bodies
+  {
+    id: "JUR-013",
+    name: "United Nations",
+    code: "UN",
+    region: "International",
+    legal_system: "international_law",
+    precedent_weight: 0.98,
+    active: true,
+    cases_count: 4732,
+    principles_count: 124,
+    international_relevance: 10.0,
+    un_recognized: true,
+    icc_jurisdiction: false,
+    language_codes: ["en", "fr", "es", "ru", "zh", "ar"]
+  },
+  {
+    id: "JUR-014",
+    name: "International Criminal Court",
+    code: "ICC",
+    region: "International",
+    legal_system: "icc_rome_statute",
+    precedent_weight: 0.96,
+    active: true,
+    cases_count: 1245,
+    principles_count: 78,
+    international_relevance: 9.8,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    language_codes: ["en", "fr"]
+  },
+  {
+    id: "JUR-015",
+    name: "European Court of Human Rights",
+    code: "ECHR",
+    region: "Europe",
+    legal_system: "treaty_based",
+    precedent_weight: 0.93,
+    active: true,
+    cases_count: 3867,
+    principles_count: 94,
+    international_relevance: 9.5,
+    un_recognized: true,
+    icc_jurisdiction: false,
+    language_codes: ["en", "fr"]
+  },
+  {
+    id: "JUR-016",
+    name: "African Union",
+    code: "AU",
+    region: "Africa",
+    legal_system: "treaty_based",
+    precedent_weight: 0.85,
+    active: true,
+    cases_count: 1456,
+    principles_count: 67,
+    international_relevance: 8.7,
+    un_recognized: true,
+    icc_jurisdiction: false,
+    language_codes: ["en", "fr", "ar", "pt"]
   },
   {
     id: "JUR-006",
@@ -66,7 +147,11 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.82,
     active: true,
     cases_count: 1256,
-    principles_count: 47
+    principles_count: 47,
+    international_relevance: 7.9,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    language_codes: ["en", "af"]
   },
   {
     id: "JUR-007",
@@ -77,7 +162,11 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.87,
     active: true,
     cases_count: 2876,
-    principles_count: 73
+    principles_count: 73,
+    international_relevance: 8.4,
+    un_recognized: true,
+    icc_jurisdiction: false,
+    language_codes: ["en", "hi"]
   },
   {
     id: "JUR-008",
@@ -88,7 +177,11 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.74,
     active: true,
     cases_count: 2145,
-    principles_count: 59
+    principles_count: 59,
+    international_relevance: 8.2,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    language_codes: ["ja"]
   },
   {
     id: "JUR-009",
@@ -99,7 +192,11 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.88,
     active: true,
     cases_count: 1967,
-    principles_count: 68
+    principles_count: 68,
+    international_relevance: 8.5,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    language_codes: ["en"]
   },
   {
     id: "JUR-010",
@@ -110,7 +207,11 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.71,
     active: true,
     cases_count: 1876,
-    principles_count: 52
+    principles_count: 52,
+    international_relevance: 7.8,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    language_codes: ["pt"]
   },
   {
     id: "JUR-011",
@@ -121,7 +222,11 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.68,
     active: true,
     cases_count: 912,
-    principles_count: 42
+    principles_count: 42,
+    international_relevance: 7.2,
+    un_recognized: true,
+    icc_jurisdiction: false,
+    language_codes: ["ar"]
   },
   {
     id: "JUR-012",
@@ -132,11 +237,56 @@ export const jurisdictions: Jurisdiction[] = [
     precedent_weight: 0.65,
     active: true,
     cases_count: 746,
-    principles_count: 38
+    principles_count: 38,
+    international_relevance: 7.0,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    language_codes: ["en"]
+  },
+  // Additional jurisdictions from various regions
+  {
+    id: "JUR-017",
+    name: "China",
+    code: "CN",
+    region: "Asia",
+    legal_system: "civil_law",
+    precedent_weight: 0.84,
+    active: true,
+    cases_count: 4356,
+    principles_count: 82,
+    international_relevance: 9.0,
+    un_recognized: true,
+    icc_jurisdiction: false,
+    language_codes: ["zh"]
+  },
+  {
+    id: "JUR-018",
+    name: "Russia",
+    code: "RU",
+    region: "Europe",
+    legal_system: "civil_law",
+    precedent_weight: 0.80,
+    active: true,
+    cases_count: 2698,
+    principles_count: 71,
+    international_relevance: 8.5,
+    un_recognized: true,
+    icc_jurisdiction: false,
+    language_codes: ["ru"]
   }
 ];
 
-// Mock Model Training Status
+// Global Legal Metrics
+export const globalLegalMetrics: GlobalLegalMetrics = {
+  jurisdiction_count: jurisdictions.length,
+  case_coverage_percentage: 74,
+  principle_universality_score: 8.2,
+  language_diversity: 12,
+  international_alignment: 8.7,
+  human_rights_compliance: 7.9
+};
+
+// Updated Model Training Status with international focus
 export const trainingModels: ModelTrainingStatus[] = [
   {
     model_id: "MDL-001",
@@ -147,7 +297,12 @@ export const trainingModels: ModelTrainingStatus[] = [
     accuracy: 0.93,
     cases_analyzed: 12567,
     training_started: new Date("2024-04-20T08:30:00"),
-    training_completed: new Date("2024-04-20T14:45:00")
+    training_completed: new Date("2024-04-20T14:45:00"),
+    international_compliance: 0.87,
+    un_compliance: 0.85,
+    icc_compliance: 0.82,
+    languages_supported: ["en"],
+    legal_frameworks: ["Common Law"]
   },
   {
     model_id: "MDL-002",
@@ -158,7 +313,12 @@ export const trainingModels: ModelTrainingStatus[] = [
     accuracy: 0.87,
     cases_analyzed: 8965,
     training_started: new Date("2024-04-18T10:15:00"),
-    training_completed: new Date("2024-04-18T17:20:00")
+    training_completed: new Date("2024-04-18T17:20:00"),
+    international_compliance: 0.82,
+    un_compliance: 0.79,
+    icc_compliance: 0.81,
+    languages_supported: ["en", "fr", "de", "ja", "pt"],
+    legal_frameworks: ["Civil Law", "Continental Law"]
   },
   {
     model_id: "MDL-003",
@@ -168,16 +328,58 @@ export const trainingModels: ModelTrainingStatus[] = [
     jurisdiction_coverage: ["ZA", "NG", "SA", "IN"],
     accuracy: 0.76,
     cases_analyzed: 4328,
-    training_started: new Date("2024-04-23T09:45:00")
+    training_started: new Date("2024-04-23T09:45:00"),
+    international_compliance: 0.74,
+    un_compliance: 0.72,
+    icc_compliance: 0.70,
+    languages_supported: ["en", "af", "ar", "hi"],
+    legal_frameworks: ["Mixed Systems", "Religious Law", "Customary Law"]
   },
   {
     model_id: "MDL-004",
-    name: "Universal Justice Principles",
+    name: "UN Charter Compliance Model",
+    progress: 100,
+    status: "completed",
+    jurisdiction_coverage: ["UN", "ICC", "ECHR", "AU"],
+    accuracy: 0.94,
+    cases_analyzed: 9872,
+    training_started: new Date("2024-04-15T08:30:00"),
+    training_completed: new Date("2024-04-17T12:45:00"),
+    international_compliance: 0.97,
+    un_compliance: 0.98,
+    icc_compliance: 0.96,
+    languages_supported: ["en", "fr", "es", "ru", "zh", "ar"],
+    legal_frameworks: ["International Law", "UN Charter", "Treaty Law"]
+  },
+  {
+    model_id: "MDL-005",
+    name: "ICC Rome Statute Model",
+    progress: 100,
+    status: "completed",
+    jurisdiction_coverage: ["ICC", "UN", "ECHR", "CA", "UK", "DE", "FR"],
+    accuracy: 0.95,
+    cases_analyzed: 7654,
+    training_started: new Date("2024-04-10T10:00:00"),
+    training_completed: new Date("2024-04-12T16:30:00"),
+    international_compliance: 0.96,
+    un_compliance: 0.94,
+    icc_compliance: 0.98,
+    languages_supported: ["en", "fr"],
+    legal_frameworks: ["ICC Rome Statute", "International Criminal Law", "Humanitarian Law"]
+  },
+  {
+    model_id: "MDL-006",
+    name: "Universal Human Rights Model",
     progress: 0,
     status: "idle",
     jurisdiction_coverage: [],
     accuracy: 0,
-    cases_analyzed: 0
+    cases_analyzed: 0,
+    international_compliance: 0,
+    un_compliance: 0,
+    icc_compliance: 0,
+    languages_supported: [],
+    legal_frameworks: ["Human Rights Law", "UDHR"]
   }
 ];
 
