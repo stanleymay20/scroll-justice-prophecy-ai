@@ -7,6 +7,18 @@ export type ScrollGate = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type PrincipleStrength = 'strong' | 'medium' | 'weak';
 
+export interface Jurisdiction {
+  id: string;
+  name: string;
+  code: string;
+  region: string;
+  legal_system: 'common_law' | 'civil_law' | 'religious_law' | 'customary_law' | 'mixed';
+  precedent_weight: number;
+  active: boolean;
+  cases_count?: number;
+  principles_count?: number;
+}
+
 export interface Case {
   case_id: string;
   title: string;
@@ -70,3 +82,27 @@ export interface Graph {
   nodes: GraphNode[];
   links: GraphLink[];
 }
+
+export interface ModelTrainingStatus {
+  model_id: string;
+  name: string;
+  progress: number;
+  status: 'idle' | 'training' | 'completed' | 'failed';
+  jurisdiction_coverage: string[];
+  accuracy: number;
+  cases_analyzed: number;
+  training_started?: Date;
+  training_completed?: Date;
+  error?: string;
+}
+
+export interface TrainingParameters {
+  jurisdictions: string[];
+  principles: string[];
+  case_count: number;
+  epochs: number;
+  learning_rate: number;
+  balance_jurisdictions: boolean;
+  include_scroll_alignment: boolean;
+}
+

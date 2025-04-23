@@ -12,6 +12,7 @@ import PrinciplesPage from "./pages/PrinciplesPage";
 import CaseSearch from "./pages/CaseSearch";
 import Analytics from "./pages/Analytics";
 import ScrollTimePage from "./pages/ScrollTimePage";
+import LegalSystems from "./pages/LegalSystems";
 import NotFound from "./pages/NotFound";
 
 // Create a client
@@ -49,6 +50,7 @@ const App = () => {
             <Route path="/search" element={<CaseSearch />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/scroll-time" element={<ScrollTimePage />} />
+            <Route path="/legal-systems" element={<LegalSystems />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
