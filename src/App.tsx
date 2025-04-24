@@ -15,6 +15,7 @@ import ScrollTimePage from "./pages/ScrollTimePage";
 import LegalSystems from "./pages/LegalSystems";
 import CaseClassification from "./pages/CaseClassification";
 import DocumentUpload from "./pages/DocumentUpload";
+import SimulationTrial from "./pages/SimulationTrial";
 import NotFound from "./pages/NotFound";
 
 // Create a client
@@ -59,6 +60,7 @@ const App = () => {
             <Route path="/scroll-time" element={<ScrollTimePage />} />
             <Route path="/case-classification" element={<CaseClassification />} />
             <Route path="/document-upload" element={<DocumentUpload />} />
+            <Route path="/simulation-trial" element={<SimulationTrial />} />
             <Route path="/file-manager" element={<Navigate to="/document-upload" />} />
             <Route path="/legal-systems" element={<LegalSystems />} />
             <Route path="/docs" element={<Navigate to="/legal-systems" />} />

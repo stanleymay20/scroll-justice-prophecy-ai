@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { PageHeader } from "@/components/layout/page-header";
@@ -14,7 +15,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { EHourClock } from "@/components/scroll-time/EHourClock";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Gavel, BookText, Check, BarChart2 } from "lucide-react";
+import { Gavel, BookText, Check, BarChart2, Play, Scale } from "lucide-react";
 
 const Index = () => {
   const [judicialMode, setJudicialMode] = useState(false);
@@ -83,7 +84,7 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="bg-transparent border-justice-tertiary">
             <CardHeader className="border-b border-justice-dark">
               <CardTitle className="flex items-center">
@@ -173,6 +174,37 @@ const Index = () => {
               </ul>
               <Button asChild className="w-full bg-justice-primary hover:bg-justice-secondary">
                 <Link to="/case-classification?tab=predict">Open Prediction Tool</Link>
+              </Button>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-transparent border-justice-tertiary">
+            <CardHeader className="border-b border-justice-dark">
+              <CardTitle className="flex items-center">
+                <Play className="w-5 h-5 mr-2" />
+                Trial Simulation
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="text-sm text-muted-foreground mb-4">
+                Experience realistic courtroom simulations with AI-powered trial scenarios and outcomes.
+              </div>
+              <ul className="text-sm space-y-2 mb-4">
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Voice-enabled proceedings</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Interactive evidence presentation</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-justice-light mr-2" />
+                  <span>Real-time outcome analysis</span>
+                </li>
+              </ul>
+              <Button asChild className="w-full bg-justice-primary hover:bg-justice-secondary">
+                <Link to="/simulation-trial">Open Trial Simulator</Link>
               </Button>
             </CardContent>
           </Card>

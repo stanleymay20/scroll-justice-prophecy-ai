@@ -13,7 +13,9 @@ import {
   FileText, 
   Gavel,
   Files,
-  Upload
+  Upload,
+  Scale,
+  Play
 } from "lucide-react";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
@@ -84,6 +86,12 @@ export const mainNavItems = [
     href: "/case-classification",
     icon: <Gavel className="w-5 h-5" />,
     highlight: true,
+  },
+  {
+    title: "Trial Simulation",
+    href: "/simulation-trial",
+    icon: <Play className="w-5 h-5" />,
+    badge: "New",
   },
   {
     title: "Document Upload",
