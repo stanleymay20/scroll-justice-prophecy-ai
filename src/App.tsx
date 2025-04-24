@@ -16,6 +16,7 @@ import LegalSystems from "./pages/LegalSystems";
 import CaseClassification from "./pages/CaseClassification";
 import DocumentUpload from "./pages/DocumentUpload";
 import SimulationTrial from "./pages/SimulationTrial";
+import AITraining from "./pages/AITraining";
 import NotFound from "./pages/NotFound";
 
 // Create a client
@@ -61,6 +62,7 @@ const App = () => {
             <Route path="/case-classification" element={<CaseClassification />} />
             <Route path="/document-upload" element={<DocumentUpload />} />
             <Route path="/simulation-trial" element={<SimulationTrial />} />
+            <Route path="/ai-training" element={<AITraining />} />
             <Route path="/file-manager" element={<Navigate to="/document-upload" />} />
             <Route path="/legal-systems" element={<LegalSystems />} />
             <Route path="/docs" element={<Navigate to="/legal-systems" />} />

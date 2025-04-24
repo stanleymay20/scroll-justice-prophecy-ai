@@ -15,7 +15,8 @@ import {
   Files,
   Upload,
   Scale,
-  Play
+  Play,
+  Brain
 } from "lucide-react";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
@@ -92,6 +93,13 @@ export const mainNavItems = [
     href: "/simulation-trial",
     icon: <Play className="w-5 h-5" />,
     badge: "New",
+  },
+  {
+    title: "AI Training",
+    href: "/ai-training",
+    icon: <Brain className="w-5 h-5" />,
+    badge: "New",
+    highlight: true,
   },
   {
     title: "Document Upload",

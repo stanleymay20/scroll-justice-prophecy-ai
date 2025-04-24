@@ -149,3 +149,68 @@ export interface GlobalLegalMetrics {
   human_rights_compliance: number;
 }
 
+// New AI Enhancement Types
+export interface AIModel {
+  id: string;
+  name: string;
+  version: string;
+  capabilities: AIModelCapability[];
+  accuracy: number;
+  trainingSize: number;
+  lastUpdated: Date;
+  activeUsers: number;
+  feedback: AIFeedback[];
+}
+
+export type AIModelCapability = 
+  'classification' | 
+  'prediction' | 
+  'summarization' | 
+  'citation' | 
+  'research' | 
+  'drafting' | 
+  'translation' | 
+  'transcription' | 
+  'evidence_analysis' |
+  'sentiment_analysis';
+
+export interface AIFeedback {
+  id: string;
+  userId: string;
+  modelId: string;
+  rating: number; // 1-5
+  comment?: string;
+  area: AIModelCapability;
+  timestamp: Date;
+  resolved: boolean;
+  resolutionNotes?: string;
+}
+
+export interface AIEthicsMetrics {
+  bias_score: number; // Lower is better
+  fairness_score: number; // Higher is better
+  transparency_score: number; // Higher is better
+  human_rights_alignment: number; // Higher is better
+  diversity_representation: number; // Higher is better
+}
+
+export interface AIBenchmark {
+  id: string;
+  name: string;
+  description: string;
+  testCases: number;
+  humanExpertScore: number;
+  aiModelScore: number;
+  timeEfficiencyRatio: number; // AI time / Human time, lower is better
+  costEfficiencyRatio: number; // AI cost / Human cost, lower is better
+  lastRun: Date;
+}
+
+export interface DocumentProcessingMetrics {
+  processing_speed: number; // Pages per second
+  extraction_accuracy: number;
+  formatting_quality: number;
+  search_relevance: number;
+  language_support: string[];
+  ocr_accuracy: number;
+}
