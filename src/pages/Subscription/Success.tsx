@@ -6,7 +6,7 @@ import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
-import { Confetti, Check } from "lucide-react";
+import { Check } from "lucide-react";
 
 const SubscriptionSuccess = () => {
   const { user } = useAuth();
