@@ -17,6 +17,7 @@ import {
   FormLabel,
   FormMessage
 } from "@/components/ui/form";
+import { Shield } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -26,13 +27,11 @@ const formSchema = z.object({
     .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
     .regex(/[0-9]/, { message: "Password must contain at least one number" }),
   confirmPassword: z.string(),
-  terms: z.boolean({
-    required_error: "You must accept the terms and conditions",
-  }).refine(val => val === true, {
-    message: "You must accept the terms and conditions",
+  terms: z.boolean().refine(val => val === true, {
+    message: "You must accept the sacred terms and conditions",
   }),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: "Sacred passwords don't match",
   path: ["confirmPassword"],
 });
 
@@ -55,7 +54,7 @@ const SignUp = () => {
     try {
       setErrorMessage("");
       await signUp(data.email, data.password);
-      setSuccessMessage("Check your email for a verification link to complete your registration.");
+      setSuccessMessage("Check your email for a verification link to complete your sacred registration.");
       form.reset();
     } catch (error: any) {
       setErrorMessage(error.message || "An error occurred during sign up");
@@ -66,17 +65,26 @@ const SignUp = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-justice-dark to-black p-4">
       <GlassCard className="w-full max-w-md p-8">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-justice-light/80">Sign up for FastTrackJusticeAI</p>
+          <div className="flex justify-center mb-6">
+            <div className="h-16 w-16 rounded-full bg-justice-primary/20 flex items-center justify-center animate-pulse-glow">
+              <Shield className="h-8 w-8 text-justice-primary" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            <span className="bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 text-transparent bg-clip-text">
+              Join ScrollJustice.AI
+            </span>
+          </h1>
+          <p className="text-justice-light/80">Create your sacred account</p>
         </div>
         
         {successMessage ? (
           <div className="text-center p-4">
-            <div className="p-3 bg-green-900/20 border border-green-500/50 rounded mb-4 text-white">
+            <div className="p-4 bg-green-900/20 border border-green-500/50 rounded-lg mb-4 text-white">
               {successMessage}
             </div>
-            <Button asChild className="mt-4">
-              <Link to="/signin">Go to Sign In</Link>
+            <Button asChild className="mt-4 bg-gradient-to-r from-justice-primary to-justice-secondary hover:opacity-90 transition-opacity">
+              <Link to="/signin">Return to Sacred Portal</Link>
             </Button>
           </div>
         ) : (
@@ -93,6 +101,7 @@ const SignUp = () => {
                         placeholder="your@email.com" 
                         {...field} 
                         disabled={loading}
+                        className="bg-black/50"
                       />
                     </FormControl>
                     <FormMessage />
@@ -105,13 +114,14 @@ const SignUp = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Sacred Password</FormLabel>
                     <FormControl>
                       <Input 
                         type="password" 
                         placeholder="••••••••" 
                         {...field} 
                         disabled={loading}
+                        className="bg-black/50"
                       />
                     </FormControl>
                     <FormMessage />
@@ -124,13 +134,14 @@ const SignUp = () => {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>Confirm Sacred Password</FormLabel>
                     <FormControl>
                       <Input 
                         type="password" 
                         placeholder="••••••••" 
                         {...field} 
                         disabled={loading}
+                        className="bg-black/50"
                       />
                     </FormControl>
                     <FormMessage />
@@ -148,17 +159,18 @@ const SignUp = () => {
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         disabled={loading}
+                        className="data-[state=checked]:bg-justice-primary data-[state=checked]:border-justice-primary"
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
                       <FormLabel className="text-sm font-normal">
-                        I agree to the{" "}
+                        I accept the{" "}
                         <Link to="/terms" className="text-justice-primary hover:underline">
-                          Terms of Service
+                          Sacred Terms
                         </Link>{" "}
                         and{" "}
                         <Link to="/privacy" className="text-justice-primary hover:underline">
-                          Privacy Policy
+                          Privacy Covenant
                         </Link>
                       </FormLabel>
                       <FormMessage />
@@ -173,8 +185,12 @@ const SignUp = () => {
                 </div>
               )}
               
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Creating Account..." : "Create Account"}
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-justice-primary to-justice-secondary hover:opacity-90 transition-opacity"
+                disabled={loading}
+              >
+                {loading ? "Creating Sacred Account..." : "Create Sacred Account"}
               </Button>
             </form>
           </Form>
@@ -182,7 +198,7 @@ const SignUp = () => {
         
         <div className="mt-6 text-center">
           <p className="text-justice-light/60 text-sm">
-            Already have an account?{" "}
+            Already have a sacred account?{" "}
             <Link to="/signin" className="text-justice-primary font-medium hover:underline">
               Sign In
             </Link>

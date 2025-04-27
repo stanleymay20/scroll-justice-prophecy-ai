@@ -1,8 +1,11 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
+
+type UserRole = "witness" | "advocate" | "steward" | "judge" | "admin";
 
 type AuthContextType = {
   session: Session | null;
@@ -13,6 +16,9 @@ type AuthContextType = {
   loading: boolean;
   subscriptionStatus: "active" | "inactive" | "pending" | null;
   subscriptionTier: string | null;
+  userRole: UserRole | null;
+  isCheckingSubscription: boolean;
+  checkSubscription: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<"active" | "inactive" | "pending" | null>(null);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,38 +53,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkSubscription(session.user.id);
+        fetchUserProfile(session.user.id);
+        checkSubscription();
       }
       setLoading(false);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
-        checkSubscription(session.user.id);
+        await fetchUserProfile(session.user.id);
+        await checkSubscription();
+      } else {
+        setUserRole(null);
+        setSubscriptionStatus("inactive");
+        setSubscriptionTier(null);
       }
+      
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkSubscription = async (userId: string) => {
+  const fetchUserProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from("subscriptions")
-        .select("status, tier")
-        .eq("user_id", userId)
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
         .single();
 
       if (error) throw error;
-
+      
       if (data) {
-        setSubscriptionStatus(data.status as any);
-        setSubscriptionTier(data.tier);
+        setUserRole(data.role as UserRole);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
+
+  const checkSubscription = async () => {
+    if (!user) return;
+    
+    try {
+      setIsCheckingSubscription(true);
+      console.log("Checking subscription for user:", user.id);
+      
+      const { data, error } = await supabase.functions.invoke("check-subscription");
+      
+      if (error) {
+        console.error("Error invoking check-subscription function:", error);
+        throw error;
+      }
+      
+      console.log("Subscription verification response:", data);
+      
+      if (data?.subscribed) {
+        setSubscriptionStatus("active");
+        setSubscriptionTier(data.subscription_tier);
       } else {
         setSubscriptionStatus("inactive");
         setSubscriptionTier(null);
@@ -85,6 +125,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Error checking subscription:", error);
       setSubscriptionStatus("inactive");
       setSubscriptionTier(null);
+      toast({
+        title: "Subscription Error",
+        description: "Could not verify your subscription status. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCheckingSubscription(false);
     }
   };
 
@@ -94,7 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast({
-        title: "Welcome back!",
+        title: "Welcome to ScrollJustice.AI",
         description: "You've been signed in successfully.",
       });
       navigate("/dashboard");
@@ -112,11 +159,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signUp = async (email: string, password: string) => {
     try {
       setLoading(true);
+      const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
       const { error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: `${siteUrl}/auth/callback`
         }
       });
       if (error) throw error;
@@ -167,6 +215,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         loading,
         subscriptionStatus,
         subscriptionTier,
+        userRole,
+        isCheckingSubscription,
+        checkSubscription,
       }}
     >
       {children}
