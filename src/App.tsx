@@ -9,9 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 // Pages
-import Landing from "./pages/Landing"; // New landing page
-import Dashboard from "./pages/Dashboard"; // New dashboard
-import AccessDenied from "./pages/AccessDenied"; // New access denied page
+import Index from "./pages/Index";
 import PrecedentExplorer from "./pages/PrecedentExplorer";
 import ScrollMemory from "./pages/ScrollMemory";
 import PrinciplesPage from "./pages/PrinciplesPage";
@@ -51,7 +49,7 @@ const queryClient = new QueryClient({
 const App = () => {
   // Add console logging to help with debugging
   useEffect(() => {
-    console.log("ScrollJustice.AI initialized");
+    console.log("App component mounted");
     
     // Log window dimensions to help with responsive design debugging
     const logDimensions = () => {
@@ -60,8 +58,6 @@ const App = () => {
     
     logDimensions();
     window.addEventListener('resize', logDimensions);
-    
-    document.title = "ScrollJustice.AI";
     
     return () => {
       window.removeEventListener('resize', logDimensions);
@@ -75,13 +71,12 @@ const App = () => {
           <TooltipProvider>
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<Landing />} />
+              <Route path="/" element={<Index />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/update-password" element={<UpdatePassword />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/access-denied" element={<AccessDenied />} />
               
               {/* Subscription Routes */}
               <Route path="/subscription/plans" element={<SubscriptionPlans />} />
@@ -95,17 +90,7 @@ const App = () => {
                 } 
               />
               
-              {/* Dashboard - Protected */}
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* User Profile - Protected */}
+              {/* Protected Routes */}
               <Route 
                 path="/profile" 
                 element={
@@ -115,7 +100,7 @@ const App = () => {
                 } 
               />
               
-              {/* Basic Features - Some protected */}
+              {/* Basic Tier Routes - Free or any subscription */}
               <Route path="/precedent" element={<PrecedentExplorer />} />
               <Route path="/scroll-memory" element={<ScrollMemory />} />
               <Route path="/principles" element={<PrinciplesPage />} />
@@ -123,43 +108,6 @@ const App = () => {
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/scroll-time" element={<ScrollTimePage />} />
               <Route path="/legal-systems" element={<LegalSystems />} />
-              
-              {/* ScrollJustice.AI Core Routes - All Protected */}
-              <Route 
-                path="/courtrooms" 
-                element={
-                  <ProtectedRoute>
-                    <div>Courtrooms</div>
-                  </ProtectedRoute>
-                } 
-              />
-              
-              <Route 
-                path="/community" 
-                element={
-                  <ProtectedRoute>
-                    <div>Community</div>
-                  </ProtectedRoute>
-                } 
-              />
-              
-              <Route 
-                path="/documents" 
-                element={
-                  <ProtectedRoute>
-                    <div>Documents</div>
-                  </ProtectedRoute>
-                } 
-              />
-              
-              <Route 
-                path="/messages" 
-                element={
-                  <ProtectedRoute>
-                    <div>Messages</div>
-                  </ProtectedRoute>
-                } 
-              />
               
               {/* Professional Tier Routes */}
               <Route 
@@ -198,10 +146,11 @@ const App = () => {
               />
               
               {/* Redirects */}
-              <Route path="/file-manager" element={<Navigate to="/documents" />} />
+              <Route path="/file-manager" element={<Navigate to="/document-upload" />} />
               <Route path="/docs" element={<Navigate to="/legal-systems" />} />
+              <Route path="/dashboard" element={<Navigate to="/" />} />
               
-              {/* 404 Page */}
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />
