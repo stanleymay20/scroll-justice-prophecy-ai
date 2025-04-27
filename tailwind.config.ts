@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -24,6 +23,7 @@ export default {
         justice: {
           primary: "#9b87f5", // Main purple accent
           secondary: "#7E69AB", // Secondary purple
+          tertiary: "#6E59A5", // Tertiary purple for borders and subtle elements
           light: "#D6BCFA", // Light purple for highlights
           dark: "#1a1a2e", // Dark background
           gold: "#FFD700", // Gold accents
