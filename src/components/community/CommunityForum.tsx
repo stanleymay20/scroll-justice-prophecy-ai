@@ -63,7 +63,8 @@ export function CommunityForum() {
       const formattedPosts: Post[] = data?.map(post => ({
         id: post.id,
         user_id: post.user_id,
-        username: post.profiles?.username || 'Anonymous Witness',
+        // Fix: Access the first item in the profiles array or use a default value
+        username: post.profiles && post.profiles[0]?.username || 'Anonymous Witness',
         title: post.title,
         content: post.content,
         category: post.category as PostCategory,
