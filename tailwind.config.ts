@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -58,7 +59,7 @@ export default {
         justice: {
           primary: '#9b87f5', // Primary purple
           secondary: '#7E69AB', // Secondary purple
-          tertiary: '#6E59A5', // Tertiary purple
+          tertiary: '#6E59A5', // Tertiary purple - Added this
           dark: '#1A1F2C', // Dark purple
           light: '#D6BCFA', // Light purple
           neutral: '#8E9196', // Neutral gray

@@ -17,6 +17,7 @@ const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const { user, loading, subscriptionStatus, subscriptionTier } = useAuth();
   const location = useLocation();
+  const siteUrl = import.meta.env.VITE_SITE_URL || 'https://lovable.dev/projects/f7d71f55-ae04-491e-87d0-df4a10e1f669/preview';
 
   // Check if user has the required subscription tier
   const hasRequiredTier = () => {
@@ -44,7 +45,8 @@ const ProtectedRoute = ({
 
   if (!user) {
     // Redirect to login page and save the current location
-    return <Navigate to={`/signin?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+    const redirectPath = `${siteUrl}/signin?redirect=${encodeURIComponent(location.pathname)}`;
+    return <Navigate to={redirectPath} replace />;
   }
 
   if (requireSubscription && subscriptionStatus !== "active") {
