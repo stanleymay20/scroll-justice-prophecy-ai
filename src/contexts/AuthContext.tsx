@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 
 type AuthContextType = {
@@ -29,6 +29,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Show warning if Supabase is not properly configured
+    if (!isSupabaseConfigured()) {
+      console.warn("Supabase is not properly configured. Authentication and database features will not work correctly.");
+      toast({
+        title: "Configuration Error",
+        description: "Authentication services are not properly configured. Please check environment variables.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
