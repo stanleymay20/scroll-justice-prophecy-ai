@@ -99,7 +99,7 @@ export function FeedbackHub() {
       if (error) throw error;
       
       if (data) {
-        const formattedFeedback = data.map((item: FeedbackData) => ({
+        const formattedFeedback: SessionFeedback[] = data.map((item: any) => ({
           id: item.id,
           session_id: item.session_id,
           user_id: item.user_id,

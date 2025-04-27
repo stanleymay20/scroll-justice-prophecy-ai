@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 // Use the environment variables with the provided values
@@ -13,10 +12,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce',
-    redirect: {
-      login: `${siteUrl}/signin`,
-      callback: `${siteUrl}/auth/callback`
-    }
+    storage: localStorage
   }
 });
 
