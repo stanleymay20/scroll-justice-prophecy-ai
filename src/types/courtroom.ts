@@ -1,5 +1,4 @@
 
-
 export type CourtSessionStatus = 
   | "scheduled" 
   | "in-progress" 
@@ -32,13 +31,7 @@ export type CourtSession = {
   is_encrypted: boolean;
   prayer_completed: boolean;
   flame_integrity_score?: number;
-  emergency_alerts?: {
-    id: string;
-    user_id: string;
-    message: string;
-    timestamp: string;
-    resolved: boolean;
-  }[];
+  emergency_alerts?: EmergencyAlert[];
 };
 
 export type OathStatus = "not_taken" | "pending" | "completed";
@@ -87,8 +80,8 @@ export type SessionFeedback = {
   id: string;
   session_id: string;
   user_id: string;
-  username: string; // Added username property
-  session_title: string; // Added session_title property
+  username: string;
+  session_title: string;
   rating: FeedbackRating;
   testimony: string;
   created_at: string;
