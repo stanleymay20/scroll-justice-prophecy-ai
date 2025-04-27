@@ -86,6 +86,8 @@ export type SessionFeedback = {
   id: string;
   session_id: string;
   user_id: string;
+  username?: string; // Added username property
+  session_title?: string; // Added session_title property
   rating: FeedbackRating;
   testimony: string;
   created_at: string;

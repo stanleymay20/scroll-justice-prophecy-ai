@@ -26,6 +26,27 @@ interface FeedbackStats {
   };
 }
 
+interface ProfileData {
+  username?: string;
+  avatar_url?: string;
+}
+
+interface CourtSessionData {
+  title?: string;
+}
+
+interface FeedbackData {
+  id: string;
+  session_id: string;
+  user_id: string;
+  rating: FeedbackRating;
+  testimony: string;
+  created_at: string;
+  is_anonymous: boolean;
+  profiles?: ProfileData;
+  court_sessions?: CourtSessionData;
+}
+
 export function FeedbackHub() {
   const [feedback, setFeedback] = useState<SessionFeedback[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,7 +99,7 @@ export function FeedbackHub() {
       if (error) throw error;
       
       if (data) {
-        const formattedFeedback = data.map(item => ({
+        const formattedFeedback = data.map((item: FeedbackData) => ({
           id: item.id,
           session_id: item.session_id,
           user_id: item.user_id,
