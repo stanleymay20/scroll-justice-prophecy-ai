@@ -25,9 +25,16 @@ const SubscriptionSuccess = () => {
 
       try {
         setLoading(true);
+        console.log("Verifying subscription for user:", user.id);
+        
         const { data, error } = await supabase.functions.invoke("check-subscription");
         
-        if (error) throw error;
+        if (error) {
+          console.error("Error invoking check-subscription function:", error);
+          throw error;
+        }
+        
+        console.log("Subscription verification response:", data);
         
         if (data?.subscribed) {
           setVerificationSuccess(true);

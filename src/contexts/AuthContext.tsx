@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
@@ -29,7 +28,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Show warning if Supabase is not properly configured
+    console.log("Auth Provider initialized with Supabase configuration");
+    
     if (!isSupabaseConfigured()) {
       console.warn("Supabase is not properly configured. Authentication and database features will not work correctly.");
       toast({
@@ -41,7 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return;
     }
 
-    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -51,7 +50,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setLoading(false);
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {

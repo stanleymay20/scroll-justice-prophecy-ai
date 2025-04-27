@@ -1,20 +1,12 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Check for the environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Use the environment variables with the provided values
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://rgstpbaljoamkhjhomzp.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJnc3RwYmFsam9hbWtoamhvbXpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NjYxMzMsImV4cCI6MjA2MTM0MjEzM30.DLpKUaIo0REcRQzCAYV1bxW2bqqIdHNcsgBYf9SNRuE';
 
-// Ensure environment variables are defined
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables. Please check your environment configuration.');
-}
-
-// Initialize Supabase client with fallback values for development
-export const supabase = createClient(
-  supabaseUrl || 'https://your-project-id.supabase.co', 
-  supabaseAnonKey || 'your-anon-key'
-);
+// Initialize Supabase client with the provided credentials
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Export helper to check if Supabase is properly configured
 export const isSupabaseConfigured = () => {
