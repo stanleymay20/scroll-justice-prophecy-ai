@@ -6,11 +6,11 @@ import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import { ExternalLink, Info, Loader2 } from "lucide-react";
+import { ExternalLink, Info, Loader2, RefreshCw } from "lucide-react";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 
 const ManageSubscription = () => {
-  const { user, subscriptionTier, subscriptionStatus } = useAuth();
+  const { user, subscriptionTier, subscriptionStatus, subscriptionEnd, checkSubscriptionStatus } = useAuth();
   const [loading, setLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
   const navigate = useNavigate();
@@ -20,6 +20,15 @@ const ManageSubscription = () => {
       navigate("/signin?redirect=/subscription/manage");
     }
   }, [user, navigate]);
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   const formatTier = (tier: string | null) => {
     if (!tier) return "None";
@@ -60,16 +69,11 @@ const ManageSubscription = () => {
   const refreshSubscriptionStatus = async () => {
     try {
       setCheckingStatus(true);
-      await supabase.functions.invoke("check-subscription");
+      await checkSubscriptionStatus();
       toast({
         title: "Subscription status updated",
         description: "Your subscription information has been refreshed.",
       });
-      
-      // Wait a moment and then refresh the page to show updated status
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
     } catch (error: any) {
       console.error("Error refreshing subscription:", error);
       toast({
@@ -86,9 +90,9 @@ const ManageSubscription = () => {
     <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">Manage Your Subscription</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">Sacred Subscription Management</h1>
           <p className="text-justice-light/80">
-            View and manage your FastTrackJusticeAI subscription details.
+            View and manage your ScrollJustice.AI subscription details.
           </p>
         </div>
 
@@ -115,6 +119,13 @@ const ManageSubscription = () => {
               </div>
             </div>
             
+            {subscriptionEnd && (
+              <div>
+                <h3 className="text-justice-light/70 mb-1">Renews On</h3>
+                <p className="text-white">{formatDate(subscriptionEnd)}</p>
+              </div>
+            )}
+            
             <div className="pt-4 border-t border-white/10">
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
@@ -125,7 +136,7 @@ const ManageSubscription = () => {
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading...
+                      Opening Portal...
                     </>
                   ) : (
                     <>
@@ -147,7 +158,10 @@ const ManageSubscription = () => {
                       Refreshing...
                     </>
                   ) : (
-                    "Refresh Status"
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Refresh Status
+                    </>
                   )}
                 </Button>
               </div>

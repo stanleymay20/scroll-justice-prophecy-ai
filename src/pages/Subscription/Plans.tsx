@@ -3,17 +3,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
-import { Check, X } from "lucide-react";
+import { Check, X, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import type { SubscriptionPlan, SubscriptionTier } from "@/types/subscription";
 
+// Subscription plan data
 const plans: SubscriptionPlan[] = [
   {
     id: "basic",
     name: "Basic",
-    description: "Essential legal tools for individuals",
+    description: "Essential sacred legal tools for individuals",
     price: 0,
     tier: "basic",
     features: [
@@ -80,7 +81,7 @@ const SubscriptionPlans = () => {
       
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
-          priceId: plan.id === "professional" ? "price_professional" : "price_enterprise",
+          priceId: plan.id, // We'll map this to the actual price ID in the function
           returnUrl: `${window.location.origin}/subscription/success`
         }
       });
@@ -128,9 +129,9 @@ const SubscriptionPlans = () => {
     <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">Choose Your Plan</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">Sacred Subscription Plans</h1>
           <p className="text-justice-light/80 max-w-2xl mx-auto">
-            Select the subscription plan that best fits your needs. Upgrade anytime to access more features.
+            Select the subscription plan that best fits your justice journey. Upgrade anytime to access more sacred features.
           </p>
         </div>
 
@@ -182,7 +183,14 @@ const SubscriptionPlans = () => {
                 }`}
                 disabled={loading !== null || isCurrentPlan(plan.tier)}
               >
-                {getButtonLabel(plan)}
+                {loading === plan.id ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {getButtonLabel(plan)}
+                  </>
+                ) : (
+                  getButtonLabel(plan)
+                )}
               </Button>
               
               {isCurrentPlan(plan.tier) && (
@@ -195,7 +203,7 @@ const SubscriptionPlans = () => {
         </div>
 
         <div className="mt-16 text-center">
-          <h2 className="text-2xl font-semibold text-white mb-6">Plan Comparison</h2>
+          <h2 className="text-2xl font-semibold text-white mb-6">Sacred Plan Comparison</h2>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>

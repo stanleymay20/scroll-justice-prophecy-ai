@@ -3,11 +3,12 @@ import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
+import { SubscriptionTier } from "@/types/subscription";
 
 interface ProtectedRouteProps {
   children: ReactNode;
   requireSubscription?: boolean;
-  requiredTier?: "basic" | "professional" | "enterprise";
+  requiredTier?: SubscriptionTier;
 }
 
 const ProtectedRoute = ({ 
@@ -15,17 +16,23 @@ const ProtectedRoute = ({
   requireSubscription = false,
   requiredTier
 }: ProtectedRouteProps) => {
-  const { user, loading, subscriptionStatus, subscriptionTier } = useAuth();
+  const { user, loading, subscriptionStatus, subscriptionTier, checkSubscriptionStatus } = useAuth();
   const location = useLocation();
-  const siteUrl = import.meta.env.VITE_SITE_URL || 'https://lovable.dev/projects/f7d71f55-ae04-491e-87d0-df4a10e1f669/preview';
+
+  // Check subscription on mount and when changing routes
+  useEffect(() => {
+    if (user && requireSubscription) {
+      checkSubscriptionStatus();
+    }
+  }, [user, requireSubscription, checkSubscriptionStatus]);
 
   // Check if user has the required subscription tier
   const hasRequiredTier = () => {
     if (!requiredTier) return true;
     
-    const tierHierarchy = ["basic", "professional", "enterprise"];
+    const tierHierarchy: SubscriptionTier[] = ["basic", "professional", "enterprise"];
     const requiredTierIndex = tierHierarchy.indexOf(requiredTier);
-    const currentTierIndex = tierHierarchy.indexOf(subscriptionTier as any);
+    const currentTierIndex = tierHierarchy.indexOf(subscriptionTier as SubscriptionTier);
     
     return subscriptionStatus === "active" && currentTierIndex >= requiredTierIndex;
   };
@@ -37,7 +44,7 @@ const ProtectedRoute = ({
           <div className="flex justify-center mb-4">
             <PulseEffect color="bg-justice-primary" size="lg" />
           </div>
-          <p className="text-justice-light/80">Loading...</p>
+          <p className="text-justice-light/80">Consulting the sacred scrolls...</p>
         </div>
       </div>
     );
@@ -45,8 +52,7 @@ const ProtectedRoute = ({
 
   if (!user) {
     // Redirect to login page and save the current location
-    const redirectPath = `${siteUrl}/signin?redirect=${encodeURIComponent(location.pathname)}`;
-    return <Navigate to={redirectPath} replace />;
+    return <Navigate to={`/signin?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
   if (requireSubscription && subscriptionStatus !== "active") {

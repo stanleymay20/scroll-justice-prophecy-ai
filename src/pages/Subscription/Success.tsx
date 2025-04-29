@@ -4,15 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 import { Check } from "lucide-react";
 
 const SubscriptionSuccess = () => {
-  const { user } = useAuth();
+  const { user, checkSubscriptionStatus, subscriptionStatus, subscriptionTier } = useAuth();
   const [loading, setLoading] = useState(true);
   const [verificationAttempts, setVerificationAttempts] = useState(0);
-  const [verificationSuccess, setVerificationSuccess] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,59 +25,51 @@ const SubscriptionSuccess = () => {
         setLoading(true);
         console.log("Verifying subscription for user:", user.id);
         
-        const { data, error } = await supabase.functions.invoke("check-subscription");
+        await checkSubscriptionStatus();
         
-        if (error) {
-          console.error("Error invoking check-subscription function:", error);
-          throw error;
-        }
-        
-        console.log("Subscription verification response:", data);
-        
-        if (data?.subscribed) {
-          setVerificationSuccess(true);
-        } else if (verificationAttempts < 3) {
+        if (subscriptionStatus !== "active" && verificationAttempts < 5) {
           // Try again after a delay - subscription info might take time to propagate
           setTimeout(() => {
             setVerificationAttempts(prev => prev + 1);
           }, 2000);
+        } else {
+          setLoading(false);
         }
       } catch (error) {
         console.error("Error verifying subscription:", error);
-      } finally {
         setLoading(false);
       }
     };
 
     verifySubscription();
-  }, [user, navigate, verificationAttempts]);
+  }, [user, navigate, verificationAttempts, checkSubscriptionStatus, subscriptionStatus]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-justice-dark to-black p-4">
       <GlassCard className="w-full max-w-md p-8 text-center">
         {loading ? (
           <>
-            <h2 className="text-2xl font-semibold text-white mb-6">Verifying your subscription...</h2>
+            <h2 className="text-2xl font-semibold text-white mb-6">Verifying your sacred subscription...</h2>
             <div className="flex justify-center mb-6">
               <PulseEffect color="bg-justice-primary" size="lg" />
             </div>
             <p className="text-justice-light/80">
-              Please wait while we confirm your subscription details.
+              Please wait while we confirm your subscription details in the sacred database.
             </p>
           </>
-        ) : verificationSuccess ? (
+        ) : subscriptionStatus === "active" ? (
           <>
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
                 <Check className="h-8 w-8 text-green-500" />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-4">Subscription Successful!</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">Sacred Subscription Activated!</h2>
             <p className="text-justice-light/80 mb-8">
-              Thank you for subscribing to FastTrackJusticeAI. Your account has been upgraded and you now have access to premium features.
+              Thank you for subscribing to ScrollJustice.AI. Your account has been blessed with {subscriptionTier} access and you now have access to premium features.
             </p>
             <div className="space-y-4">
-              <Button onClick={() => navigate("/dashboard")} className="w-full">
+              <Button onClick={() => navigate("/")} className="w-full">
                 Go to Dashboard
               </Button>
               <Button 
@@ -93,20 +83,23 @@ const SubscriptionSuccess = () => {
           </>
         ) : (
           <>
-            <h2 className="text-2xl font-bold text-white mb-4">Something went wrong</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">Verification in progress</h2>
             <p className="text-justice-light/80 mb-8">
-              We couldn't verify your subscription status. Your payment might have been processed, but our systems haven't updated yet.
+              Your payment is being processed. Your subscription should be activated shortly. If your subscription is not activated within a few minutes, please try refreshing the page.
             </p>
             <div className="space-y-4">
-              <Button onClick={() => navigate("/dashboard")} className="w-full">
+              <Button onClick={() => navigate("/")} className="w-full">
                 Go to Dashboard
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => navigate("/subscription/plans")}
+                onClick={() => {
+                  setLoading(true);
+                  setVerificationAttempts(0);
+                }}
                 className="w-full"
               >
-                View Plans
+                Check Again
               </Button>
             </div>
           </>

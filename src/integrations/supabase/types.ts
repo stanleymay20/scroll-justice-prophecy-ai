@@ -332,6 +332,39 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          customer_id: string | null
+          id: string
+          price_id: string | null
+          status: string
+          tier: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          customer_id?: string | null
+          id?: string
+          price_id?: string | null
+          status?: string
+          tier?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          customer_id?: string | null
+          id?: string
+          price_id?: string | null
+          status?: string
+          tier?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       witness_summons: {
         Row: {
           expires_at: string
