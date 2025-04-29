@@ -37,7 +37,7 @@ enabled = true
 
 [auth]
 enabled = true
-site_url = "https://preview-39349760--scroll-justice-prophecy-ai.lovable.app"
+site_url = "https://preview-da2a66b3--scroll-justice-prophecy-ai.lovable.app"
 
 [auth.email]
 enable_signup = true
@@ -75,3 +75,6 @@ verify_jwt = true
 
 [functions.create-courtroom]
 verify_jwt = true
+
+[functions.mcp-emergency-notification]
+verify_jwt = false

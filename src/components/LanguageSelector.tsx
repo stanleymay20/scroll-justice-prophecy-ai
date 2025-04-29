@@ -8,37 +8,42 @@ import {
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Globe } from "lucide-react";
+import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 
 export function LanguageSelector() {
   const { language, setLanguage, t } = useLanguage();
 
+  const languages = [
+    { code: "en", name: "English", flag: "🇬🇧" },
+    { code: "fr", name: "Français", flag: "🇫🇷" },
+    { code: "es", name: "Español", flag: "🇪🇸" }
+  ];
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 gap-1">
+        <Button variant="ghost" size="sm" className="h-8 gap-1.5">
           <Globe className="h-4 w-4" />
           <span className="hidden sm:inline-block">{t("nav.language")}</span>
+          {language !== "en" && (
+            <PulseEffect size="sm" color="bg-justice-tertiary" />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-justice-dark border-justice-light/20">
-        <DropdownMenuItem 
-          onClick={() => setLanguage("en")}
-          className={language === "en" ? "bg-justice-primary/20" : ""}
-        >
-          🇬🇧 English
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setLanguage("fr")}
-          className={language === "fr" ? "bg-justice-primary/20" : ""}
-        >
-          🇫🇷 Français
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setLanguage("es")}
-          className={language === "es" ? "bg-justice-primary/20" : ""}
-        >
-          🇪🇸 Español
-        </DropdownMenuItem>
+        {languages.map(lang => (
+          <DropdownMenuItem 
+            key={lang.code}
+            onClick={() => setLanguage(lang.code as "en" | "fr" | "es")}
+            className={`flex items-center gap-2 ${language === lang.code ? "bg-justice-primary/20" : ""}`}
+          >
+            <span>{lang.flag}</span>
+            <span>{lang.name}</span>
+            {language === lang.code && (
+              <span className="ml-auto text-justice-primary text-xs">✓</span>
+            )}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

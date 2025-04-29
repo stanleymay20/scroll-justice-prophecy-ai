@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ShieldAlert, AlertTriangle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
+import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 
 interface EmergencyAlertProps {
   sessionId: string;
@@ -90,19 +91,22 @@ export function EmergencyAlert({ sessionId, userId }: EmergencyAlertProps) {
         <Button 
           variant="destructive" 
           size="sm"
-          className="gap-1.5"
+          className="gap-1.5 relative"
         >
           <ShieldAlert className="h-4 w-4" />
           <span>Emergency Alert</span>
+          <div className="absolute -top-1 -right-1">
+            <PulseEffect color="bg-red-500" size="sm" />
+          </div>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-justice-dark border-justice-light/20">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-white">
             <AlertTriangle className="h-5 w-5 text-destructive" />
             Emergency Whisper Alert
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-justice-light/80">
             This will alert court stewards to an urgent issue. Use this for serious violations of sacred justice principles only.
           </DialogDescription>
         </DialogHeader>
@@ -110,7 +114,7 @@ export function EmergencyAlert({ sessionId, userId }: EmergencyAlertProps) {
         <div className="space-y-4 py-4">
           <Textarea
             placeholder="Describe the emergency situation or justice violation..."
-            className="min-h-[100px]"
+            className="min-h-[100px] bg-black/30 border-justice-light/20 text-justice-light"
             value={alertMessage}
             onChange={(e) => setAlertMessage(e.target.value)}
           />

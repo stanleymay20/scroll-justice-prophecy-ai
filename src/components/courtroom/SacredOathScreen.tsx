@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollText, Shield } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/lib/supabase";
+import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 
 interface SacredOathScreenProps {
   userId: string;
@@ -18,11 +19,7 @@ export function SacredOathScreen({ userId, onComplete, sessionId }: SacredOathSc
   const [submitting, setSubmitting] = useState(false);
   const { t } = useLanguage();
   
-  const oathText = `I solemnly swear to uphold the principles of truth and justice in this sacred proceeding.
-  I will speak with integrity and honor, seeking only what is right and just.
-  I will show respect to all witnesses, advocates, and participants.
-  I will not knowingly speak falsehood or distort truth.
-  I acknowledge that this oath is sacred and binds me to the principles of justice in this court.`;
+  const oathText = "I solemnly affirm to seek justice with truth, mercy, and purity.";
   
   const handleSubmitOath = async () => {
     if (!agreed) return;
@@ -77,7 +74,7 @@ export function SacredOathScreen({ userId, onComplete, sessionId }: SacredOathSc
         </div>
         
         <div className="bg-black/30 border border-justice-tertiary/30 rounded-lg p-6 mb-6">
-          <p className="text-white font-serif whitespace-pre-line">
+          <p className="text-white font-serif text-center text-xl">
             {oathText}
           </p>
         </div>
@@ -98,11 +95,16 @@ export function SacredOathScreen({ userId, onComplete, sessionId }: SacredOathSc
           </div>
           
           <Button 
-            className="w-full"
+            className="w-full relative"
             disabled={!agreed || submitting}
             onClick={handleSubmitOath}
           >
             {submitting ? "Processing..." : t('oath.confirm')}
+            {agreed && !submitting && (
+              <div className="absolute -top-1 -right-1">
+                <PulseEffect color="bg-justice-primary" />
+              </div>
+            )}
           </Button>
         </div>
       </GlassCard>

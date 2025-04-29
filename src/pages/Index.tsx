@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { SystemMetricsPanel } from "@/components/dashboard/SystemMetricsPanel";
 import { CaseList } from "@/components/dashboard/CaseList";
 import { ScrollPhaseIndicator } from "@/components/dashboard/ScrollPhaseIndicator";
 import { MetaTags } from "@/components/MetaTags";
+import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 
 // Mock data for demo purposes
 const mockSystemHealth = {
@@ -146,10 +146,13 @@ const Index = () => {
                   </Button>
                   <Button 
                     variant="default"
-                    className="bg-justice-tertiary hover:bg-justice-tertiary/80"
+                    className="bg-justice-tertiary hover:bg-justice-tertiary/80 relative"
                     onClick={() => navigate("/simulation-trial")}
                   >
-                    Start Simulation Trial
+                    <span>Start Simulation Trial</span>
+                    <div className="absolute -top-1 -right-1">
+                      <PulseEffect color="bg-justice-primary" />
+                    </div>
                   </Button>
                 </div>
               </GlassCard>
@@ -192,11 +195,14 @@ const Index = () => {
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start"
+                    className="w-full justify-start relative"
                     onClick={() => navigate("/community")}
                   >
                     <Shield className="mr-2 h-4 w-4" />
                     Community Forum
+                    <div className="absolute top-1 right-2">
+                      <PulseEffect size="sm" color="bg-justice-tertiary" />
+                    </div>
                   </Button>
                   <Button 
                     variant="outline" 

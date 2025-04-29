@@ -9,6 +9,9 @@ export const isStripeConfigured = () => {
   return !!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 };
 
+// Import supabase client for making API calls
+import { supabase } from '@/integrations/supabase/client';
+
 // Create a Stripe checkout session
 export const createCheckoutSession = async (priceId: string, returnUrl: string) => {
   try {
@@ -65,6 +68,3 @@ export const hasAccess = (userTier: string | null, requiredTier: "basic" | "prof
   
   return userTierIndex >= requiredTierIndex;
 };
-
-// Import supabase client for making API calls
-import { supabase } from './supabase';
