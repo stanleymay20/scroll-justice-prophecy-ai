@@ -1,384 +1,279 @@
 
-import { useState, useEffect } from "react";
-import { Sidebar } from "@/components/layout/sidebar";
-import { PageHeader } from "@/components/layout/page-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollPhaseIndicator } from "@/components/dashboard/ScrollPhaseIndicator";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/advanced-ui/GlassCard";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { NavBar } from "@/components/layout/NavBar";
+import { ScrollText, Shield, Scale, Gavel } from "lucide-react";
+import { AnimatedValue } from "@/components/advanced-ui/AnimatedValue";
 import { SystemMetricsPanel } from "@/components/dashboard/SystemMetricsPanel";
 import { CaseList } from "@/components/dashboard/CaseList";
-import { cases, principles, scrollMemories, systemHealth, graphData } from "@/services/mockData";
-import { ForceGraph } from "@/components/visualizations/ForceGraph";
-import { ScrollMemoryTrail } from "@/components/scroll-memory/ScrollMemoryTrail";
-import { Toggle } from "@/components/ui/toggle";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { EHourClock } from "@/components/scroll-time/EHourClock";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Gavel, BookText, Check, BarChart2, Play, Scale } from "lucide-react";
+import { ScrollPhaseIndicator } from "@/components/dashboard/ScrollPhaseIndicator";
 
 const Index = () => {
-  const [judicialMode, setJudicialMode] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const { t } = useLanguage();
+  const navigate = useNavigate();
   
+  // Log mount for debugging
   useEffect(() => {
     console.log("Index page mounted");
-    setIsLoaded(true);
   }, []);
-  
-  const caseTitleMap = cases.reduce((acc, c) => ({
-    ...acc,
-    [c.case_id]: c.title
-  }), {} as Record<string, string>);
-  
-  const currentPhase = scrollMemories[0]?.scroll_phase || "DAWN";
-  const currentGate = scrollMemories[0]?.gate || 3;
 
-  if (!isLoaded) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-background">
-        <div className="text-center p-4">
-          <div className="text-2xl font-semibold mb-2 text-primary">FastTrackJusticeAI</div>
-          <p className="text-sm text-muted-foreground">Loading system...</p>
-        </div>
-      </div>
-    );
-  }
-
+  const features = [
+    {
+      icon: <ScrollText className="h-6 w-6 text-justice-primary" />,
+      title: "Sacred Precedents",
+      description: "Access the ancient scroll library of legal precedents and principles",
+    },
+    {
+      icon: <Shield className="h-6 w-6 text-justice-primary" />,
+      title: "Secure Courtrooms",
+      description: "Participate in encrypted sacred court sessions with oath protection",
+    },
+    {
+      icon: <Scale className="h-6 w-6 text-justice-primary" />,
+      title: "Justice Analysis",
+      description: "Gain insights from advanced scroll analytics and pattern recognition",
+    },
+    {
+      icon: <Gavel className="h-6 w-6 text-justice-primary" />,
+      title: "Simulation Trials",
+      description: "Practice in safe, simulated court environments before real proceedings",
+    },
+  ];
+  
   return (
-    <div className="flex flex-col md:flex-row min-h-screen">
-      <Sidebar currentPhase={currentPhase} currentGate={currentGate} />
-
-      <div className="flex-1 p-4 md:p-8 bg-gradient-to-b from-justice-dark to-black min-h-screen overflow-x-hidden">
-        <PageHeader 
-          heading="FastTrackJusticeAI Dashboard" 
-          text="Global Justice Intelligence with Scroll Memory"
-          systemHealth={systemHealth}
-          showExportButton
-          onExport={() => console.log("Export requested")}
-        />
-
-        <div className="mt-4 md:mt-8 flex flex-col md:flex-row md:items-center justify-between">
-          <h2 className="text-lg md:text-xl font-semibold text-white mb-2 md:mb-0">System Overview</h2>
-          <div className="flex items-center space-x-2">
-            <Toggle
-              variant="outline"
-              aria-label="Toggle judicial mode"
-              pressed={judicialMode}
-              onPressedChange={setJudicialMode}
-              className="data-[state=on]:bg-justice-primary"
-            >
-              Judicial Mode
-            </Toggle>
+    <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
+      <NavBar />
+      
+      {user ? (
+        // Dashboard for authenticated users
+        <div className="pt-20 pb-16 px-4 container mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {t("app.title")} <span className="text-justice-primary">Dashboard</span>
+            </h1>
+            <p className="text-justice-light/80">
+              Welcome back, {user.email?.split("@")[0]}
+            </p>
           </div>
-        </div>
-        
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          <div className="md:col-span-2">
-            <SystemMetricsPanel data={systemHealth} />
-          </div>
-          <div className="grid grid-cols-1 gap-4">
-            <ScrollPhaseIndicator phase={currentPhase} gate={currentGate} />
-            <EHourClock showDetails={false} />
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-transparent border-justice-tertiary">
-            <CardHeader className="border-b border-justice-dark">
-              <CardTitle className="flex items-center">
-                <Gavel className="w-5 h-5 mr-2" />
-                Case Classification
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground mb-4">
-                Automatically categorize legal cases across 200+ legal domains with our advanced AI system.
-              </div>
-              <ul className="text-sm space-y-2 mb-4">
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Precise legal taxonomy mapping</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Jurisdiction-aware analysis</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Precedent matching</span>
-                </li>
-              </ul>
-              <Button asChild className="w-full bg-justice-primary hover:bg-justice-secondary">
-                <Link to="/case-classification">Open Classification Tool</Link>
-              </Button>
-            </CardContent>
-          </Card>
           
-          <Card className="bg-transparent border-justice-tertiary">
-            <CardHeader className="border-b border-justice-dark">
-              <CardTitle className="flex items-center">
-                <BookText className="w-5 h-5 mr-2" />
-                Case Summarization
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground mb-4">
-                Extract key information from lengthy case documents with our NLP-powered summarization engine.
-              </div>
-              <ul className="text-sm space-y-2 mb-4">
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Key party identification</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Critical fact extraction</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Legal issue highlighting</span>
-                </li>
-              </ul>
-              <Button asChild className="w-full bg-justice-primary hover:bg-justice-secondary">
-                <Link to="/case-classification?tab=summarize">Open Summarization Tool</Link>
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-transparent border-justice-tertiary">
-            <CardHeader className="border-b border-justice-dark">
-              <CardTitle className="flex items-center">
-                <BarChart2 className="w-5 h-5 mr-2" />
-                Outcome Prediction
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground mb-4">
-                Leverage historical case data and machine learning to predict potential legal outcomes.
-              </div>
-              <ul className="text-sm space-y-2 mb-4">
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Success probability estimates</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Damages range projections</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Strategic recommendations</span>
-                </li>
-              </ul>
-              <Button asChild className="w-full bg-justice-primary hover:bg-justice-secondary">
-                <Link to="/case-classification?tab=predict">Open Prediction Tool</Link>
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-transparent border-justice-tertiary">
-            <CardHeader className="border-b border-justice-dark">
-              <CardTitle className="flex items-center">
-                <Play className="w-5 h-5 mr-2" />
-                Trial Simulation
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground mb-4">
-                Experience realistic courtroom simulations with AI-powered trial scenarios and outcomes.
-              </div>
-              <ul className="text-sm space-y-2 mb-4">
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Voice-enabled proceedings</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Interactive evidence presentation</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-4 h-4 text-justice-light mr-2" />
-                  <span>Real-time outcome analysis</span>
-                </li>
-              </ul>
-              <Button asChild className="w-full bg-justice-primary hover:bg-justice-secondary">
-                <Link to="/simulation-trial">Open Trial Simulator</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="graph" className="mt-6">
-          <TabsList className="bg-justice-dark/50 w-full overflow-x-auto">
-            <TabsTrigger value="graph">Precedent Graph</TabsTrigger>
-            <TabsTrigger value="cases">Recent Cases</TabsTrigger>
-            <TabsTrigger value="memory">Scroll Memory</TabsTrigger>
-            <TabsTrigger value="ehours">eHour Timing</TabsTrigger>
-          </TabsList>
-          <TabsContent value="graph" className="mt-4">
-            <Card className="border-justice-tertiary bg-transparent">
-              <CardHeader className="border-b border-justice-dark">
-                <CardTitle>Live Precedent Graph Explorer</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 flex justify-center">
-                <ForceGraph data={graphData} height={isMobile ? 300 : 500} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="cases" className="mt-4">
-            <Card className="border-justice-tertiary bg-transparent">
-              <CardHeader className="border-b border-justice-dark">
-                <CardTitle>Recent Cases</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 overflow-auto">
-                <CaseList cases={cases} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="memory" className="mt-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-              {scrollMemories.map(memory => (
-                <ScrollMemoryTrail 
-                  key={memory.trail_id}
-                  memory={memory}
-                  cases={caseTitleMap}
-                />
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="ehours" className="mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <Card className="border-justice-tertiary bg-transparent">
-                <CardHeader className="border-b border-justice-dark">
-                  <CardTitle>Scroll eHour System</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="mb-4">
-                    <EHourClock showDetails={true} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 space-y-6">
+              <GlassCard className="p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Sacred Justice Metrics</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="bg-black/30 rounded-lg p-4 text-center">
+                    <p className="text-justice-light/70 text-sm mb-1">Active Cases</p>
+                    <AnimatedValue 
+                      value={23} 
+                      className="text-2xl font-bold text-white"
+                    />
                   </div>
-                  <div className="space-y-4 mt-6">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">About Scroll eHours</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Unlike standard hours, scroll eHours are based on solar time and shift daily according to 
-                        sunrise and sunset. Each scroll day consists of exactly 12 eHours, with each eHour's duration 
-                        changing throughout the year.
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">eHour Distribution</h3>
-                      <ul className="list-disc list-inside text-sm text-muted-foreground">
-                        <li>eHours 1-4: <span className="text-scroll-dawn">DAWN phase</span></li>
-                        <li>eHours 5-8: <span className="text-scroll-rise">RISE phase</span></li>
-                        <li>eHours 9-12: <span className="text-scroll-ascend">ASCEND phase</span></li>
-                      </ul>
-                    </div>
+                  <div className="bg-black/30 rounded-lg p-4 text-center">
+                    <p className="text-justice-light/70 text-sm mb-1">Courts</p>
+                    <AnimatedValue 
+                      value={7} 
+                      className="text-2xl font-bold text-white"
+                    />
                   </div>
-                </CardContent>
-              </Card>
-              <Card className="border-justice-tertiary bg-transparent">
-                <CardHeader className="border-b border-justice-dark">
-                  <CardTitle>eHour Task Alignment</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="space-y-4">
-                    <div className="bg-scroll-dawn/20 p-3 rounded-md">
-                      <h3 className="font-semibold text-scroll-dawn">DAWN Phase (eHours 1-4)</h3>
-                      <p className="text-sm mt-1">Optimal for initial case review, evidence collection, and preliminary assessments.</p>
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        Case preparation activities align with the awakening scroll energy.
-                      </div>
-                    </div>
-                    <div className="bg-scroll-rise/20 p-3 rounded-md">
-                      <h3 className="font-semibold text-scroll-rise">RISE Phase (eHours 5-8)</h3>
-                      <p className="text-sm mt-1">Peak time for legal reasoning, argumentation, and principle development.</p>
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        The elevation of intellectual engagement supports critical analysis.
-                      </div>
-                    </div>
-                    <div className="bg-scroll-ascend/20 p-3 rounded-md">
-                      <h3 className="font-semibold text-scroll-ascend">ASCEND Phase (eHours 9-12)</h3>
-                      <p className="text-sm mt-1">Reserved for judgment rendering, decision finalization, and transcendent insight.</p>
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        Harmonizes with the divine architecture of justice for optimal prophetic alignment.
-                      </div>
-                    </div>
+                  <div className="bg-black/30 rounded-lg p-4 text-center">
+                    <p className="text-justice-light/70 text-sm mb-1">Precedents</p>
+                    <AnimatedValue 
+                      value={342} 
+                      className="text-2xl font-bold text-white"
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        {judicialMode && (
-          <div className="mt-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-semibold text-white">Judicial Insights & Recommendations</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="border-justice-tertiary bg-justice-dark text-white p-4 md:p-6">
-                <div className="text-center p-2 md:p-4 mb-4">
-                  <div className="text-xl md:text-2xl font-semibold mb-2">Divine Architecture Insight</div>
-                  <p className="italic text-justice-light max-w-3xl mx-auto text-sm md:text-base">
-                    "The principles of equality and human dignity appear in alignment with Gate 3 scroll prophecies. 
-                    Current legal evolution trajectory shows 87% concordance with the DAWN phase revelations on justice and mercy equilibrium."
-                  </p>
-                </div>
-                <div className="flex flex-wrap justify-center mt-4 space-x-2 md:space-x-4">
-                  <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
-                    <div className="text-xs md:text-sm text-muted-foreground">Alignment Score</div>
-                    <div className="text-xl md:text-2xl font-bold text-justice-light">87%</div>
-                  </div>
-                  <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
-                    <div className="text-xs md:text-sm text-muted-foreground">Scroll Phase</div>
-                    <div className="text-xl md:text-2xl font-bold text-scroll-dawn">DAWN</div>
-                  </div>
-                  <div className="bg-justice-tertiary/20 p-2 md:p-3 rounded-lg text-center mb-2">
-                    <div className="text-xs md:text-sm text-muted-foreground">Gate</div>
-                    <div className="text-xl md:text-2xl font-bold text-justice-light">3</div>
-                  </div>
-                </div>
-              </Card>
-              
-              <Card className="border-justice-tertiary bg-justice-dark text-white p-4 md:p-6">
-                <h3 className="text-lg font-semibold mb-4">Judicial Recommendations</h3>
-                
-                <div className="space-y-3">
-                  <div className="bg-justice-tertiary/20 p-3 rounded-lg">
-                    <h4 className="font-medium text-justice-primary">Case Classification</h4>
-                    <p className="text-sm mt-1">
-                      Recommended to apply DAWN phase principles for initial case categorization, emphasizing equality considerations in contractual disputes.
-                    </p>
-                  </div>
-                  
-                  <div className="bg-justice-tertiary/20 p-3 rounded-lg">
-                    <h4 className="font-medium text-justice-primary">Evidence Handling</h4>
-                    <p className="text-sm mt-1">
-                      Gate 3 alignment suggests prioritizing documentary evidence over testimonial during the current scroll phase for optimal judicial outcomes.
-                    </p>
-                  </div>
-                  
-                  <div className="bg-justice-tertiary/20 p-3 rounded-lg">
-                    <h4 className="font-medium text-justice-primary">Strategic Timing</h4>
-                    <p className="text-sm mt-1">
-                      Schedule critical case decisions during eHours 9-12 (ASCEND) to maximize divine architectural resonance with judicial wisdom.
-                    </p>
+                  <div className="bg-black/30 rounded-lg p-4 text-center">
+                    <p className="text-justice-light/70 text-sm mb-1">Justice Score</p>
+                    <AnimatedValue 
+                      value={98.7} 
+                      decimals={1}
+                      suffix="%"
+                      className="text-2xl font-bold text-white"
+                    />
                   </div>
                 </div>
                 
-                <div className="mt-4">
-                  <Button asChild className="w-full bg-justice-primary hover:bg-justice-secondary">
-                    <Link to="/case-classification">Apply Judicial Insights to Cases</Link>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <Button onClick={() => navigate("/precedent")}>
+                    Browse Precedents
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/case-classification")}>
+                    Case Classification
+                  </Button>
+                  <Button 
+                    variant="default"
+                    className="bg-justice-tertiary hover:bg-justice-tertiary/80"
+                    onClick={() => navigate("/simulation-trial")}
+                  >
+                    Start Simulation Trial
                   </Button>
                 </div>
-              </Card>
+              </GlassCard>
+              
+              <SystemMetricsPanel />
+              
+              <GlassCard className="p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Recent Cases</h2>
+                <CaseList />
+              </GlassCard>
+            </div>
+            
+            <div className="space-y-6">
+              <GlassCard className="p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Sacred Scroll Phase</h2>
+                <ScrollPhaseIndicator />
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4"
+                  onClick={() => navigate("/scroll-time")}
+                >
+                  View Scroll Calendar
+                </Button>
+              </GlassCard>
+              
+              <GlassCard className="p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
+                <div className="space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => navigate("/document-upload")}
+                  >
+                    <ScrollText className="mr-2 h-4 w-4" />
+                    Upload Evidence
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => navigate("/community")}
+                  >
+                    <Shield className="mr-2 h-4 w-4" />
+                    Community Forum
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => navigate("/principles")}
+                  >
+                    <Scale className="mr-2 h-4 w-4" />
+                    Sacred Principles
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => navigate("/analytics")}
+                  >
+                    <Gavel className="mr-2 h-4 w-4" />
+                    Justice Analytics
+                  </Button>
+                </div>
+              </GlassCard>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        // Landing page for unauthenticated users
+        <>
+          <div className="relative px-4 pt-32 pb-20 sm:px-6 lg:px-8 lg:pt-40 lg:pb-28 flex flex-col items-center">
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="bg-gradient-to-br from-justice-dark to-black h-full w-full" />
+            </div>
+            <div className="relative max-w-7xl mx-auto">
+              <div className="text-center">
+                <h1 className="text-4xl md:text-6xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl">
+                  {t("app.title")}
+                </h1>
+                <p className="mt-4 max-w-3xl mx-auto text-xl text-justice-light">
+                  {t("app.tagline")}
+                </p>
+                <div className="mt-8 flex justify-center space-x-4">
+                  <Button size="lg" onClick={() => navigate("/signin")}>
+                    {t("nav.signin")}
+                  </Button>
+                  <Button size="lg" variant="outline" onClick={() => navigate("/signup")}>
+                    Register
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full max-w-7xl mx-auto mt-20">
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                {features.map((feature, index) => (
+                  <GlassCard key={index} className="p-6" glow={index === 1}>
+                    <div className="p-2 bg-justice-primary/20 rounded-lg w-fit mb-4">
+                      {feature.icon}
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+                    <p className="text-justice-light/80">{feature.description}</p>
+                  </GlassCard>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-justice-dark/50">
+            <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+              <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
+                <div>
+                  <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
+                    Sacred Justice for the Digital Age
+                  </h2>
+                  <p className="mt-3 max-w-3xl text-lg text-justice-light">
+                    ScrollJustice.AI combines ancient wisdom with cutting-edge technology to deliver a 
+                    revolutionary legal platform. Access precedents, participate in secure court sessions, 
+                    and receive AI-powered insights.
+                  </p>
+                  <div className="mt-8">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <Shield className="h-6 w-6 text-justice-primary" />
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-lg font-medium text-white">Secure & Encrypted</h3>
+                        <p className="mt-2 text-justice-light/80">
+                          All court sessions and evidence are protected by ScrollSeal encryption.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center mt-6">
+                      <div className="flex-shrink-0">
+                        <ScrollText className="h-6 w-6 text-justice-primary" />
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-lg font-medium text-white">Ancient Knowledge</h3>
+                        <p className="mt-2 text-justice-light/80">
+                          Access thousands of years of legal precedents and sacred principles.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-10 lg:mt-0">
+                  <GlassCard className="p-6">
+                    <h3 className="text-xl font-bold text-white mb-4">Experience Sacred Justice</h3>
+                    <p className="text-justice-light/80 mb-6">
+                      Join thousands of legal professionals already using ScrollJustice.AI to transform their practice.
+                    </p>
+                    <Button 
+                      className="w-full" 
+                      onClick={() => navigate("/subscription/plans")}
+                    >
+                      View Sacred Plans
+                    </Button>
+                  </GlassCard>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

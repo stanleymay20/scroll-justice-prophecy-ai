@@ -129,8 +129,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       navigate("/");
     } catch (error: any) {
       toast({
-        title: "Sign in failed",
-        description: error.message || "Please check your credentials and try again",
+        title: "Sacred challenge appeared",
+        description: "Please verify your scroll credentials and try again",
         variant: "destructive",
       });
     } finally {
@@ -155,8 +155,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
     } catch (error: any) {
       toast({
-        title: "Sign up failed",
-        description: error.message || "Please try again with a different email",
+        title: "Sacred scrolls are troubled",
+        description: "Please try again with different scroll credentials",
         variant: "destructive",
       });
     } finally {
