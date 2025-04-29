@@ -11,6 +11,44 @@ import { AnimatedValue } from "@/components/advanced-ui/AnimatedValue";
 import { SystemMetricsPanel } from "@/components/dashboard/SystemMetricsPanel";
 import { CaseList } from "@/components/dashboard/CaseList";
 import { ScrollPhaseIndicator } from "@/components/dashboard/ScrollPhaseIndicator";
+import { MetaTags } from "@/components/MetaTags";
+
+// Mock data for demo purposes
+const mockSystemHealth = {
+  overall: 96.5,
+  delta: 2.3,
+  cases_analyzed: 1250,
+  precedent_accuracy: 94.2,
+  jurisdictional_coverage: 89.7
+};
+
+const mockCases = [
+  {
+    case_id: "SCJ-2025-042",
+    title: "Sacred Principles of Digital Evidence",
+    principle: "Truth Preservation",
+    scroll_alignment: "DAWN Phase, Gate 3",
+    confidence: 0.95
+  },
+  {
+    case_id: "SCJ-2025-039",
+    title: "Global Jurisdictional Boundaries",
+    principle: "Equitable Access",
+    scroll_alignment: "RISE Phase, Gate 5",
+    confidence: 0.88
+  },
+  {
+    case_id: "SCJ-2025-036",
+    title: "AI Witness Credibility Assessment",
+    principle: "Technological Integrity",
+    scroll_alignment: "ASCEND Phase, Gate 2",
+    confidence: 0.72
+  }
+];
+
+// Current scroll phase and gate
+const currentScrollPhase = "RISE";
+const currentScrollGate = 4;
 
 const Index = () => {
   const { user } = useAuth();
@@ -47,6 +85,7 @@ const Index = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
+      <MetaTags title={user ? "Dashboard" : "Welcome"} />
       <NavBar />
       
       {user ? (
@@ -115,18 +154,21 @@ const Index = () => {
                 </div>
               </GlassCard>
               
-              <SystemMetricsPanel />
+              <SystemMetricsPanel data={mockSystemHealth} />
               
               <GlassCard className="p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Recent Cases</h2>
-                <CaseList />
+                <CaseList cases={mockCases} />
               </GlassCard>
             </div>
             
             <div className="space-y-6">
               <GlassCard className="p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Sacred Scroll Phase</h2>
-                <ScrollPhaseIndicator />
+                <ScrollPhaseIndicator 
+                  phase={currentScrollPhase as any} 
+                  gate={currentScrollGate as any} 
+                />
                 
                 <Button 
                   variant="outline" 
