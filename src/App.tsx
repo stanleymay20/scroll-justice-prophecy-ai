@@ -23,6 +23,7 @@ import SimulationTrial from "./pages/SimulationTrial";
 import AITraining from "./pages/AITraining";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
+import { CommunityForum } from "./components/community/CommunityForum";
 
 // Auth Pages
 import SignIn from "./pages/Auth/SignIn";
@@ -99,6 +100,9 @@ const App = () => {
                   </ProtectedRoute>
                 } 
               />
+              
+              {/* Community Forum */}
+              <Route path="/community" element={<CommunityForum />} />
               
               {/* Basic Tier Routes - Free or any subscription */}
               <Route path="/precedent" element={<PrecedentExplorer />} />
