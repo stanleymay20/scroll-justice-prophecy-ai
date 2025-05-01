@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { PageHeader } from "@/components/layout/page-header";
@@ -7,7 +6,7 @@ import { systemHealth } from "@/services/mockData";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollPhase, Case } from "@/types";
+import { ScrollPhase, Case, ScrollGate } from "@/types";
 import { Search, Filter, Tag, MapPin, Calendar, BookOpen, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -45,7 +44,10 @@ const PrecedentExplorer = () => {
   
   // Get the current scroll phase and gate from the first precedent
   const currentPhase = precedents[0]?.scroll_phase || "DAWN";
-  const currentGate = parseInt(precedents[0]?.scroll_gate?.replace("Gate ", "") || "3");
+  // Convert the gate string (e.g., "Gate 3") to a number (3) and ensure it's a valid ScrollGate type
+  const gateNumber = parseInt(precedents[0]?.scroll_gate?.replace("Gate ", "") || "3");
+  // Ensure the gate is within the valid range (1-7)
+  const currentGate = (gateNumber >= 1 && gateNumber <= 7 ? gateNumber : 3) as ScrollGate;
   
   // Fetch precedents from Supabase
   useEffect(() => {
