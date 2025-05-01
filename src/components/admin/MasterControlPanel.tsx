@@ -39,7 +39,7 @@ export function MasterControlPanel() {
         .limit(50);
         
       if (logsError) throw logsError;
-      setIntegrityLogs(logs as ScrollIntegrityLog[]);
+      setIntegrityLogs(logs as unknown as ScrollIntegrityLog[]);
       
       // In a real application, we would fetch actual system health metrics
       
