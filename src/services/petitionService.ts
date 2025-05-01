@@ -39,6 +39,16 @@ export async function fetchPetitionById(id: string): Promise<ScrollPetition> {
   }
 }
 
+// Interface matching Supabase's expected insert type
+interface PetitionInsert {
+  title: string;
+  description: string;
+  petitioner_id: string;
+  status?: string;
+  scroll_integrity_score?: number;
+  is_sealed: boolean;
+}
+
 // Create a new petition
 export async function createPetition(petition: Partial<ScrollPetition>): Promise<ScrollPetition> {
   try {
@@ -47,9 +57,19 @@ export async function createPetition(petition: Partial<ScrollPetition>): Promise
       throw new Error('Missing required fields for petition creation');
     }
 
+    // Create a properly typed object for insertion
+    const petitionToInsert: PetitionInsert = {
+      title: petition.title,
+      description: petition.description,
+      petitioner_id: petition.petitioner_id,
+      status: petition.status || 'pending',
+      scroll_integrity_score: petition.scroll_integrity_score,
+      is_sealed: petition.is_sealed || false,
+    };
+
     const { data, error } = await supabase
       .from('scroll_petitions')
-      .insert(petition)
+      .insert(petitionToInsert)
       .select();
       
     if (error) throw error;
@@ -158,6 +178,16 @@ export async function getAiSuggestedVerdict(
   }
 }
 
+// Interface matching Supabase's expected insert type for evidence
+interface EvidenceInsert {
+  petition_id: string;
+  file_path: string;
+  file_type: string;
+  description?: string;
+  is_sealed?: boolean;
+  uploaded_by: string;
+}
+
 // Upload evidence for a petition
 export async function uploadEvidence(
   petitionId: string,
@@ -176,7 +206,7 @@ export async function uploadEvidence(
     if (uploadError) throw uploadError;
     
     // Create evidence record
-    const evidence = {
+    const evidence: EvidenceInsert = {
       petition_id: petitionId,
       file_path: filePath,
       file_type: file.type,
