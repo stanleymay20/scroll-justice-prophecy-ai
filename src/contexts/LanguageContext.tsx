@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 // Define language codes as string literal types
@@ -308,8 +309,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
       return savedLanguage as LanguageCode;
     }
     
-    // Try to detect browser language
-    const browserLang = navigator.language.split('-')[0];
+    // Try to detect browser language and normalize it
+    const browserLang = navigator.language.split('-')[0]; // Remove region code, e.g., 'en-US' -> 'en'
     if (isValidLanguageCode(browserLang)) {
       return browserLang as LanguageCode;
     }
@@ -329,7 +330,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     // Update document language for accessibility
     document.documentElement.setAttribute('lang', language);
     
-    // Optional: You could add special handling for RTL languages here
+    // Handle RTL languages
     const rtlLanguages = ['ar', 'he'];
     if (rtlLanguages.includes(language)) {
       document.documentElement.setAttribute('dir', 'rtl');
