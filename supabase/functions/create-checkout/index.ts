@@ -83,28 +83,36 @@ serve(async (req) => {
 
     logStep("Creating checkout session with metadata", sessionMetadata);
     
-    // Create a checkout session
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price: stripePriceId,
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-      success_url: returnUrl || `${req.headers.get("origin")}/subscription/success`,
-      cancel_url: `${req.headers.get("origin")}/subscription/plans`,
-      metadata: sessionMetadata
-    });
-    
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    try {
+      // Create a checkout session
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [
+          {
+            price: stripePriceId,
+            quantity: 1,
+          },
+        ],
+        mode: "subscription",
+        success_url: returnUrl || `${req.headers.get("origin")}/subscription/success`,
+        cancel_url: `${req.headers.get("origin")}/subscription/plans`,
+        metadata: sessionMetadata
+      });
+      
+      logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    } catch (stripeError) {
+      logStep("Stripe error", { error: stripeError.message, code: stripeError.code });
+      return new Response(JSON.stringify({ error: stripeError.message }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
+    }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });

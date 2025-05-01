@@ -29,8 +29,8 @@ export const tierNames = {
 // Actual Stripe Price IDs (these should be replaced with your actual Stripe Price IDs)
 export const stripePriceIds = {
   'basic': 'price_basic', // Free tier doesn't need a price ID
-  'professional': 'price_1PlW1vJYFIBeCvefB7J5dIQb', // Replace with actual Professional tier price ID
-  'enterprise': 'price_1PlW2NJYFIBeCvefVkrv0SOl'  // Replace with actual Enterprise tier price ID
+  'professional': 'price_1PlW1vJYFIBeCvefB7J5dIQb',
+  'enterprise': 'price_1PlW2NJYFIBeCvefVkrv0SOl'
 };
 
 // Create a Stripe checkout session
@@ -45,6 +45,12 @@ export const createCheckoutSession = async (priceId: string, returnUrl: string) 
     
     // Map the tier or role to the actual Stripe Price ID
     const stripePriceId = stripePriceIds[priceId] || priceId;
+    
+    console.log("Creating checkout with price ID:", {
+      original: priceId,
+      mapped: stripePriceId,
+      allPriceIds: stripePriceIds
+    });
     
     const { data, error } = await supabase.functions.invoke("create-checkout", {
       body: {

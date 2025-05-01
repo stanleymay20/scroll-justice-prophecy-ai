@@ -19,6 +19,11 @@ export function LanguageSelector() {
     { code: "es", name: "Español", flag: "🇪🇸" }
   ];
 
+  const handleLanguageChange = (lang: "en" | "fr" | "es") => {
+    console.log("Changing language to:", lang);
+    setLanguage(lang);
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -34,7 +39,7 @@ export function LanguageSelector() {
         {languages.map(lang => (
           <DropdownMenuItem 
             key={lang.code}
-            onClick={() => setLanguage(lang.code as "en" | "fr" | "es")}
+            onClick={() => handleLanguageChange(lang.code as "en" | "fr" | "es")}
             className={`flex items-center gap-2 ${language === lang.code ? "bg-justice-primary/20" : ""}`}
           >
             <span>{lang.flag}</span>

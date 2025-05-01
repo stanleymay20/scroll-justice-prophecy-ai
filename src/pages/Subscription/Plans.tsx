@@ -7,6 +7,7 @@ import { Check, X, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
+import { stripePriceIds } from "@/lib/stripe";
 import type { SubscriptionPlan, SubscriptionTier } from "@/types/subscription";
 
 // Subscription plan data
@@ -82,9 +83,19 @@ const SubscriptionPlans = () => {
       // Force refresh subscription status before proceeding
       await checkSubscriptionStatus();
       
+      // Check if this tier has a valid price ID
+      if (!stripePriceIds[plan.id]) {
+        throw new Error(`No price ID configured for ${plan.name} plan`);
+      }
+      
+      console.log("Starting checkout for plan:", {
+        planId: plan.id,
+        priceId: stripePriceIds[plan.id]
+      });
+      
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
-          priceId: plan.id, // We'll map this to the actual price ID in the function
+          priceId: stripePriceIds[plan.id], // Pass the actual Stripe Price ID
           returnUrl: `${window.location.origin}/subscription/success`
         }
       });
