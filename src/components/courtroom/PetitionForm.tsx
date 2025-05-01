@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { GlassCard } from '@/components/advanced-ui/GlassCard';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, AlertTriangle, Upload } from 'lucide-react';
-import { createPetition, analyzeContent } from '@/services/petitionService';
-import { uploadEvidence } from '@/services/petitionService';
+import { createPetition } from '@/services/petitionQueries';
+import { uploadEvidence } from '@/services/evidenceService';
+import { analyzeContent } from '@/services/integrityService';
 import { ScrollPetition } from '@/types/petition';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
@@ -97,8 +97,8 @@ export function PetitionForm({ onPetitionCreated, onCancel }: PetitionFormProps)
       const createdPetition = await createPetition(newPetition);
       
       // Handle evidence upload if present
-      if (evidence && createdPetition.id) {
-        await uploadEvidence(createdPetition.id, evidence);
+      if (evidence && createdPetition.id && user.id) {
+        await uploadEvidence(createdPetition.id, evidence, user.id);
       }
       
       toast({

@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
+import { ScrollEvidence } from '@/types/petition';
 
 // Ensure the evidence bucket exists
 export const ensureEvidenceBucketExists = async (): Promise<boolean> => {
@@ -37,8 +37,8 @@ export const ensureEvidenceBucketExists = async (): Promise<boolean> => {
 
 // Upload evidence file
 export const uploadEvidence = async (
-  file: File,
   petitionId: string,
+  file: File,
   userId: string
 ): Promise<{ success: boolean; filePath?: string; error?: string }> => {
   try {
@@ -94,7 +94,7 @@ export const uploadEvidence = async (
 };
 
 // Get all evidence for a petition
-export const getEvidenceForPetition = async (petitionId: string) => {
+export const getEvidenceForPetition = async (petitionId: string): Promise<ScrollEvidence[]> => {
   try {
     const { data, error } = await supabase
       .from('scroll_evidence')
@@ -107,6 +107,21 @@ export const getEvidenceForPetition = async (petitionId: string) => {
     console.error("Error fetching evidence:", error);
     return [];
   }
+};
+
+// Get public URL for evidence file path
+export const getEvidencePublicUrl = (filePath: string): string => {
+  // Check if the filepath is already a complete URL
+  if (filePath.startsWith('http')) {
+    return filePath;
+  }
+  
+  // Otherwise, get the public URL from Supabase
+  const { data } = supabase.storage
+    .from('scroll_evidence')
+    .getPublicUrl(filePath);
+    
+  return data.publicUrl;
 };
 
 // Delete evidence

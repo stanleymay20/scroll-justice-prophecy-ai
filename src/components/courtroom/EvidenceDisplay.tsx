@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { GlassCard } from '@/components/advanced-ui/GlassCard';
 import { ScrollEvidence } from '@/types/petition';
-import { getPetitionEvidence, getEvidencePublicUrl } from '@/services/petitionService';
+import { getEvidenceForPetition, getEvidencePublicUrl } from '@/services/evidenceService';
 import { Loader2, File, Image, FileVideo, FileAudio, FileText, Download, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -23,7 +22,7 @@ export function EvidenceDisplay({ petitionId, isSealed = false, canView = true }
     const loadEvidence = async () => {
       try {
         setLoading(true);
-        const evidenceData = await getPetitionEvidence(petitionId);
+        const evidenceData = await getEvidenceForPetition(petitionId);
         setEvidence(evidenceData);
       } catch (err: any) {
         console.error('Error loading evidence:', err);
