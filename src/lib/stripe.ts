@@ -26,11 +26,11 @@ export const tierNames = {
   'enterprise': 'Elder Judge'
 };
 
-// Actual Stripe Price IDs (replace with your actual Stripe Price IDs)
+// Actual Stripe Price IDs
 export const stripePriceIds = {
-  'basic': 'price_basic', // Free tier doesn't need a price ID
-  'professional': 'price_1PlW1vJYFIBeCvefB7J5dIQb', // Replace with your professional tier price ID
-  'enterprise': 'price_1PlW2NJYFIBeCvefVkrv0SOl'  // Replace with your enterprise tier price ID
+  'basic': 'price_1RK5vjJYFIBeCvefOwD8k55v', 
+  'professional': 'price_1RK5pVJYFIBeCvefmstJ8n43', 
+  'enterprise': 'price_1RK60LJYFIBeCveff09QYKEE'  
 };
 
 // Create a Stripe checkout session
@@ -50,25 +50,27 @@ export const createCheckoutSession = async (priceId: string, returnUrl: string) 
       metadata: {
         user_id: user.id,
         email: user.email,
-        role: priceId // Store the plan/tier in metadata
+        role: priceId === stripePriceIds.professional ? 'scroll_advocate' :
+              priceId === stripePriceIds.enterprise ? 'elder_judge' : 'flame_seeker'
       }
     });
     
     const { data, error } = await supabase.functions.invoke("create-checkout", {
       body: {
-        priceId, // Use the actual Stripe Price ID
+        priceId,
         returnUrl,
         metadata: {
           user_id: user.id,
           email: user.email,
-          role: priceId // Store the desired role in metadata
+          role: priceId === stripePriceIds.professional ? 'professional' :
+                priceId === stripePriceIds.enterprise ? 'enterprise' : 'basic'
         }
       }
     });
     
     if (error) throw error;
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating checkout session:", error);
     throw error;
   }

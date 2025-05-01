@@ -66,8 +66,8 @@ serve(async (req) => {
       throw new Error("Price ID is required");
     }
     
-    // Determine role name based on the price ID or metadata
-    let roleName = metadata.role || 'flame_seeker';
+    // Determine role name based on the metadata role
+    let roleName = metadata.role || 'basic';
     
     if (roleName === 'professional') {
       roleName = 'scroll_advocate';
