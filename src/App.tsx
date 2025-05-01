@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { ensureEvidenceBucketExists } from "@/services/evidenceService";
 
 // Pages
 import Index from "./pages/Index";
@@ -63,6 +64,11 @@ const App = () => {
     
     logDimensions();
     window.addEventListener('resize', logDimensions);
+    
+    // Ensure evidence bucket exists
+    ensureEvidenceBucketExists().then(exists => {
+      console.log("Evidence bucket ready:", exists);
+    });
     
     return () => {
       window.removeEventListener('resize', logDimensions);
