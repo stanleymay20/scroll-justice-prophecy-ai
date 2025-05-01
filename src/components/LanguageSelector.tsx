@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Globe } from "lucide-react";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
+import type { LanguageCode } from "@/contexts/LanguageContext";
 
 export function LanguageSelector() {
   const { language, setLanguage, t } = useLanguage();
@@ -19,26 +20,26 @@ export function LanguageSelector() {
   // Expanded language list with additional metadata
   const languages = [
     // Main languages
-    { code: "en", name: "English", flag: "🇬🇧", group: "primary" },
-    { code: "fr", name: "Français", flag: "🇫🇷", group: "primary" },
-    { code: "es", name: "Español", flag: "🇪🇸", group: "primary" },
-    { code: "de", name: "Deutsch", flag: "🇩🇪", group: "primary" },
+    { code: "en" as LanguageCode, name: "English", flag: "🇬🇧", group: "primary" },
+    { code: "fr" as LanguageCode, name: "Français", flag: "🇫🇷", group: "primary" },
+    { code: "es" as LanguageCode, name: "Español", flag: "🇪🇸", group: "primary" },
+    { code: "de" as LanguageCode, name: "Deutsch", flag: "🇩🇪", group: "primary" },
     
     // Extended languages
-    { code: "zh", name: "中文", flag: "🇨🇳", group: "extended" },
-    { code: "ar", name: "العربية", flag: "🇸🇦", group: "extended" },
-    { code: "hi", name: "हिन्दी", flag: "🇮🇳", group: "extended" },
-    { code: "pt", name: "Português", flag: "🇧🇷", group: "extended" },
+    { code: "zh" as LanguageCode, name: "中文", flag: "🇨🇳", group: "extended" },
+    { code: "ar" as LanguageCode, name: "العربية", flag: "🇸🇦", group: "extended" },
+    { code: "hi" as LanguageCode, name: "हिन्दी", flag: "🇮🇳", group: "extended" },
+    { code: "pt" as LanguageCode, name: "Português", flag: "🇧🇷", group: "extended" },
     
     // Sacred languages
-    { code: "he", name: "עברית", flag: "🕮", group: "sacred" },
-    { code: "sw", name: "Kiswahili", flag: "🇰🇪", group: "sacred" },
-    { code: "am", name: "አማርኛ", flag: "🇪🇹", group: "sacred" },
+    { code: "he" as LanguageCode, name: "עברית", flag: "🕮", group: "sacred" },
+    { code: "sw" as LanguageCode, name: "Kiswahili", flag: "🇰🇪", group: "sacred" },
+    { code: "am" as LanguageCode, name: "አማርኛ", flag: "🇪🇹", group: "sacred" },
   ];
 
-  const handleLanguageChange = (lang: string) => {
+  const handleLanguageChange = (lang: LanguageCode) => {
     console.log("Changing language to:", lang);
-    setLanguage(lang as any); // Using 'as any' for now, we'll improve the typing in LanguageContext
+    setLanguage(lang);
   };
 
   // Group languages by category
