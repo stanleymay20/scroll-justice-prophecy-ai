@@ -1,3 +1,4 @@
+
 // Stripe configuration
 
 // Store the publishable key for client-side use
@@ -9,7 +10,7 @@ export const isStripeConfigured = () => {
 };
 
 // Import supabase client for making API calls
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define subscription tiers with their metadata
 export const subscriptionTiers = {
@@ -49,8 +50,8 @@ export const createCheckoutSession = async (priceId: string, returnUrl: string) 
       metadata: {
         user_id: user.id,
         email: user.email,
-        role: priceId === stripePriceIds.professional ? 'scroll_advocate' :
-              priceId === stripePriceIds.enterprise ? 'elder_judge' : 'flame_seeker'
+        role: priceId === stripePriceIds.professional ? 'professional' :
+              priceId === stripePriceIds.enterprise ? 'enterprise' : 'basic'
       }
     });
     

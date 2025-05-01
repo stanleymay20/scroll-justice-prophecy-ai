@@ -18,7 +18,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ScrollText, MessageSquare, Heart, Clock, Plus, Send, X } from "lucide-react";
 import { Post, PostCategory } from "@/types/community";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -124,7 +124,9 @@ export function CommunityForum() {
           user_id: user.id,
           title: newPostTitle,
           content: newPostContent,
-          category: newPostCategory
+          category: newPostCategory,
+          likes: 0,
+          comments_count: 0
         });
 
       if (error) throw error;
@@ -133,13 +135,6 @@ export function CommunityForum() {
       setNewPostTitle("");
       setNewPostContent("");
       setIsDialogOpen(false);
-      
-      // Add log for sacred audit purposes
-      await supabase.from('scroll_witness_logs').insert({
-        user_id: user.id,
-        action: 'create_post',
-        details: `Created ${newPostCategory} post: ${newPostTitle}`
-      });
       
       toast({
         title: "Post Created",
