@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -141,8 +142,8 @@ const Index = () => {
                   <Button onClick={() => navigate("/precedent")}>
                     Browse Precedents
                   </Button>
-                  <Button variant="outline" onClick={() => navigate("/case-classification")}>
-                    Case Classification
+                  <Button onClick={() => navigate("/courtroom")}>
+                    Enter Courtroom
                   </Button>
                   <Button 
                     variant="default"
@@ -215,12 +216,28 @@ const Index = () => {
                   <Button 
                     variant="outline" 
                     className="w-full justify-start"
-                    onClick={() => navigate("/analytics")}
+                    onClick={() => navigate("/admin/mcp")}
                   >
                     <Gavel className="mr-2 h-4 w-4" />
-                    Justice Analytics
+                    Master Control Panel
                   </Button>
                 </div>
+              </GlassCard>
+              
+              <GlassCard className="p-6 border-justice-primary/30">
+                <h2 className="text-xl font-semibold text-white mb-4">Submit New Petition</h2>
+                <p className="text-justice-light/80 mb-4">
+                  Create a new petition to seek justice from the sacred scrolls.
+                </p>
+                <Button 
+                  className="w-full bg-justice-tertiary hover:bg-justice-tertiary/80 relative"
+                  onClick={() => navigate("/courtroom")}
+                >
+                  Submit Petition
+                  <div className="absolute -top-1 -right-1">
+                    <PulseEffect color="bg-justice-primary" />
+                  </div>
+                </Button>
               </GlassCard>
             </div>
           </div>

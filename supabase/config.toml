@@ -78,3 +78,9 @@ verify_jwt = true
 
 [functions.mcp-emergency-notification]
 verify_jwt = false
+
+[functions.get-ai-verdict]
+verify_jwt = true
+
+[functions.analyze-content]
+verify_jwt = true

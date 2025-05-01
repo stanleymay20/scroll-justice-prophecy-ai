@@ -26,6 +26,8 @@ import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import { CommunityForum } from "./components/community/CommunityForum";
 import DeveloperDashboard from "./pages/Admin/DeveloperDashboard";
+import MCPDashboard from "./pages/Admin/MCPDashboard";
+import Courtroom from "./pages/Courtroom";
 
 // Auth Pages
 import SignIn from "./pages/Auth/SignIn";
@@ -104,6 +106,15 @@ const App = () => {
                   } 
                 />
                 
+                <Route 
+                  path="/admin/mcp" 
+                  element={
+                    <ProtectedRoute>
+                      <MCPDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                
                 {/* Protected Routes */}
                 <Route 
                   path="/profile" 
@@ -113,6 +124,10 @@ const App = () => {
                     </ProtectedRoute>
                   } 
                 />
+                
+                {/* Courtroom Routes */}
+                <Route path="/courtroom" element={<Courtroom />} />
+                <Route path="/courtroom/:id" element={<Courtroom />} />
                 
                 {/* Community Forum */}
                 <Route path="/community" element={<CommunityForum />} />
