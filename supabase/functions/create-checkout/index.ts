@@ -39,7 +39,10 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 
@@ -62,11 +65,17 @@ serve(async (req) => {
       throw new Error("Price ID is required");
     }
 
-    // Map internal price IDs to actual Stripe price IDs if needed
-    const stripePriceId = 
-      priceId === "professional" ? "price_professional" : 
-      priceId === "enterprise" ? "price_enterprise" : 
-      priceId;
+    // Map internal price IDs to actual Stripe price IDs
+    let stripePriceId;
+    if (priceId === "professional") {
+      stripePriceId = "price_professional";
+    } else if (priceId === "enterprise") {
+      stripePriceId = "price_enterprise";
+    } else {
+      stripePriceId = priceId;
+    }
+    
+    logStep("Mapped price ID", { internal: priceId, stripe: stripePriceId });
     
     // Create a checkout session
     const session = await stripe.checkout.sessions.create({

@@ -25,7 +25,7 @@ const ProtectedRoute = ({
       console.log("Checking subscription status in ProtectedRoute");
       checkSubscriptionStatus();
     }
-  }, [user, requireSubscription, checkSubscriptionStatus]);
+  }, [user, requireSubscription, checkSubscriptionStatus, location.pathname]);
 
   // Check if user has the required subscription tier
   const hasRequiredTier = () => {
@@ -55,6 +55,21 @@ const ProtectedRoute = ({
     // Redirect to login page and save the current location
     console.log("User not authenticated, redirecting to signin");
     return <Navigate to={`/signin?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+  }
+
+  if (requireSubscription && !subscriptionStatus) {
+    console.log("Refreshing subscription status for verification...");
+    checkSubscriptionStatus();
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-justice-dark to-black">
+        <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <PulseEffect color="bg-justice-primary" size="lg" />
+          </div>
+          <p className="text-justice-light/80">Verifying subscription status...</p>
+        </div>
+      </div>
+    );
   }
 
   if (requireSubscription && subscriptionStatus !== "active") {

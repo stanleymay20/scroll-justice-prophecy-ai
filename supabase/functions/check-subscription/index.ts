@@ -39,7 +39,9 @@ serve(async (req) => {
     logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
+    const { data, error } = await supabaseClient.auth.getUser(token);
+    
+    if (error) throw new Error(`Authentication error: ${error.message}`);
     const user = data.user;
     
     if (!user?.email) {
@@ -47,7 +49,10 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 
@@ -99,15 +104,17 @@ serve(async (req) => {
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       
       // Get price ID from subscription
-      priceId = subscription.items.data[0].price.id;
+      if (subscription.items.data.length > 0) {
+        priceId = subscription.items.data[0].price.id;
       
-      // Map price ID to subscription tier
-      if (priceId === "price_professional") {
-        subscriptionTier = "professional";
-      } else if (priceId === "price_enterprise") {
-        subscriptionTier = "enterprise";
-      } else {
-        subscriptionTier = "basic";
+        // Map price ID to subscription tier
+        if (priceId.includes('professional')) {
+          subscriptionTier = "professional";
+        } else if (priceId.includes('enterprise')) {
+          subscriptionTier = "enterprise";
+        } else {
+          subscriptionTier = "basic";
+        }
       }
       
       logStep("Active subscription found", { 

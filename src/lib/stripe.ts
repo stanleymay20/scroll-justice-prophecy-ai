@@ -2,15 +2,15 @@
 // Stripe configuration
 
 // Store the publishable key for client-side use
-export const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_live_51Pl2vZJYFIBeCvefE5zLvl5IPtDWeciQob8uUNYjnCXMfhICYEvZv6sSfQ74oOukbbEVLMr6bHe1Rg4lwqma4quR00YQlgIaHI';
+export const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51Pl2vZJYFIBeCvefE5zLvl5IPtDWeciQob8uUNYjnCXMfhICYEvZv6sSfQ74oOukbbEVLMr6bHe1Rg4lwqma4quR00YQlgIaHI';
 
 // Helper to check if Stripe is configured
 export const isStripeConfigured = () => {
-  return !!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+  return !!stripePublishableKey;
 };
 
 // Import supabase client for making API calls
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 // Create a Stripe checkout session
 export const createCheckoutSession = async (priceId: string, returnUrl: string) => {
