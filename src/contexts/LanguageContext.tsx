@@ -1,19 +1,23 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-type Language = "en" | "fr" | "es";
+// Define language codes as string literal types
+export type LanguageCode = 
+  | "en" | "fr" | "es" | "de"  // Primary
+  | "zh" | "ar" | "hi" | "pt"  // Extended
+  | "he" | "sw" | "am";        // Sacred
 
 type LanguageContextType = {
-  language: Language;
-  setLanguage: (lang: Language) => void;
+  language: LanguageCode;
+  setLanguage: (lang: LanguageCode) => void;
   t: (key: string) => string;
 };
 
-const defaultLanguage: Language = "en";
+const defaultLanguage: LanguageCode = "en";
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-// Basic translations
-const translations: Record<Language, Record<string, string>> = {
+// Basic translations - extending with new language keys
+const translations: Record<string, Record<string, string>> = {
   en: {
     // General
     "app.title": "ScrollJustice.AI",
@@ -29,6 +33,11 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.signin": "Sign In",
     "nav.signout": "Sign Out",
     "nav.language": "Language",
+    
+    // Language selector
+    "language.select": "Select Language",
+    "language.extended": "Extended Languages",
+    "language.sacred": "Sacred Languages",
     
     // Subscription
     "subscription.title": "Sacred Subscription Plans",
@@ -82,6 +91,11 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.signout": "Déconnexion",
     "nav.language": "Langue",
     
+    // Language selector
+    "language.select": "Choisir la Langue",
+    "language.extended": "Langues Étendues",
+    "language.sacred": "Langues Sacrées",
+    
     // Subscription
     "subscription.title": "Plans d'Abonnement Sacrés",
     "subscription.basic": "Basique",
@@ -134,6 +148,11 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.signout": "Cerrar Sesión",
     "nav.language": "Idioma",
     
+    // Language selector
+    "language.select": "Seleccionar Idioma",
+    "language.extended": "Idiomas Extendidos",
+    "language.sacred": "Idiomas Sagrados",
+    
     // Subscription
     "subscription.title": "Planes de Suscripción Sagrados",
     "subscription.basic": "Básico",
@@ -169,36 +188,159 @@ const translations: Record<Language, Record<string, string>> = {
     "button.cancel": "Cancelar",
     "button.continue": "Continuar",
     "button.back": "Atrás"
-  }
+  },
+  de: {
+    // General
+    "app.title": "ScrollJustice.AI",
+    "app.tagline": "Heilige Gerechtigkeit durch digitale Schriftrollen",
+    "app.loading": "Laden heiliger Schriftrollen...",
+    
+    // Navigation
+    "nav.home": "Startseite",
+    "nav.dashboard": "Dashboard",
+    "nav.precedent": "Präzedenzfälle",
+    "nav.community": "Gemeinschaft",
+    "nav.profile": "Profil",
+    "nav.signin": "Anmelden",
+    "nav.signout": "Abmelden",
+    "nav.language": "Sprache",
+    
+    // Language selector
+    "language.select": "Sprache Auswählen",
+    "language.extended": "Erweiterte Sprachen",
+    "language.sacred": "Heilige Sprachen",
+    
+    // Subscription
+    "subscription.title": "Heilige Abonnementpläne",
+    "subscription.basic": "Basis",
+    "subscription.professional": "Professionell",
+    "subscription.enterprise": "Unternehmen",
+    "subscription.current": "Aktueller Plan",
+    "subscription.subscribe": "Abonnieren",
+    "subscription.manage": "Abonnement Verwalten",
+    
+    // Court
+    "court.oath": "Heiliger Eid",
+    "court.simulation": "Simulationsprozess",
+    "court.emergency": "Notfallalarm",
+    "court.feedback": "Heiliges Feedback",
+    
+    // Errors
+    "error.general": "Eine heilige Herausforderung ist aufgetreten. Bitte versuche es erneut.",
+    "error.auth": "Deine Schriftrollenanmeldedaten erfordern eine Überprüfung. Bitte melde dich erneut an.",
+    "error.notfound": "Diese heilige Schriftrolle wurde noch nicht geschrieben.",
+    
+    // Success
+    "success.general": "Die heiligen Schriftrollen wurden aktualisiert.",
+    "success.auth": "Du wurdest mit dem Zugang zu den heiligen Schriftrollen gesegnet.",
+    "success.subscription": "Dein heiliges Abonnement wurde aktiviert.",
+    
+    // Sacred Oath
+    "oath.title": "Heiliger Eid Erforderlich",
+    "oath.text": "Ich schwöre feierlich, die Prinzipien der Wahrheit und Gerechtigkeit in diesem heiligen Verfahren zu wahren.",
+    "oath.confirm": "Heiligen Eid Ablegen",
+    
+    // Others
+    "button.submit": "Einreichen",
+    "button.cancel": "Abbrechen",
+    "button.continue": "Fortfahren",
+    "button.back": "Zurück"
+  },
+  // Add minimal translation sets for all other languages
+  zh: {
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "语言",
+    "language.select": "选择语言",
+    "language.extended": "扩展语言",
+    "language.sacred": "神圣语言",
+  },
+  ar: {
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "اللغة",
+    "language.select": "اختر اللغة",
+    "language.extended": "اللغات الموسعة",
+    "language.sacred": "اللغات المقدسة",
+  },
+  hi: {
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "भाषा",
+    "language.select": "भाषा चुनें",
+    "language.extended": "विस्तारित भाषाएँ",
+    "language.sacred": "पवित्र भाषाएँ",
+  },
+  pt: {
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "Idioma",
+    "language.select": "Selecionar Idioma",
+    "language.extended": "Idiomas Estendidos",
+    "language.sacred": "Idiomas Sagrados",
+  },
+  he: {
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "שפה",
+    "language.select": "בחר שפה",
+    "language.extended": "שפות מורחבות",
+    "language.sacred": "שפות קדושות",
+  },
+  sw: {
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "Lugha",
+    "language.select": "Chagua Lugha",
+    "language.extended": "Lugha za Ziada",
+    "language.sacred": "Lugha Takatifu",
+  },
+  am: {
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "ቋንቋ",
+    "language.select": "ቋንቋ ይምረጡ",
+    "language.extended": "ተጨማሪ ቋንቋዎች",
+    "language.sacred": "ቅዱስ ቋንቋዎች",
+  },
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ 
   children 
 }) => {
-  const [language, setLanguage] = useState<Language>(() => {
+  const [language, setLanguage] = useState<LanguageCode>(() => {
     // Try to get language from localStorage
     const savedLanguage = localStorage.getItem("scrollJustice-language");
-    if (savedLanguage && (savedLanguage === "en" || savedLanguage === "fr" || savedLanguage === "es")) {
-      return savedLanguage;
+    if (savedLanguage && isValidLanguageCode(savedLanguage)) {
+      return savedLanguage as LanguageCode;
     }
     
     // Try to detect browser language
     const browserLang = navigator.language.split('-')[0];
-    if (browserLang === "fr" || browserLang === "es") {
-      return browserLang;
+    if (isValidLanguageCode(browserLang)) {
+      return browserLang as LanguageCode;
     }
     
     return defaultLanguage;
   });
 
+  // Helper function to check if a language code is valid
+  function isValidLanguageCode(code: string): boolean {
+    return code in translations;
+  }
+
   useEffect(() => {
     // Save language preference to localStorage
     localStorage.setItem("scrollJustice-language", language);
+    
+    // Update document language for accessibility
+    document.documentElement.setAttribute('lang', language);
+    
+    // Optional: You could add special handling for RTL languages here
+    const rtlLanguages = ['ar', 'he'];
+    if (rtlLanguages.includes(language)) {
+      document.documentElement.setAttribute('dir', 'rtl');
+    } else {
+      document.documentElement.setAttribute('dir', 'ltr');
+    }
   }, [language]);
   
   // Translation function
   const t = (key: string): string => {
-    return translations[language][key] || translations.en[key] || key;
+    return translations[language]?.[key] || translations.en[key] || key;
   };
 
   return (
