@@ -163,6 +163,51 @@ export type Database = {
         }
         Relationships: []
       }
+      precedents: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          date: string | null
+          full_text: string | null
+          id: string
+          jurisdiction: string | null
+          principle: string | null
+          scroll_gate: string | null
+          scroll_phase: string | null
+          summary: string | null
+          tags: string[] | null
+          title: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          date?: string | null
+          full_text?: string | null
+          id?: string
+          jurisdiction?: string | null
+          principle?: string | null
+          scroll_gate?: string | null
+          scroll_phase?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          title: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          date?: string | null
+          full_text?: string | null
+          id?: string
+          jurisdiction?: string | null
+          principle?: string | null
+          scroll_gate?: string | null
+          scroll_phase?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          title?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
