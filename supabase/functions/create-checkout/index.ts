@@ -66,22 +66,13 @@ serve(async (req) => {
       throw new Error("Price ID is required");
     }
 
-    // Map internal price IDs to actual Stripe price IDs based on subscription tiers
-    let stripePriceId;
-    let roleName;
-
-    if (priceId === "professional" || priceId === "scroll_advocate") {
-      stripePriceId = "price_professional";
-      roleName = "scroll_advocate";
-    } else if (priceId === "enterprise" || priceId === "elder_judge") {
-      stripePriceId = "price_enterprise";
-      roleName = "elder_judge";
-    } else {
-      stripePriceId = priceId;
-      roleName = "flame_seeker";
-    }
+    // Use the provided price ID directly (it should be a valid Stripe price ID)
+    const stripePriceId = priceId;
     
-    logStep("Mapped price ID", { internal: priceId, stripe: stripePriceId, role: roleName });
+    // Determine role name based on the price ID or metadata
+    let roleName = metadata.role || 'flame_seeker';
+    
+    logStep("Using price ID", { stripe: stripePriceId, role: roleName });
     
     // Combine default metadata with any additional metadata
     const sessionMetadata = {
