@@ -8,8 +8,10 @@ import { GlassCard } from '@/components/advanced-ui/GlassCard';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, AlertTriangle, Upload } from 'lucide-react';
 import { createPetition, analyzeContent } from '@/services/petitionService';
+import { uploadEvidence } from '@/services/petitionService';
 import { ScrollPetition } from '@/types/petition';
 import { Progress } from '@/components/ui/progress';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PetitionFormProps {
   onPetitionCreated: (petition: ScrollPetition) => void;
@@ -70,6 +72,13 @@ export function PetitionForm({ onPetitionCreated, onCancel }: PetitionFormProps)
       setLoading(true);
       setError(null);
       
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("You must be logged in to submit a petition");
+      }
+      
       // Final content analysis
       if (description.length > 20) {
         await analyzeContentIntegrity(description);
@@ -79,6 +88,7 @@ export function PetitionForm({ onPetitionCreated, onCancel }: PetitionFormProps)
       const newPetition: Partial<ScrollPetition> = {
         title,
         description,
+        petitioner_id: user.id,
         status: 'pending',
         scroll_integrity_score: integrityScore || 100,
         is_sealed: false,
@@ -87,7 +97,9 @@ export function PetitionForm({ onPetitionCreated, onCancel }: PetitionFormProps)
       const createdPetition = await createPetition(newPetition);
       
       // Handle evidence upload if present
-      // (This would normally be implemented to work with the uploadEvidence function)
+      if (evidence && createdPetition.id) {
+        await uploadEvidence(createdPetition.id, evidence);
+      }
       
       toast({
         title: "Sacred Petition Submitted",
@@ -191,6 +203,7 @@ export function PetitionForm({ onPetitionCreated, onCancel }: PetitionFormProps)
                   type="file" 
                   className="hidden" 
                   onChange={handleFileChange}
+                  accept=".pdf,.png,.jpg,.jpeg,.mp3,.mp4"
                 />
               </label>
             </div>

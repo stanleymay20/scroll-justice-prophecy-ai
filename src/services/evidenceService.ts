@@ -29,6 +29,11 @@ export async function uploadEvidence(
       
     if (uploadError) throw uploadError;
     
+    // Get file URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('scroll_evidence')
+      .getPublicUrl(filePath);
+    
     // Create evidence record
     const evidence: EvidenceInsert = {
       petition_id: petitionId,
@@ -66,8 +71,52 @@ export async function getPetitionEvidence(petitionId: string): Promise<ScrollEvi
     if (!data) return [];
     
     return data as unknown as ScrollEvidence[];
-  } catch (error) {
+  }
+  
+  catch (error) {
     console.error('Error fetching evidence:', error);
+    throw error;
+  }
+}
+
+// Get public URL for an evidence file
+export function getEvidencePublicUrl(filePath: string): string {
+  const { data: { publicUrl } } = supabase.storage
+    .from('scroll_evidence')
+    .getPublicUrl(filePath);
+  
+  return publicUrl;
+}
+
+// Delete evidence
+export async function deleteEvidence(evidenceId: string): Promise<void> {
+  try {
+    // First get the evidence to get the file path
+    const { data, error } = await supabase
+      .from('scroll_evidence')
+      .select('file_path')
+      .eq('id', evidenceId)
+      .single();
+      
+    if (error) throw error;
+    if (!data) throw new Error('Evidence not found');
+    
+    // Delete the file from storage
+    const { error: deleteStorageError } = await supabase.storage
+      .from('scroll_evidence')
+      .remove([data.file_path]);
+      
+    if (deleteStorageError) throw deleteStorageError;
+    
+    // Delete the record from the database
+    const { error: deleteRecordError } = await supabase
+      .from('scroll_evidence')
+      .delete()
+      .eq('id', evidenceId);
+      
+    if (deleteRecordError) throw deleteRecordError;
+  } catch (error) {
+    console.error('Error deleting evidence:', error);
     throw error;
   }
 }

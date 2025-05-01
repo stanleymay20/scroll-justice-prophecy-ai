@@ -1,9 +1,8 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.170.0/http/server.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://preview-da2a66b3--scroll-justice-prophecy-ai.lovable.app',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
@@ -16,52 +15,87 @@ serve(async (req) => {
   try {
     const { text } = await req.json();
     
-    // Simple content analysis logic
-    // In a real implementation, this would use more sophisticated NLP
-    const lowercaseText = text.toLowerCase();
+    if (!text) {
+      throw new Error("No text provided for analysis");
+    }
     
-    // Check for toxic content
-    const toxicTerms = ['hate', 'attack', 'stupid', 'idiot', 'destroy', 'kill'];
-    const hasToxicTerms = toxicTerms.some(term => lowercaseText.includes(term));
+    console.log("Analyzing content, length:", text.length);
+    
+    // Analyze text for integrity metrics
+    // In a real application, this would use a sophisticated NLP model
+    
+    // Basic analysis
+    const words = text.split(/\s+/).length;
+    const sentences = text.split(/[.!?]+/).filter(Boolean).length;
+    const avgWordsPerSentence = sentences > 0 ? words / sentences : 0;
+    
+    // Check for common issues
+    const allCaps = text.toUpperCase() === text;
+    const hasRepeatedPunctuation = /[!?]{2,}/.test(text);
+    const hasVeryLongSentences = avgWordsPerSentence > 35;
+    const isVeryShort = words < 15;
     
     // Calculate integrity score
-    let integrityScore = 100;
+    let integrityScore = 100; // Start at perfect
+    let recommendations = [];
     
-    if (hasToxicTerms) {
-      integrityScore -= 40;
+    if (allCaps) {
+      integrityScore -= 30;
+      recommendations.push("Avoid writing in all capital letters as it may be perceived as excessive emphasis");
     }
     
-    if (text.length < 20) {
-      integrityScore -= 20;
+    if (hasRepeatedPunctuation) {
+      integrityScore -= 15;
+      recommendations.push("Multiple exclamation or question marks may seem unprofessional");
     }
     
-    if (text.includes('!!!') || text.includes('???')) {
+    if (hasVeryLongSentences) {
       integrityScore -= 10;
+      recommendations.push("Consider breaking up very long sentences for clarity");
     }
     
-    // Prepare result
-    const result = {
-      integrityScore: Math.max(integrityScore, 0),
-      hasToxicContent: hasToxicTerms,
-      recommendations: []
-    };
-    
-    if (hasToxicTerms) {
-      result.recommendations.push('Content contains language that may violate scroll integrity guidelines');
+    if (isVeryShort) {
+      integrityScore -= 25;
+      recommendations.push("Petition is too brief. Please provide more details to support your case");
     }
     
-    if (text.length < 20) {
-      result.recommendations.push('Consider providing more detailed information');
+    // Sentence structure analysis
+    if (sentences > 0) {
+      const sentenceVariety = Math.min(sentences / 2, 4); // 0-4 points for variety
+      integrityScore += sentenceVariety;
     }
     
-    return new Response(JSON.stringify(result), {
+    // Word count bonus
+    if (words > 50) integrityScore += 5;
+    if (words > 150) integrityScore += 5;
+    
+    // Cap score between 0-100
+    integrityScore = Math.min(Math.max(Math.round(integrityScore), 0), 100);
+    
+    console.log("Content analysis complete, score:", integrityScore);
+    
+    return new Response(JSON.stringify({
+      integrityScore,
+      recommendations,
+      metrics: {
+        wordCount: words,
+        sentenceCount: sentences,
+        avgWordsPerSentence: Math.round(avgWordsPerSentence * 10) / 10
+      }
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
     });
   } catch (error) {
-    console.error('Error in analyze-content function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    console.error("Error analyzing content:", error);
+    
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      integrityScore: 70, // Default fallback score
+      success: false 
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400
     });
   }
 });

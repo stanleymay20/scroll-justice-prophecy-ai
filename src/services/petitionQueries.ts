@@ -15,10 +15,22 @@ interface PetitionInsert {
 // Fetch all petitions
 export async function fetchPetitions(isAdmin = false): Promise<ScrollPetition[]> {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('scroll_petitions')
       .select('*')
       .order('created_at', { ascending: false });
+    
+    // If not admin, only show non-sealed petitions or ones belonging to the user
+    if (!isAdmin) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        query = query.or(`is_sealed.eq.false,petitioner_id.eq.${user.id}`);
+      } else {
+        query = query.eq('is_sealed', false);
+      }
+    }
+    
+    const { data, error } = await query;
     
     if (error) throw error;
     if (!data) return [];
@@ -53,15 +65,20 @@ export async function fetchPetitionById(id: string): Promise<ScrollPetition> {
 export async function createPetition(petition: Partial<ScrollPetition>): Promise<ScrollPetition> {
   try {
     // Ensure required fields are present
-    if (!petition.title || !petition.description || !petition.petitioner_id) {
+    if (!petition.title || !petition.description) {
       throw new Error('Missing required fields for petition creation');
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User must be logged in to create a petition');
     }
 
     // Create a properly typed object for insertion
     const petitionToInsert: PetitionInsert = {
       title: petition.title,
       description: petition.description,
-      petitioner_id: petition.petitioner_id,
+      petitioner_id: petition.petitioner_id || user.id,
       status: petition.status || 'pending',
       scroll_integrity_score: petition.scroll_integrity_score,
       is_sealed: petition.is_sealed || false,
@@ -124,6 +141,14 @@ export async function deliverVerdict(
     if (error) throw error;
     if (!data || data.length === 0) throw new Error('Failed to deliver verdict');
     
+    // Log the integrity action
+    await logIntegrityAction(
+      'VERDICT_DELIVERED',
+      10, // Positive impact
+      `Verdict delivered on petition #${id.substring(0, 8)}`,
+      id
+    );
+    
     return data[0] as unknown as ScrollPetition;
   } catch (error) {
     console.error('Error delivering verdict:', error);
@@ -148,9 +173,76 @@ export async function sealPetition(id: string): Promise<ScrollPetition> {
     if (error) throw error;
     if (!data || data.length === 0) throw new Error('Failed to seal petition');
     
+    // Log the integrity action
+    await logIntegrityAction(
+      'PETITION_SEALED',
+      5, // Positive impact
+      `Petition #${id.substring(0, 8)} was sealed permanently`,
+      id
+    );
+    
     return data[0] as unknown as ScrollPetition;
   } catch (error) {
     console.error('Error sealing petition:', error);
     throw error;
+  }
+}
+
+// Assign a judge to a petition
+export async function assignJudge(petitionId: string, judgeId: string): Promise<ScrollPetition> {
+  try {
+    const updates = {
+      assigned_judge_id: judgeId,
+      status: 'in_review'
+    };
+    
+    const { data, error } = await supabase
+      .from('scroll_petitions')
+      .update(updates)
+      .eq('id', petitionId)
+      .select();
+      
+    if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Failed to assign judge');
+    
+    await logIntegrityAction(
+      'JUDGE_ASSIGNED',
+      3, // Positive impact
+      `Judge assigned to petition #${petitionId.substring(0, 8)}`,
+      petitionId
+    );
+    
+    return data[0] as unknown as ScrollPetition;
+  } catch (error) {
+    console.error('Error assigning judge:', error);
+    throw error;
+  }
+}
+
+// Log an integrity action
+async function logIntegrityAction(
+  actionType: string,
+  integrityImpact: number,
+  description: string,
+  petitionId?: string
+): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const logEntry = {
+      action_type: actionType,
+      integrity_impact: integrityImpact,
+      description,
+      petition_id: petitionId,
+      user_id: user?.id,
+    };
+    
+    const { error } = await supabase
+      .from('scroll_integrity_logs')
+      .insert(logEntry);
+      
+    if (error) console.error('Error logging integrity action:', error);
+  } catch (error) {
+    console.error('Error logging integrity action:', error);
   }
 }

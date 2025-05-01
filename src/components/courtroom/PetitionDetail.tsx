@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import { format } from 'date-fns';
 import { SacredOathScreen } from '@/components/courtroom/SacredOathScreen';
 import { SealAnimation } from './SealAnimation';
 import { useAuth } from '@/contexts/AuthContext';
+import { EvidenceDisplay } from './EvidenceDisplay';
 
 export function PetitionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -184,7 +186,7 @@ export function PetitionDetail() {
   const canReview = ['judge', 'admin'].includes(userRole);
   
   // Check if user is the petitioner
-  const isPetitioner = petition && petition.petitioner_id === id;
+  const isPetitioner = petition && user && petition.petitioner_id === user.id;
   
   if (showOathScreen && user) {
     return (
@@ -294,6 +296,17 @@ export function PetitionDetail() {
           <div className={`text-justice-light whitespace-pre-wrap ${petition.is_sealed && !canReview ? 'blur-sm select-none' : ''}`}>
             {petition.description}
           </div>
+        </div>
+        
+        <Separator className="my-4 bg-justice-light/10" />
+        
+        <div className="mb-6">
+          <h3 className="text-lg font-medium text-white mb-2">Evidence</h3>
+          {id && <EvidenceDisplay 
+            petitionId={id} 
+            isSealed={petition.is_sealed} 
+            canView={canReview}
+          />}
         </div>
         
         {petition.verdict && (
