@@ -1,4 +1,3 @@
-
 // Stripe configuration
 
 // Store the publishable key for client-side use
@@ -26,11 +25,11 @@ export const tierNames = {
   'enterprise': 'Elder Judge'
 };
 
-// Actual Stripe Price IDs
+// Actual Stripe Price IDs - updated with the provided test price IDs
 export const stripePriceIds = {
-  'basic': 'price_1RK5vjJYFIBeCvefOwD8k55v', 
-  'professional': 'price_1RK5pVJYFIBeCvefmstJ8n43', 
-  'enterprise': 'price_1RK60LJYFIBeCveff09QYKEE'  
+  'basic': 'price_1RK6oXJYFIBeCvef91NjjbYl', 
+  'professional': 'price_1RK6pOJYFIBeCvefVNimxQmC', 
+  'enterprise': 'price_1RK6qIJYFIBeCvefqUB0loTl'  
 };
 
 // Create a Stripe checkout session

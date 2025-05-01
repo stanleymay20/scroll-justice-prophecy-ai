@@ -1,5 +1,5 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { normalizeLanguageCode, isRtlLanguage, getLanguageGroups } from "@/utils/languageUtils";
 
 // Define language codes as string literal types
 export type LanguageCode = 
@@ -310,7 +310,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     
     // Try to detect browser language and normalize it
-    const browserLang = navigator.language.split('-')[0]; // Remove region code, e.g., 'en-US' -> 'en'
+    const browserLang = normalizeLanguageCode(navigator.language);
     if (isValidLanguageCode(browserLang)) {
       return browserLang as LanguageCode;
     }
@@ -331,12 +331,16 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     document.documentElement.setAttribute('lang', language);
     
     // Handle RTL languages
-    const rtlLanguages = ['ar', 'he'];
-    if (rtlLanguages.includes(language)) {
+    if (isRtlLanguage(language)) {
       document.documentElement.setAttribute('dir', 'rtl');
+      document.body.classList.add('rtl');
     } else {
       document.documentElement.setAttribute('dir', 'ltr');
+      document.body.classList.remove('rtl');
     }
+
+    // Dispatch a custom event that components can listen for
+    window.dispatchEvent(new CustomEvent('languageChanged', { detail: language }));
   }, [language]);
   
   // Translation function

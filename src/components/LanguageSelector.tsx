@@ -13,9 +13,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Globe } from "lucide-react";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 import type { LanguageCode } from "@/contexts/LanguageContext";
+import { getLanguageGroups } from "@/utils/languageUtils";
 
 export function LanguageSelector() {
   const { language, setLanguage, t } = useLanguage();
+  const languageGroups = getLanguageGroups();
 
   // Expanded language list with additional metadata
   const languages = [
