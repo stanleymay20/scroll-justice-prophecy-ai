@@ -2,9 +2,10 @@
 project_id = "rgstpbaljoamkhjhomzp"
 
 [api]
-enabled = true
 port = 54321
 schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
 
 [db]
 port = 54322
@@ -12,47 +13,32 @@ shadow_port = 54320
 major_version = 15
 
 [studio]
-enabled = true
 port = 54323
-api_url = "http://localhost"
 
 [inbucket]
-enabled = true
 port = 54324
+smtp_port = 54325
+pop3_port = 54326
 
 [storage]
-enabled = true
 file_size_limit = "50MiB"
 
 [auth]
-enabled = true
-site_url = "http://localhost:3000"
+site_url = "https://lovable.dev/projects/f7d71f55-ae04-491e-87d0-df4a10e1f669/preview"
 additional_redirect_urls = ["https://localhost:3000"]
 jwt_expiry = 3600
-enable_refresh_token_rotation = true
-refresh_token_reuse_interval = 10
-enable_email_signup = true
-enable_email_autoconfirm = true
+enable_signup = true
 
 [auth.email]
-enable_email_signup = true
-enable_email_autoconfirm = true
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
 
-[analytics]
-enabled = false
+[auth.external.github]
+enabled = true
+client_id = "env(GITHUB_CLIENT_ID)"
+secret = "env(GITHUB_SECRET)"
 
-[experimental]
-enabled = false
-
-[ai]
-enabled = false
-
-[edge_functions]
-[edge_functions.get-ai-verdict]
-verify_jwt = true
-
-[edge_functions.analyze-content]
-verify_jwt = true
-
-[edge_functions.create-evidence-bucket]
-verify_jwt = true
+[functions]
+[functions.stripe-webhook]
+verify_jwt = false

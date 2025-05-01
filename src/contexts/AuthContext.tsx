@@ -5,6 +5,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import { SubscriptionStatus, SubscriptionTier } from "@/types/subscription";
+import { mapTierToRole } from "@/lib/stripe";
 
 type AuthContextType = {
   session: Session | null;
@@ -17,6 +18,7 @@ type AuthContextType = {
   subscriptionStatus: SubscriptionStatus | null;
   subscriptionTier: SubscriptionTier | null;
   subscriptionEnd: string | null;
+  userRole: string | null;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,11 +58,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Use setTimeout to defer subscription check to avoid auth deadlocks
         setTimeout(() => {
           checkSubscriptionStatus();
+          fetchUserRole(session.user.id);
         }, 0);
       } else {
         setSubscriptionStatus(null);
         setSubscriptionTier(null);
         setSubscriptionEnd(null);
+        setUserRole(null);
       }
       
       setLoading(false);
@@ -72,6 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       
       if (session?.user) {
         checkSubscriptionStatus();
+        fetchUserRole(session.user.id);
       }
       
       setLoading(false);
@@ -79,6 +85,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+        
+      if (error) {
+        console.error("Error fetching user role:", error);
+        return;
+      }
+      
+      if (data) {
+        console.log("User role from database:", data.role);
+        setUserRole(data.role);
+      } else {
+        console.log("No role found, setting to flame_seeker");
+        setUserRole("flame_seeker");
+        
+        // Create default role if none exists
+        await supabase.from("user_roles").upsert({
+          user_id: userId,
+          role: "flame_seeker",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          last_role_change: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error("Error in fetchUserRole:", error);
+    }
+  };
 
   const checkSubscriptionStatus = async () => {
     if (!user) return;
@@ -102,6 +142,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setSubscriptionStatus(dbSubscription.status as SubscriptionStatus);
         setSubscriptionTier(dbSubscription.tier as SubscriptionTier);
         setSubscriptionEnd(dbSubscription.current_period_end);
+        
+        // Update user role based on subscription tier if needed
+        const expectedRole = mapTierToRole(dbSubscription.tier);
+        if (expectedRole !== userRole) {
+          await fetchUserRole(user.id);
+        }
       }
 
       // Then call the check-subscription function to verify with Stripe and update database
@@ -118,6 +164,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setSubscriptionStatus(data.subscribed ? "active" : "inactive");
         setSubscriptionTier(data.subscription_tier);
         setSubscriptionEnd(data.subscription_end);
+        
+        // Update user role from the API response if provided
+        if (data.user_role) {
+          console.log("Setting user role from API response:", data.user_role);
+          setUserRole(data.user_role);
+        }
       }
     } catch (error) {
       console.error("Error in checkSubscriptionStatus:", error);
@@ -189,6 +241,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setSubscriptionStatus(null);
       setSubscriptionTier(null);
       setSubscriptionEnd(null);
+      setUserRole(null);
       navigate("/");
     } catch (error: any) {
       toast({
@@ -214,6 +267,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         subscriptionStatus,
         subscriptionTier,
         subscriptionEnd,
+        userRole,
       }}
     >
       {children}

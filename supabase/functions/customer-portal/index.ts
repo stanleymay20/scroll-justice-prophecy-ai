@@ -54,10 +54,22 @@ serve(async (req) => {
     const requestData = await req.json().catch(() => ({}));
     const returnUrl = requestData.returnUrl || req.headers.get("origin") || "http://localhost:3000";
     
-    const portalSession = await stripe.billingPortal.sessions.create({
+    // Create configuration options for the customer portal
+    const portalOptions = {
       customer: customerId,
       return_url: returnUrl,
-    });
+      // Add configuration for subscription management
+      configuration: {
+        features: {
+          subscription_cancel: { enabled: true },
+          payment_method_update: { enabled: true }
+        },
+        default_return_url: returnUrl
+      }
+    };
+
+    // Create the portal session
+    const portalSession = await stripe.billingPortal.sessions.create(portalOptions);
     
     logStep("Customer portal session created", { sessionId: portalSession.id, url: portalSession.url });
 

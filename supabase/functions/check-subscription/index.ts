@@ -13,6 +13,21 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+// Helper to map subscription tier to user role
+const mapTierToRole = (tier: string | null): string => {
+  if (!tier) return 'guest';
+  
+  switch(tier?.toLowerCase()) {
+    case 'professional':
+      return 'scroll_advocate';
+    case 'enterprise':
+      return 'elder_judge';
+    case 'basic':
+    default:
+      return 'flame_seeker';
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -63,20 +78,32 @@ serve(async (req) => {
       // No Stripe customer found for this user
       logStep("No Stripe customer found");
       
-      // Update subscription in database as inactive
+      // Update subscription in database as inactive with flame_seeker role
       await supabaseAdmin.from("subscriptions").upsert({
         user_id: user.id,
         status: "inactive",
-        tier: null,
+        tier: "basic",
         customer_id: null,
         price_id: null,
         current_period_end: null,
         created_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
       
+      // Update user_roles table with flame_seeker role
+      await supabaseAdmin.from("user_roles").upsert({
+        user_id: user.id,
+        role: "flame_seeker",
+        last_role_change: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      
+      logStep("Updated user as flame_seeker (free tier)");
+      
       return new Response(JSON.stringify({ 
         subscribed: false,
-        subscription_tier: null,
+        subscription_tier: "basic",
+        user_role: "flame_seeker",
         subscription_end: null 
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -96,6 +123,7 @@ serve(async (req) => {
     
     const hasActiveSub = subscriptions.data.length > 0;
     let subscriptionTier = null;
+    let userRole = "flame_seeker"; // Default role
     let subscriptionEnd = null;
     let priceId = null;
 
@@ -110,16 +138,20 @@ serve(async (req) => {
         // Map price ID to subscription tier
         if (priceId.includes('professional')) {
           subscriptionTier = "professional";
+          userRole = "scroll_advocate";
         } else if (priceId.includes('enterprise')) {
           subscriptionTier = "enterprise";
+          userRole = "elder_judge";
         } else {
           subscriptionTier = "basic";
+          userRole = "flame_seeker";
         }
       }
       
       logStep("Active subscription found", { 
         subscriptionId: subscription.id, 
         tier: subscriptionTier,
+        role: userRole,
         endDate: subscriptionEnd 
       });
     } else {
@@ -137,15 +169,26 @@ serve(async (req) => {
       created_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
     
+    // Update user_roles table with appropriate role
+    await supabaseAdmin.from("user_roles").upsert({
+      user_id: user.id,
+      role: userRole,
+      last_role_change: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    
     logStep("Database updated", { 
       userId: user.id,
       status: hasActiveSub ? "active" : "inactive",
-      tier: subscriptionTier
+      tier: subscriptionTier,
+      role: userRole
     });
 
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,
+      user_role: userRole,
       subscription_end: subscriptionEnd
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

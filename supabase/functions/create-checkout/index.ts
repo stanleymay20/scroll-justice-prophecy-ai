@@ -57,25 +57,40 @@ serve(async (req) => {
       logStep("No customer found, will create one during checkout");
     }
 
-    // Parse request body to get price ID and return URL
-    const { priceId, returnUrl } = await req.json();
-    logStep("Request parsed", { priceId, returnUrl });
+    // Parse request body to get price ID, return URL and metadata
+    const requestBody = await req.json();
+    const { priceId, returnUrl, metadata = {} } = requestBody;
+    logStep("Request parsed", { priceId, returnUrl, metadata });
 
     if (!priceId) {
       throw new Error("Price ID is required");
     }
 
-    // Map internal price IDs to actual Stripe price IDs
+    // Map internal price IDs to actual Stripe price IDs based on subscription tiers
     let stripePriceId;
-    if (priceId === "professional") {
+    let roleName;
+
+    if (priceId === "professional" || priceId === "scroll_advocate") {
       stripePriceId = "price_professional";
-    } else if (priceId === "enterprise") {
+      roleName = "scroll_advocate";
+    } else if (priceId === "enterprise" || priceId === "elder_judge") {
       stripePriceId = "price_enterprise";
+      roleName = "elder_judge";
     } else {
       stripePriceId = priceId;
+      roleName = "flame_seeker";
     }
     
-    logStep("Mapped price ID", { internal: priceId, stripe: stripePriceId });
+    logStep("Mapped price ID", { internal: priceId, stripe: stripePriceId, role: roleName });
+    
+    // Combine default metadata with any additional metadata
+    const sessionMetadata = {
+      user_id: user.id,
+      role: roleName,
+      ...metadata
+    };
+
+    logStep("Creating checkout session with metadata", sessionMetadata);
     
     // Create a checkout session
     const session = await stripe.checkout.sessions.create({
@@ -90,9 +105,7 @@ serve(async (req) => {
       mode: "subscription",
       success_url: returnUrl || `${req.headers.get("origin")}/subscription/success`,
       cancel_url: `${req.headers.get("origin")}/subscription/plans`,
-      metadata: {
-        user_id: user.id,
-      }
+      metadata: sessionMetadata
     });
     
     logStep("Checkout session created", { sessionId: session.id, url: session.url });

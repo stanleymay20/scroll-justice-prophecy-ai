@@ -9,14 +9,16 @@ interface ProtectedRouteProps {
   children: ReactNode;
   requireSubscription?: boolean;
   requiredTier?: SubscriptionTier;
+  requiredRole?: string;
 }
 
 const ProtectedRoute = ({ 
   children, 
   requireSubscription = false,
-  requiredTier
+  requiredTier,
+  requiredRole
 }: ProtectedRouteProps) => {
-  const { user, loading, subscriptionStatus, subscriptionTier, checkSubscriptionStatus } = useAuth();
+  const { user, loading, subscriptionStatus, subscriptionTier, userRole, checkSubscriptionStatus } = useAuth();
   const location = useLocation();
 
   // Check subscription on mount and when changing routes
@@ -36,6 +38,17 @@ const ProtectedRoute = ({
     const currentTierIndex = tierHierarchy.indexOf(subscriptionTier as SubscriptionTier);
     
     return subscriptionStatus === "active" && currentTierIndex >= requiredTierIndex;
+  };
+
+  // Check if user has the required role
+  const hasRequiredRole = () => {
+    if (!requiredRole) return true;
+    
+    const roleHierarchy = ["flame_seeker", "scroll_advocate", "elder_judge", "admin"];
+    const requiredRoleIndex = roleHierarchy.indexOf(requiredRole);
+    const currentRoleIndex = roleHierarchy.indexOf(userRole || "flame_seeker");
+    
+    return currentRoleIndex >= requiredRoleIndex;
   };
 
   if (loading) {
@@ -84,7 +97,13 @@ const ProtectedRoute = ({
     return <Navigate to="/subscription/plans" replace />;
   }
 
-  // User is authenticated (and has required subscription if applicable)
+  if (requiredRole && !hasRequiredRole()) {
+    // User doesn't have the required role
+    console.log("Required role not met, redirecting to plans");
+    return <Navigate to="/subscription/plans" replace />;
+  }
+
+  // User is authenticated and has required subscription/role if applicable
   return <>{children}</>;
 };
 

@@ -12,13 +12,39 @@ export const isStripeConfigured = () => {
 // Import supabase client for making API calls
 import { supabase } from '@/lib/supabase';
 
+// Define subscription tiers with their metadata
+export const subscriptionTiers = {
+  FLAME_SEEKER: 'basic',
+  SCROLL_ADVOCATE: 'professional',
+  ELDER_JUDGE: 'enterprise'
+};
+
+// Map friendly names to subscription tiers
+export const tierNames = {
+  'basic': 'Flame Seeker',
+  'professional': 'Scroll Advocate',
+  'enterprise': 'Elder Judge'
+};
+
 // Create a Stripe checkout session
 export const createCheckoutSession = async (priceId: string, returnUrl: string) => {
   try {
+    // Get the current user to include in metadata
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error("User must be logged in to create a checkout session");
+    }
+    
     const { data, error } = await supabase.functions.invoke("create-checkout", {
       body: {
         priceId,
-        returnUrl
+        returnUrl,
+        metadata: {
+          user_id: user.id,
+          email: user.email,
+          role: priceId // Store the desired role in metadata
+        }
       }
     });
     
@@ -67,4 +93,46 @@ export const hasAccess = (userTier: string | null, requiredTier: "basic" | "prof
   const requiredTierIndex = tierHierarchy.indexOf(requiredTier);
   
   return userTierIndex >= requiredTierIndex;
+};
+
+// Generate a QR code ScrollPass for subscription users
+export const generateScrollPass = async (userId: string, role: string, timestamp: string) => {
+  // This would integrate with a QR code generation service
+  // Placeholder for now
+  return {
+    userId,
+    role,
+    timestamp,
+    qrCode: `scrollpass-${userId}-${role}-${Date.now()}` 
+  };
+};
+
+// Function to map subscription tier to user role
+export const mapTierToRole = (tier: string | null): string => {
+  if (!tier) return 'guest';
+  
+  switch(tier.toLowerCase()) {
+    case 'professional':
+      return 'scroll_advocate';
+    case 'enterprise':
+      return 'elder_judge';
+    case 'basic':
+    default:
+      return 'flame_seeker';
+  }
+};
+
+// Function to map user role to subscription tier
+export const mapRoleToTier = (role: string | null): string => {
+  if (!role) return 'basic';
+  
+  switch(role.toLowerCase()) {
+    case 'scroll_advocate':
+      return 'professional';
+    case 'elder_judge':
+      return 'enterprise';
+    case 'flame_seeker':
+    default:
+      return 'basic';
+  }
 };
