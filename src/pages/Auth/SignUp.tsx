@@ -67,7 +67,7 @@ const SignUp = () => {
       <GlassCard className="w-full max-w-md p-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-justice-light/80">Sign up for FastTrackJusticeAI</p>
+          <p className="text-justice-light/80">Sign up for ScrollJustice.AI</p>
         </div>
         
         {successMessage ? (

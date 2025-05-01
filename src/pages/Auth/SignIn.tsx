@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react";
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const { signIn, user, loading } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -24,17 +25,19 @@ const SignIn = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate(redirectUrl);
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirectUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
     try {
       await signIn(email, password);
       // Redirect handled in AuthContext after successful login
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing in:", error);
+      setErrorMessage(error.message || "Failed to sign in. Please check your credentials and try again.");
     }
   };
 
@@ -84,6 +87,12 @@ const SignIn = () => {
                 required
               />
             </div>
+            
+            {errorMessage && (
+              <div className="p-3 bg-destructive/20 border border-destructive/50 rounded text-sm text-white">
+                {errorMessage}
+              </div>
+            )}
             
             <Button 
               type="submit" 

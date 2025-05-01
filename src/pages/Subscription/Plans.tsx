@@ -58,7 +58,7 @@ const plans: SubscriptionPlan[] = [
 
 const SubscriptionPlans = () => {
   const [loading, setLoading] = useState<string | null>(null);
-  const { user, subscriptionTier, subscriptionStatus } = useAuth();
+  const { user, subscriptionTier, subscriptionStatus, checkSubscriptionStatus } = useAuth();
   const navigate = useNavigate();
 
   const handleSubscribe = async (plan: SubscriptionPlan) => {
@@ -78,6 +78,9 @@ const SubscriptionPlans = () => {
 
     try {
       setLoading(plan.id);
+      
+      // Force refresh subscription status before proceeding
+      await checkSubscriptionStatus();
       
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {

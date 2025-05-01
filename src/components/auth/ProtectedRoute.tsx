@@ -22,6 +22,7 @@ const ProtectedRoute = ({
   // Check subscription on mount and when changing routes
   useEffect(() => {
     if (user && requireSubscription) {
+      console.log("Checking subscription status in ProtectedRoute");
       checkSubscriptionStatus();
     }
   }, [user, requireSubscription, checkSubscriptionStatus]);
@@ -52,16 +53,19 @@ const ProtectedRoute = ({
 
   if (!user) {
     // Redirect to login page and save the current location
+    console.log("User not authenticated, redirecting to signin");
     return <Navigate to={`/signin?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
   if (requireSubscription && subscriptionStatus !== "active") {
     // User needs a subscription but doesn't have one
+    console.log("Subscription required but user doesn't have active subscription");
     return <Navigate to="/subscription/plans" replace />;
   }
 
   if (requiredTier && !hasRequiredTier()) {
     // User doesn't have the required subscription tier
+    console.log("Required tier not met, redirecting to plans");
     return <Navigate to="/subscription/plans" replace />;
   }
 

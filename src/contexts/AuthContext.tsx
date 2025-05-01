@@ -52,8 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        // Don't fetch subscription info directly here to avoid auth deadlocks
-        // Use setTimeout to defer the call
+        // Use setTimeout to defer subscription check to avoid auth deadlocks
         setTimeout(() => {
           checkSubscriptionStatus();
         }, 0);
@@ -85,6 +84,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user) return;
     
     try {
+      console.log("Checking subscription status for user:", user.id);
+      
       // First try to get subscription from database
       const { data: dbSubscription, error: dbError } = await supabase
         .from("subscriptions")
@@ -96,7 +97,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.error("Error fetching subscription from database:", dbError);
       }
 
+      if (dbSubscription) {
+        console.log("Found subscription in database:", dbSubscription);
+        setSubscriptionStatus(dbSubscription.status as SubscriptionStatus);
+        setSubscriptionTier(dbSubscription.tier as SubscriptionTier);
+        setSubscriptionEnd(dbSubscription.current_period_end);
+      }
+
       // Then call the check-subscription function to verify with Stripe and update database
+      console.log("Invoking check-subscription edge function");
       const { data, error } = await supabase.functions.invoke("check-subscription");
       
       if (error) {
@@ -105,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       
       if (data) {
+        console.log("Received subscription data from edge function:", data);
         setSubscriptionStatus(data.subscribed ? "active" : "inactive");
         setSubscriptionTier(data.subscription_tier);
         setSubscriptionEnd(data.subscription_end);
@@ -133,6 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         description: "Please verify your scroll credentials and try again",
         variant: "destructive",
       });
+      throw error; // Re-throw for handling in the component
     } finally {
       setLoading(false);
     }
@@ -159,6 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         description: "Please try again with different scroll credentials",
         variant: "destructive",
       });
+      throw error; // Re-throw for handling in the component
     } finally {
       setLoading(false);
     }
@@ -173,6 +185,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         title: "Signed out",
         description: "You've been signed out successfully.",
       });
+      // Clear subscription data on signOut
+      setSubscriptionStatus(null);
+      setSubscriptionTier(null);
+      setSubscriptionEnd(null);
       navigate("/");
     } catch (error: any) {
       toast({
