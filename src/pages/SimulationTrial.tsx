@@ -44,6 +44,16 @@ const SimulationTrial = () => {
     setSimulationStarted(true);
   };
   
+  const handleOathAccepted = () => {
+    // This function is called when the oath is accepted
+    console.log("Oath accepted");
+  };
+  
+  const handleOathCancel = () => {
+    // This function is called when the oath is cancelled
+    setOathRequired(false);
+  };
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
       <MetaTags 
@@ -58,6 +68,9 @@ const SimulationTrial = () => {
         <SacredOathScreen 
           userId={user?.id || 'anonymous'} 
           onComplete={handleOathComplete}
+          onOathAccepted={handleOathAccepted}
+          onCancel={handleOathCancel}
+          sessionId="simulation-001"
         />
       )}
       

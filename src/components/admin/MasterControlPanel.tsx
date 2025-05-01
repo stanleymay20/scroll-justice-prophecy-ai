@@ -31,16 +31,21 @@ export function MasterControlPanel() {
     try {
       setLoading(true);
       
-      // Fetch integrity logs using a compatible type cast
-      // Note: This is a temporary workaround until the Supabase types are properly updated
-      const logs = await supabase
+      // Fetch integrity logs
+      const { data, error } = await supabase
         .from('scroll_integrity_logs')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
         
-      if (logs.error) throw logs.error;
-      setIntegrityLogs((logs.data || []) as unknown as ScrollIntegrityLog[]);
+      if (error) throw error;
+      
+      // Type assertion after null check
+      if (data) {
+        setIntegrityLogs(data as unknown as ScrollIntegrityLog[]);
+      } else {
+        setIntegrityLogs([]);
+      }
       
       // In a real application, we would fetch actual system health metrics
       

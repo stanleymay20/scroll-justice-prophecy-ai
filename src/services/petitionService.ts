@@ -11,6 +11,8 @@ export async function fetchPetitions(isAdmin = false): Promise<ScrollPetition[]>
       .order('created_at', { ascending: false });
     
     if (error) throw error;
+    if (!data) return [];
+    
     return data as unknown as ScrollPetition[];
   } catch (error) {
     console.error('Error fetching petitions:', error);
@@ -28,6 +30,8 @@ export async function fetchPetitionById(id: string): Promise<ScrollPetition> {
       .single();
       
     if (error) throw error;
+    if (!data) throw new Error('Petition not found');
+    
     return data as unknown as ScrollPetition;
   } catch (error) {
     console.error('Error fetching petition:', error);
@@ -44,6 +48,8 @@ export async function createPetition(petition: Partial<ScrollPetition>): Promise
       .select();
       
     if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Failed to create petition');
+    
     return data[0] as unknown as ScrollPetition;
   } catch (error) {
     console.error('Error creating petition:', error);
@@ -61,6 +67,8 @@ export async function updatePetition(id: string, updates: Partial<ScrollPetition
       .select();
       
     if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Failed to update petition');
+    
     return data[0] as unknown as ScrollPetition;
   } catch (error) {
     console.error('Error updating petition:', error);
@@ -89,6 +97,8 @@ export async function deliverVerdict(
       .select();
       
     if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Failed to deliver verdict');
+    
     return data[0] as unknown as ScrollPetition;
   } catch (error) {
     console.error('Error delivering verdict:', error);
@@ -111,6 +121,8 @@ export async function sealPetition(id: string): Promise<ScrollPetition> {
       .select();
       
     if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Failed to seal petition');
+    
     return data[0] as unknown as ScrollPetition;
   } catch (error) {
     console.error('Error sealing petition:', error);
@@ -165,6 +177,7 @@ export async function uploadEvidence(
       file_type: file.type,
       description,
       is_sealed: false,
+      uploaded_by: (await supabase.auth.getUser()).data.user?.id || 'anonymous',
     };
     
     const { data, error } = await supabase
@@ -173,6 +186,8 @@ export async function uploadEvidence(
       .select();
       
     if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Failed to create evidence record');
+    
     return data[0] as unknown as ScrollEvidence;
   } catch (error) {
     console.error('Error uploading evidence:', error);
@@ -189,6 +204,8 @@ export async function getPetitionEvidence(petitionId: string): Promise<ScrollEvi
       .eq('petition_id', petitionId);
       
     if (error) throw error;
+    if (!data) return [];
+    
     return data as unknown as ScrollEvidence[];
   } catch (error) {
     console.error('Error fetching evidence:', error);

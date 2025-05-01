@@ -190,6 +190,128 @@ export type Database = {
         }
         Relationships: []
       }
+      scroll_evidence: {
+        Row: {
+          description: string | null
+          file_path: string
+          file_type: string | null
+          id: string
+          is_sealed: boolean | null
+          petition_id: string
+          uploaded_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          description?: string | null
+          file_path: string
+          file_type?: string | null
+          id?: string
+          is_sealed?: boolean | null
+          petition_id: string
+          uploaded_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          description?: string | null
+          file_path?: string
+          file_type?: string | null
+          id?: string
+          is_sealed?: boolean | null
+          petition_id?: string
+          uploaded_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scroll_evidence_petition_id_fkey"
+            columns: ["petition_id"]
+            isOneToOne: false
+            referencedRelation: "scroll_petitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scroll_integrity_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          description: string | null
+          id: string
+          integrity_impact: number
+          petition_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          integrity_impact: number
+          petition_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          integrity_impact?: number
+          petition_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      scroll_petitions: {
+        Row: {
+          ai_suggested_verdict: string | null
+          assigned_judge_id: string | null
+          created_at: string
+          description: string
+          id: string
+          is_sealed: boolean
+          petitioner_id: string
+          scroll_integrity_score: number | null
+          status: string | null
+          title: string
+          updated_at: string
+          verdict: string | null
+          verdict_reasoning: string | null
+          verdict_timestamp: string | null
+        }
+        Insert: {
+          ai_suggested_verdict?: string | null
+          assigned_judge_id?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          is_sealed?: boolean
+          petitioner_id: string
+          scroll_integrity_score?: number | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          verdict?: string | null
+          verdict_reasoning?: string | null
+          verdict_timestamp?: string | null
+        }
+        Update: {
+          ai_suggested_verdict?: string | null
+          assigned_judge_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_sealed?: boolean
+          petitioner_id?: string
+          scroll_integrity_score?: number | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          verdict?: string | null
+          verdict_reasoning?: string | null
+          verdict_timestamp?: string | null
+        }
+        Relationships: []
+      }
       scroll_witness_logs: {
         Row: {
           action: string
