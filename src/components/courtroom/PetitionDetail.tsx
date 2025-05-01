@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,10 +14,12 @@ import { Loader2, ChevronLeft, Shield, Gavel, AlertTriangle, User, CalendarClock
 import { format } from 'date-fns';
 import { SacredOathScreen } from '@/components/courtroom/SacredOathScreen';
 import { SealAnimation } from './SealAnimation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function PetitionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [petition, setPetition] = useState<ScrollPetition | null>(null);
   const [loading, setLoading] = useState(true);
@@ -161,8 +162,17 @@ export function PetitionDetail() {
   
   // After oath is accepted
   const handleOathAccepted = () => {
-    setShowOathScreen(false);
     setIsReviewing(true);
+  };
+  
+  // Handle oath completion
+  const handleOathComplete = () => {
+    setShowOathScreen(false);
+  }
+  
+  // Cancel oath screen
+  const handleOathCancel = () => {
+    setShowOathScreen(false);
   };
   
   // Format date
@@ -176,8 +186,15 @@ export function PetitionDetail() {
   // Check if user is the petitioner
   const isPetitioner = petition && petition.petitioner_id === id;
   
-  if (showOathScreen) {
-    return <SacredOathScreen onOathAccepted={handleOathAccepted} onCancel={() => setShowOathScreen(false)} />;
+  if (showOathScreen && user) {
+    return (
+      <SacredOathScreen 
+        userId={user.id}
+        onComplete={handleOathComplete}
+        onOathAccepted={handleOathAccepted}
+        onCancel={handleOathCancel}
+      />
+    );
   }
   
   if (loading) {

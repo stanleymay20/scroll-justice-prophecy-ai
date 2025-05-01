@@ -11,10 +11,12 @@ import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 interface SacredOathScreenProps {
   userId: string;
   onComplete: () => void;
+  onOathAccepted: () => void;
+  onCancel: () => void;
   sessionId?: string;
 }
 
-export function SacredOathScreen({ userId, onComplete, sessionId }: SacredOathScreenProps) {
+export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel, sessionId }: SacredOathScreenProps) {
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { t } = useLanguage();
@@ -52,6 +54,7 @@ export function SacredOathScreen({ userId, onComplete, sessionId }: SacredOathSc
       // Store in localStorage to remember this user has taken the oath
       localStorage.setItem('scrollJustice-oath-taken', 'true');
       
+      onOathAccepted();
       onComplete();
     } catch (error) {
       console.error("Error taking sacred oath:", error);
@@ -94,18 +97,28 @@ export function SacredOathScreen({ userId, onComplete, sessionId }: SacredOathSc
             </label>
           </div>
           
-          <Button 
-            className="w-full relative"
-            disabled={!agreed || submitting}
-            onClick={handleSubmitOath}
-          >
-            {submitting ? "Processing..." : t('oath.confirm')}
-            {agreed && !submitting && (
-              <div className="absolute -top-1 -right-1">
-                <PulseEffect color="bg-justice-primary" />
-              </div>
-            )}
-          </Button>
+          <div className="flex space-x-4">
+            <Button 
+              className="w-full relative"
+              disabled={!agreed || submitting}
+              onClick={handleSubmitOath}
+            >
+              {submitting ? "Processing..." : t('oath.confirm')}
+              {agreed && !submitting && (
+                <div className="absolute -top-1 -right-1">
+                  <PulseEffect color="bg-justice-primary" />
+                </div>
+              )}
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="w-1/3"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       </GlassCard>
     </div>
