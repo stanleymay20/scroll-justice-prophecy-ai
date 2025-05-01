@@ -65,14 +65,17 @@ serve(async (req) => {
     if (!priceId) {
       throw new Error("Price ID is required");
     }
-
-    // Use the provided price ID directly (it should be a valid Stripe price ID)
-    const stripePriceId = priceId;
     
     // Determine role name based on the price ID or metadata
     let roleName = metadata.role || 'flame_seeker';
     
-    logStep("Using price ID", { stripe: stripePriceId, role: roleName });
+    if (roleName === 'professional') {
+      roleName = 'scroll_advocate';
+    } else if (roleName === 'enterprise') {
+      roleName = 'elder_judge';
+    }
+    
+    logStep("Using price ID and setting role", { priceId, role: roleName });
     
     // Combine default metadata with any additional metadata
     const sessionMetadata = {
@@ -90,7 +93,7 @@ serve(async (req) => {
         customer_email: customerId ? undefined : user.email,
         line_items: [
           {
-            price: stripePriceId,
+            price: priceId,
             quantity: 1,
           },
         ],

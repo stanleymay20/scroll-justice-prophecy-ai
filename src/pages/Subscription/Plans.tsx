@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Check, X, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import { stripePriceIds } from "@/lib/stripe";
+import { stripePriceIds, createCheckoutSession } from "@/lib/stripe";
 import type { SubscriptionPlan, SubscriptionTier } from "@/types/subscription";
 
 // Subscription plan data
@@ -93,14 +92,11 @@ const SubscriptionPlans = () => {
         priceId: stripePriceIds[plan.id]
       });
       
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: {
-          priceId: stripePriceIds[plan.id], // Pass the actual Stripe Price ID
-          returnUrl: `${window.location.origin}/subscription/success`
-        }
-      });
-      
-      if (error) throw error;
+      // Use the createCheckoutSession utility function from stripe.ts
+      const data = await createCheckoutSession(
+        stripePriceIds[plan.id],
+        `${window.location.origin}/subscription/success`
+      );
       
       if (data?.url) {
         window.location.href = data.url;
