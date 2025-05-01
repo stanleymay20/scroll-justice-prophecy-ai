@@ -53,7 +53,8 @@ export const EvidenceUploader = ({
         return;
       }
       
-      const result = await uploadEvidence(file, petitionId, user.id);
+      // Fix: Pass parameters in the correct order (petitionId, file, userId)
+      const result = await uploadEvidence(petitionId, file, user.id);
       
       if (result.success) {
         toast({
