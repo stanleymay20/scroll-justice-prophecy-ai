@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
@@ -36,7 +35,8 @@ export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel,
             session_id: sessionId,
             user_id: userId,
             oath_taken: true,
-            oath_timestamp: new Date().toISOString()
+            oath_timestamp: new Date().toISOString(),
+            role: 'witness' // Adding the required role field with a default value
           });
       }
         
