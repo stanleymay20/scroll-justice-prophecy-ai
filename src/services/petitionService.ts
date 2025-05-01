@@ -42,9 +42,14 @@ export async function fetchPetitionById(id: string): Promise<ScrollPetition> {
 // Create a new petition
 export async function createPetition(petition: Partial<ScrollPetition>): Promise<ScrollPetition> {
   try {
+    // Ensure required fields are present
+    if (!petition.title || !petition.description || !petition.petitioner_id) {
+      throw new Error('Missing required fields for petition creation');
+    }
+
     const { data, error } = await supabase
       .from('scroll_petitions')
-      .insert([petition])
+      .insert(petition)
       .select();
       
     if (error) throw error;
@@ -182,7 +187,7 @@ export async function uploadEvidence(
     
     const { data, error } = await supabase
       .from('scroll_evidence')
-      .insert([evidence])
+      .insert(evidence)
       .select();
       
     if (error) throw error;

@@ -10,13 +10,18 @@ export async function getUserRole(): Promise<UserRole> {
     
     if (!user) return 'guest';
     
+    // Check if user has a role in the user_roles table
     const { data, error } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
       
-    if (error || !data) return 'guest';
+    if (error || !data) {
+      console.log('No role found, defaulting to guest');
+      return 'guest';
+    }
+    
     return data.role as UserRole;
   } catch (error) {
     console.error('Error getting user role:', error);
@@ -42,12 +47,37 @@ export async function updateUserRole(userId: string, newRole: UserRole): Promise
     const isAdmin = await hasAccess('admin');
     if (!isAdmin) return false;
     
-    const { error } = await supabase
+    // Check if user already has a role
+    const { data: existingRole } = await supabase
       .from('user_roles')
-      .update({ role: newRole, last_role_change: new Date().toISOString() })
-      .eq('user_id', userId);
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
       
-    return !error;
+    if (existingRole) {
+      // Update existing role
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ 
+          role: newRole, 
+          last_role_change: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+      
+      return !error;
+    } else {
+      // Insert new role
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: newRole,
+          last_role_change: new Date().toISOString()
+        });
+      
+      return !error;
+    }
   } catch (error) {
     console.error('Error updating user role:', error);
     return false;
@@ -68,7 +98,7 @@ export async function getUserReputation(userId?: string): Promise<number> {
       .from('user_roles')
       .select('reputation_score')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
       
     if (error || !data) return 0;
     return data.reputation_score;
@@ -114,15 +144,17 @@ export async function getAllUsers(): Promise<any[]> {
     const isAdmin = await hasAccess('admin');
     if (!isAdmin) return [];
     
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+    // This is a complex query that might need to be adjusted based on your Supabase setup
+    // For now, we'll just get basic user information
+    const { data: authUsers } = await supabase.auth.admin.listUsers();
     
-    if (authError) throw authError;
+    if (!authUsers) return [];
     
-    const { data: roles, error: rolesError } = await supabase
+    const { data: roles } = await supabase
       .from('user_roles')
       .select('*');
       
-    if (rolesError) throw rolesError;
+    if (!roles) return [];
     
     // Combine user data with roles
     const users = authUsers.users.map(user => {
