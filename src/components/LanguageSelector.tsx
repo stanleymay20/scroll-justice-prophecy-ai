@@ -34,14 +34,18 @@ export function LanguageSelector() {
     { code: "pt" as LanguageCode, name: getLanguageDisplayName("pt"), flag: "🇧🇷", group: "extended" },
     
     // Sacred languages
-    { code: "he" as LanguageCode, name: getLanguageDisplayName("he"), flag: "🕮", group: "sacred" },
+    { code: "he" as LanguageCode, name: getLanguageDisplayName("he"), flag: "🇮🇱", group: "sacred" },
     { code: "sw" as LanguageCode, name: getLanguageDisplayName("sw"), flag: "🇰🇪", group: "sacred" },
     { code: "am" as LanguageCode, name: getLanguageDisplayName("am"), flag: "🇪🇹", group: "sacred" },
   ];
 
   const handleLanguageChange = (lang: LanguageCode) => {
     console.log("Changing language to:", lang);
-    setLanguage(lang);
+    try {
+      setLanguage(lang);
+    } catch (error) {
+      console.error("Failed to change language:", error);
+    }
   };
 
   // Group languages by category

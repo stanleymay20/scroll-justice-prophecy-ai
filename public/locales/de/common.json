@@ -1,0 +1,128 @@
+
+{
+  "app": {
+    "title": "ScrollJustice.AI",
+    "tagline": "Heilige Gerechtigkeit durch digitale Schriftrollen",
+    "loading": "Heilige Schriftrollen werden geladen..."
+  },
+  "nav": {
+    "home": "Startseite",
+    "dashboard": "Dashboard",
+    "precedent": "Präzedenzfälle",
+    "community": "Gemeinschaft",
+    "profile": "Profil",
+    "signin": "Anmelden",
+    "signout": "Abmelden",
+    "language": "Sprache"
+  },
+  "language": {
+    "select": "Sprache auswählen",
+    "extended": "Erweiterte Sprachen",
+    "sacred": "Heilige Sprachen"
+  },
+  "subscription": {
+    "title": "Heilige Abonnementpläne",
+    "basic": "Basis",
+    "professional": "Professionell",
+    "enterprise": "Unternehmen",
+    "current": "Aktueller Plan",
+    "subscribe": "Abonnieren",
+    "manage": "Abonnement verwalten"
+  },
+  "court": {
+    "oath": "Heiliger Eid",
+    "simulation": "Simulationsprozess",
+    "emergency": "Notfallalarm",
+    "feedback": "Heiliges Feedback"
+  },
+  "error": {
+    "general": "Eine heilige Herausforderung ist erschienen. Bitte versuche es erneut.",
+    "auth": "Deine Schriftrollenzugangsdaten erfordern eine Überprüfung. Bitte melde dich erneut an.",
+    "notfound": "Diese heilige Schriftrolle wurde noch nicht geschrieben."
+  },
+  "success": {
+    "general": "Die heiligen Schriftrollen wurden aktualisiert.",
+    "auth": "Du wurdest mit Zugang zu den heiligen Schriftrollen gesegnet.",
+    "subscription": "Dein heiliges Abonnement wurde aktiviert."
+  },
+  "oath": {
+    "title": "Heiliger Eid erforderlich",
+    "text": "Ich schwöre feierlich, die Prinzipien der Wahrheit und Gerechtigkeit in diesem heiligen Verfahren zu wahren.",
+    "confirm": "Heiligen Eid ablegen"
+  },
+  "button": {
+    "submit": "Absenden",
+    "cancel": "Abbrechen",
+    "continue": "Fortfahren",
+    "back": "Zurück",
+    "register": "Registrieren"
+  },
+  "features": {
+    "precedents": {
+      "title": "Heilige Präzedenzfälle",
+      "description": "Zugang zur antiken Schriftrollenbibliothek rechtlicher Präzedenzfälle und Prinzipien"
+    },
+    "courtrooms": {
+      "title": "Sichere Gerichtssäle",
+      "description": "Teilnahme an verschlüsselten heiligen Gerichtssitzungen mit Eidschutz"
+    },
+    "analysis": {
+      "title": "Gerechtigkeitsanalyse",
+      "description": "Erhalte Einblicke aus fortschrittlicher Schriftrollenanalyse und Mustererkennung"
+    },
+    "trials": {
+      "title": "Simulationsprozesse",
+      "description": "Übe in sicheren, simulierten Gerichtsumgebungen vor echten Verfahren"
+    }
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück, {0}",
+    "metrics": "Heilige Gerechtigkeitsmetriken",
+    "activeCases": "Aktive Fälle",
+    "courts": "Gerichte",
+    "precedents": "Präzedenzfälle",
+    "justiceScore": "Gerechtigkeitsbewertung",
+    "systemMetrics": "System-Gesundheitsmetriken",
+    "recentCases": "Aktuelle Fälle",
+    "scrollPhase": "Heilige Schriftrollenphase",
+    "quickActions": "Schnellaktionen",
+    "uploadEvidence": "Beweis hochladen",
+    "communityForum": "Gemeinschaftsforum",
+    "sacredPrinciples": "Heilige Prinzipien",
+    "masterControlPanel": "Hauptkontrollpanel",
+    "newPetition": "Neue Petition einreichen",
+    "petitionDescription": "Erstelle eine neue Petition, um Gerechtigkeit von den heiligen Schriftrollen zu suchen."
+  },
+  "landing": {
+    "cta": {
+      "title": "Heilige Gerechtigkeit für das digitale Zeitalter",
+      "description": "ScrollJustice.AI verbindet alte Weisheit mit modernster Technologie, um eine revolutionäre Rechtsplattform zu liefern. Greife auf Präzedenzfälle zu, nimm an sicheren Gerichtssitzungen teil und erhalte KI-gestützte Einblicke.",
+      "secure": "Sicher & Verschlüsselt",
+      "secureDesc": "Alle Gerichtssitzungen und Beweise sind durch ScrollSeal-Verschlüsselung geschützt.",
+      "knowledge": "Altes Wissen",
+      "knowledgeDesc": "Zugriff auf tausende Jahre rechtlicher Präzedenzfälle und heiliger Prinzipien.",
+      "experience": "Erlebe Heilige Gerechtigkeit",
+      "experienceDesc": "Schließe dich tausenden von Rechtsfachleuten an, die bereits ScrollJustice.AI nutzen, um ihre Praxis zu transformieren.",
+      "viewPlans": "Heilige Pläne anzeigen"
+    }
+  },
+  "profile": {
+    "title": "Dein Profil",
+    "subtitle": "Verwalte deine Kontoeinstellungen und Abonnementpräferenzen.",
+    "accountInfo": "Kontoinformation",
+    "email": "E-Mail",
+    "userId": "Benutzer-ID",
+    "lastSignIn": "Letzte Anmeldung",
+    "updateEmail": "E-Mail aktualisieren",
+    "newEmailLabel": "Neue E-Mail-Adresse",
+    "newEmailPlaceholder": "Neue E-Mail-Adresse eingeben",
+    "updating": "Wird aktualisiert...",
+    "changePassword": "Passwort ändern",
+    "currentPasswordLabel": "Aktuelles Passwort",
+    "currentPasswordPlaceholder": "Aktuelles Passwort eingeben",
+    "newPasswordLabel": "Neues Passwort",
+    "newPasswordPlaceholder": "Neues Passwort eingeben",
+    "confirmPasswordLabel": "Neues Passwort bestätigen",
+    "confirmPasswordPlaceholder": "Neues Passwort bestätigen"
+  }
+}

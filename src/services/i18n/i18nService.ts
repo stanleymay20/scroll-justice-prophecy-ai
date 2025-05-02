@@ -4,15 +4,32 @@ import { LanguageCode } from '@/contexts/language/types';
 // Function to load translations from public/locales/{lang}/common.json
 export const loadTranslations = async (lang: LanguageCode): Promise<Record<string, any>> => {
   try {
+    // First, try to load the requested language
     const response = await fetch(`/locales/${lang}/common.json`);
     if (!response.ok) {
       console.error(`Failed to load translations for ${lang}`);
-      // Fall back to in-memory translations if file loading fails
+      // Fall back to English if requested language loading fails
+      const fallbackResponse = await fetch(`/locales/en/common.json`);
+      if (fallbackResponse.ok) {
+        console.log(`Falling back to English translations for ${lang}`);
+        return await fallbackResponse.json();
+      }
+      // If even English fails, return empty object
       return {};
     }
     return await response.json();
   } catch (error) {
     console.error(`Error loading translations for ${lang}:`, error);
+    // Try loading English as fallback
+    try {
+      const fallbackResponse = await fetch(`/locales/en/common.json`);
+      if (fallbackResponse.ok) {
+        console.log(`Falling back to English translations after error for ${lang}`);
+        return await fallbackResponse.json();
+      }
+    } catch (fallbackError) {
+      console.error('Failed to load even fallback translations:', fallbackError);
+    }
     return {};
   }
 };
@@ -117,4 +134,32 @@ export const findMissingTranslationKeys = (
   const flatTarget = flattenTranslations(target);
   
   return Object.keys(flatSource).filter(key => !flatTarget[key]);
+};
+
+// Merge translations with fallback for missing keys
+export const mergeWithFallback = (
+  target: Record<string, any>,
+  fallback: Record<string, any>
+): Record<string, any> => {
+  const merged = { ...target };
+  const flatTarget = flattenTranslations(target);
+  const flatFallback = flattenTranslations(fallback);
+  
+  // Add missing keys from fallback
+  Object.keys(flatFallback).forEach(key => {
+    if (!flatTarget[key]) {
+      const keys = key.split('.');
+      let current = merged;
+      
+      for (let i = 0; i < keys.length - 1; i++) {
+        const k = keys[i];
+        current[k] = current[k] || {};
+        current = current[k];
+      }
+      
+      current[keys[keys.length - 1]] = flatFallback[key];
+    }
+  });
+  
+  return merged;
 };

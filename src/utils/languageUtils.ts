@@ -3,6 +3,7 @@ import type { LanguageCode } from "@/contexts/language/types";
 
 // Normalize language codes (e.g., 'en-US' -> 'en')
 export const normalizeLanguageCode = (code: string): string => {
+  if (!code) return '';
   return code.split('-')[0].toLowerCase();
 };
 
@@ -75,12 +76,34 @@ export const applyLanguageDirection = (code: LanguageCode): void => {
   } else {
     document.body.classList.remove('rtl');
   }
+
+  // Add specific font families for languages like Arabic, Hebrew, Chinese
+  switch (code) {
+    case 'ar':
+      document.documentElement.style.setProperty('--font-family', '"Amiri", "Noto Sans Arabic", sans-serif');
+      break;
+    case 'he':
+      document.documentElement.style.setProperty('--font-family', '"Frank Ruhl Libre", "Noto Sans Hebrew", sans-serif');
+      break;
+    case 'zh':
+      document.documentElement.style.setProperty('--font-family', '"Noto Sans SC", sans-serif');
+      break;
+    case 'hi':
+      document.documentElement.style.setProperty('--font-family', '"Noto Sans Devanagari", sans-serif');
+      break;
+    case 'am':
+      document.documentElement.style.setProperty('--font-family', '"Noto Sans Ethiopic", sans-serif');
+      break;
+    default:
+      document.documentElement.style.setProperty('--font-family', 'system-ui, sans-serif');
+  }
 };
 
 // Save language preference to localStorage with consistent key
 export const saveLanguagePreference = (code: LanguageCode): void => {
   try {
     localStorage.setItem('scrollJustice-language', code);
+    console.log(`Language preference saved: ${code}`);
   } catch (error) {
     console.error('Failed to save language preference:', error);
   }
@@ -91,11 +114,57 @@ export const getSavedLanguagePreference = (): LanguageCode | null => {
   try {
     const saved = localStorage.getItem('scrollJustice-language');
     if (saved && getSupportedLanguages().includes(saved as LanguageCode)) {
+      console.log(`Saved language preference found: ${saved}`);
       return saved as LanguageCode;
     }
     return null;
   } catch (error) {
     console.error('Failed to get saved language preference:', error);
     return null;
+  }
+};
+
+// Check if a language is available as a full translation
+export const isLanguageFullyTranslated = async (code: LanguageCode): Promise<boolean> => {
+  try {
+    const response = await fetch(`/locales/${code}/common.json`);
+    return response.ok;
+  } catch (error) {
+    console.error(`Error checking translation for ${code}:`, error);
+    return false;
+  }
+};
+
+// Get the completion percentage of a translation compared to English
+export const getTranslationCompleteness = async (code: LanguageCode): Promise<number> => {
+  try {
+    // Load English as the reference
+    const enResponse = await fetch('/locales/en/common.json');
+    if (!enResponse.ok) return 0;
+    const enTranslations = await enResponse.json();
+    
+    // Load the target language
+    const langResponse = await fetch(`/locales/${code}/common.json`);
+    if (!langResponse.ok) return 0;
+    const langTranslations = await langResponse.json();
+    
+    // Flatten both translation objects
+    const flattenTranslations = (obj: Record<string, any>, prefix = ''): string[] => {
+      return Object.keys(obj).reduce((acc: string[], key: string) => {
+        const prefixedKey = prefix ? `${prefix}.${key}` : key;
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          return [...acc, ...flattenTranslations(obj[key], prefixedKey)];
+        }
+        return [...acc, prefixedKey];
+      }, []);
+    };
+    
+    const enKeys = flattenTranslations(enTranslations);
+    const langKeys = flattenTranslations(langTranslations);
+    
+    return (langKeys.length / enKeys.length) * 100;
+  } catch (error) {
+    console.error(`Error calculating completion for ${code}:`, error);
+    return 0;
   }
 };

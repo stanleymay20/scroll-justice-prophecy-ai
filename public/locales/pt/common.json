@@ -1,0 +1,128 @@
+
+{
+  "app": {
+    "title": "ScrollJustice.AI",
+    "tagline": "Justiça sagrada através de pergaminhos digitais",
+    "loading": "Carregando pergaminhos sagrados..."
+  },
+  "nav": {
+    "home": "Início",
+    "dashboard": "Painel",
+    "precedent": "Precedentes",
+    "community": "Comunidade",
+    "profile": "Perfil",
+    "signin": "Entrar",
+    "signout": "Sair",
+    "language": "Idioma"
+  },
+  "language": {
+    "select": "Selecionar Idioma",
+    "extended": "Idiomas Estendidos",
+    "sacred": "Idiomas Sagrados"
+  },
+  "subscription": {
+    "title": "Planos de Assinatura Sagrados",
+    "basic": "Básico",
+    "professional": "Profissional",
+    "enterprise": "Empresarial",
+    "current": "Plano Atual",
+    "subscribe": "Assinar",
+    "manage": "Gerenciar Assinatura"
+  },
+  "court": {
+    "oath": "Juramento Sagrado",
+    "simulation": "Simulação de Julgamento",
+    "emergency": "Alerta de Emergência",
+    "feedback": "Feedback Sagrado"
+  },
+  "error": {
+    "general": "Um desafio sagrado apareceu. Por favor, tente novamente.",
+    "auth": "Suas credenciais de pergaminho requerem verificação. Por favor, entre novamente.",
+    "notfound": "Este pergaminho sagrado ainda não foi escrito."
+  },
+  "success": {
+    "general": "Os pergaminhos sagrados foram atualizados.",
+    "auth": "Você foi abençoado com acesso aos pergaminhos sagrados.",
+    "subscription": "Sua assinatura sagrada foi ativada."
+  },
+  "oath": {
+    "title": "Juramento Sagrado Necessário",
+    "text": "Eu juro solenemente defender os princípios da verdade e justiça neste procedimento sagrado.",
+    "confirm": "Fazer o Juramento Sagrado"
+  },
+  "button": {
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "continue": "Continuar",
+    "back": "Voltar",
+    "register": "Registrar"
+  },
+  "features": {
+    "precedents": {
+      "title": "Precedentes Sagrados",
+      "description": "Acesse a biblioteca antiga de pergaminhos de precedentes legais e princípios"
+    },
+    "courtrooms": {
+      "title": "Tribunais Seguros",
+      "description": "Participe em sessões de tribunal sagradas criptografadas com proteção por juramento"
+    },
+    "analysis": {
+      "title": "Análise de Justiça",
+      "description": "Obtenha insights de análises avançadas de pergaminhos e reconhecimento de padrões"
+    },
+    "trials": {
+      "title": "Simulações de Julgamento",
+      "description": "Pratique em ambientes de tribunal simulados seguros antes de procedimentos reais"
+    }
+  },
+  "dashboard": {
+    "welcome": "Bem-vindo de volta, {0}",
+    "metrics": "Métricas de Justiça Sagrada",
+    "activeCases": "Casos Ativos",
+    "courts": "Tribunais",
+    "precedents": "Precedentes",
+    "justiceScore": "Pontuação de Justiça",
+    "systemMetrics": "Métricas de Saúde do Sistema",
+    "recentCases": "Casos Recentes",
+    "scrollPhase": "Fase do Pergaminho Sagrado",
+    "quickActions": "Ações Rápidas",
+    "uploadEvidence": "Carregar Evidência",
+    "communityForum": "Fórum da Comunidade",
+    "sacredPrinciples": "Princípios Sagrados",
+    "masterControlPanel": "Painel de Controle Principal",
+    "newPetition": "Enviar Nova Petição",
+    "petitionDescription": "Crie uma nova petição para buscar justiça dos pergaminhos sagrados."
+  },
+  "landing": {
+    "cta": {
+      "title": "Justiça Sagrada para a Era Digital",
+      "description": "ScrollJustice.AI combina sabedoria antiga com tecnologia de ponta para entregar uma plataforma jurídica revolucionária. Acesse precedentes, participe em sessões de tribunal seguras e receba insights impulsionados por IA.",
+      "secure": "Seguro & Criptografado",
+      "secureDesc": "Todas as sessões de tribunal e evidências são protegidas pela criptografia ScrollSeal.",
+      "knowledge": "Conhecimento Antigo",
+      "knowledgeDesc": "Acesso a milhares de anos de precedentes legais e princípios sagrados.",
+      "experience": "Experimente a Justiça Sagrada",
+      "experienceDesc": "Junte-se a milhares de profissionais de direito que já usam ScrollJustice.AI para transformar sua prática.",
+      "viewPlans": "Ver Planos Sagrados"
+    }
+  },
+  "profile": {
+    "title": "Seu Perfil",
+    "subtitle": "Gerencie suas configurações de conta e preferências de assinatura.",
+    "accountInfo": "Informações da Conta",
+    "email": "Email",
+    "userId": "ID do Usuário",
+    "lastSignIn": "Último Login",
+    "updateEmail": "Atualizar Email",
+    "newEmailLabel": "Novo Endereço de Email",
+    "newEmailPlaceholder": "Insira o novo endereço de email",
+    "updating": "Atualizando...",
+    "changePassword": "Alterar Senha",
+    "currentPasswordLabel": "Senha Atual",
+    "currentPasswordPlaceholder": "Insira a senha atual",
+    "newPasswordLabel": "Nova Senha",
+    "newPasswordPlaceholder": "Insira a nova senha",
+    "confirmPasswordLabel": "Confirme a Nova Senha",
+    "confirmPasswordPlaceholder": "Confirme a nova senha"
+  }
+}

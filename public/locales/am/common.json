@@ -1,0 +1,128 @@
+
+{
+  "app": {
+    "title": "ScrollJustice.AI",
+    "tagline": "በዲጂታል ጥቅሎች በኩል ቅዱስ ፍትህ",
+    "loading": "ቅዱስ ጥቅሎችን በመጫን ላይ..."
+  },
+  "nav": {
+    "home": "መነሻ",
+    "dashboard": "ዳሽቦርድ",
+    "precedent": "ቀዳሚ ውሳኔዎች",
+    "community": "ማህበረሰብ",
+    "profile": "መገለጫ",
+    "signin": "ግባ",
+    "signout": "ውጣ",
+    "language": "ቋንቋ"
+  },
+  "language": {
+    "select": "ቋንቋ ይምረጡ",
+    "extended": "ተጨማሪ ቋንቋዎች",
+    "sacred": "ቅዱስ ቋንቋዎች"
+  },
+  "subscription": {
+    "title": "ቅዱስ የምዝገባ እቅዶች",
+    "basic": "መሰረታዊ",
+    "professional": "ፕሮፌሽናል",
+    "enterprise": "ድርጅታዊ",
+    "current": "የአሁኑ ዕቅድ",
+    "subscribe": "ተመዝገብ",
+    "manage": "ምዝገባን አስተዳድር"
+  },
+  "court": {
+    "oath": "ቅዱስ መሃላ",
+    "simulation": "የሙከራ ፍርድ",
+    "emergency": "የአደጋ ማስጠንቀቂያ",
+    "feedback": "ቅዱስ አስተያየት"
+  },
+  "error": {
+    "general": "ቅዱስ ፈተና ተገኝቷል። እባክዎ እንደገና ይሞክሩ።",
+    "auth": "የእርስዎ ጥቅል ማረጋገጫዎች ማረጋገጥ ያስፈልጋቸዋል። እባክዎ እንደገና ይግቡ።",
+    "notfound": "ይህ ቅዱስ ጥቅል ገና አልተጻፈም።"
+  },
+  "success": {
+    "general": "ቅዱስ ጥቅሎች ተዘምነዋል።",
+    "auth": "ለቅዱስ ጥቅሎች መዳረሻ ተባርከዋል።",
+    "subscription": "ቅዱስ ምዝገባዎ ተንቀሳቅሷል።"
+  },
+  "oath": {
+    "title": "ቅዱስ መሃላ ያስፈልጋል",
+    "text": "በዚህ ቅዱስ ሂደት ውስጥ የእውነትን እና የፍትህን መርሆዎች ለማስከበር በዘዴ እማለሁ።",
+    "confirm": "ቅዱስ መሀላ ይዝጉ"
+  },
+  "button": {
+    "submit": "አስገባ",
+    "cancel": "ሰርዝ",
+    "continue": "ቀጥል",
+    "back": "ተመለስ",
+    "register": "ተመዝገብ"
+  },
+  "features": {
+    "precedents": {
+      "title": "ቅዱስ ቀደምት",
+      "description": "የህግ ቀዳሚ ውሳኔዎች እና መርሆዎች የጥንት ጥቅል ቤተ መጻህፍት ይድረሱ"
+    },
+    "courtrooms": {
+      "title": "ደህንነቱ የተጠበቀ ፍርድ ቤቶች",
+      "description": "በመሃላ ጥበቃ ሥር በተመሰጠሩ ቅዱሳን የፍርድ ቤት ክፍለ ጊዜያት ይሳተፉ"
+    },
+    "analysis": {
+      "title": "የፍትህ ትንተና",
+      "description": "ከላቀ የጥቅል ትንተና እና የንድፍ መለየት ግንዛቤዎችን ያግኙ"
+    },
+    "trials": {
+      "title": "የሙከራ ፍርድ",
+      "description": "ከእውነተኛ ሂደቶች በፊት በደህንነቱ የተጠበቀ፣ የተመሳሰለ የፍርድ ቤት አካባቢዎች ውስጥ ይለማመዱ"
+    }
+  },
+  "dashboard": {
+    "welcome": "እንኳን በደህና ተመለሱ፣ {0}",
+    "metrics": "ቅዱስ የፍትህ መለኪያዎች",
+    "activeCases": "ንቁ ጉዳዮች",
+    "courts": "ፍርድ ቤቶች",
+    "precedents": "ቀዳሚ ውሳኔዎች",
+    "justiceScore": "የፍትህ ውጤት",
+    "systemMetrics": "የስርዓት ጤና መለኪያዎች",
+    "recentCases": "የቅርብ ጊዜ ጉዳዮች",
+    "scrollPhase": "የቅዱስ ጥቅል ደረጃ",
+    "quickActions": "ፈጣን እርምጃዎች",
+    "uploadEvidence": "ማስረጃ ስቀል",
+    "communityForum": "የማህበረሰብ መድረክ",
+    "sacredPrinciples": "ቅዱስ መርሆዎች",
+    "masterControlPanel": "ዋና መቆጣጠሪያ ፓነል",
+    "newPetition": "አዲስ አቤቱታ ያስገቡ",
+    "petitionDescription": "ከቅዱስ ጥቅሎች ፍትህ ለመፈለግ አዲስ አቤቱታ ይፍጠሩ።"
+  },
+  "landing": {
+    "cta": {
+      "title": "ለዲጂታል ዘመን ቅዱስ ፍትህ",
+      "description": "ScrollJustice.AI አብዮታዊ የሕግ መድረክ ለማቅረብ ጥንታዊ ጥበብን ከዘመናዊ ቴክኖሎጂ ጋር ያዋህዳል። ቀዳሚ ውሳኔዎችን ይመልከቱ፣ በደህንነቱ በተጠበቁ የፍርድ ቤት ክፍለ ጊዜያት ይሳተፉ እና በአይ የተገፋፉ ግንዛቤዎችን ይቀበሉ።",
+      "secure": "ደህንነቱ የተጠበቀ & የተመሰጠረ",
+      "secureDesc": "ሁሉም የፍርድ ቤት ክፍለ ጊዜያት እና ማስረጃዎች በScrollSeal ምስጠራ የተጠበቁ ናቸው።",
+      "knowledge": "ጥንታዊ እውቀት",
+      "knowledgeDesc": "የሺህ ዓመታት የህግ ቀዳሚ ውሳኔዎች እና ቅዱስ መርሆዎች ይድረሱ።",
+      "experience": "ቅዱስ ፍትህን ይሞክሩ",
+      "experienceDesc": "አሁን ከሚጠቀሙ ሺዎች የህግ ባለሙያዎች ጋር ይቀላቀሉ ScrollJustice.AI የእነሱን ልምምድ ለመለወጥ።",
+      "viewPlans": "ቅዱስ እቅዶችን ይመልከቱ"
+    }
+  },
+  "profile": {
+    "title": "የእርስዎ መገለጫ",
+    "subtitle": "የአካውንትዎን ቅንብሮች እና የምዝገባ ምርጫዎችዎን ያስተዳድሩ።",
+    "accountInfo": "የአካውንት መረጃ",
+    "email": "ኢሜይል",
+    "userId": "የተጠቃሚ መታወቂያ",
+    "lastSignIn": "የመጨረሻ መግቢያ",
+    "updateEmail": "ኢሜይልን ያዘምኑ",
+    "newEmailLabel": "አዲስ የኢሜይል አድራሻ",
+    "newEmailPlaceholder": "አዲስ የኢሜይል አድራሻ ያስገቡ",
+    "updating": "በማዘመን ላይ...",
+    "changePassword": "የይለፍ ቃል ይቀይሩ",
+    "currentPasswordLabel": "የአሁኑ የይለፍ ቃል",
+    "currentPasswordPlaceholder": "የአሁኑን የይለፍ ቃል ያስገቡ",
+    "newPasswordLabel": "አዲስ የይለፍ ቃል",
+    "newPasswordPlaceholder": "አዲስ የይለፍ ቃል ያስገቡ",
+    "confirmPasswordLabel": "አዲስ የይለፍ ቃል ያረጋግጡ",
+    "confirmPasswordPlaceholder": "አዲስ የይለፍ ቃልዎን ያረጋግጡ"
+  }
+}

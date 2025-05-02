@@ -6,7 +6,9 @@ export const DashboardHeader = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   
-  const username = user?.email?.split("@")[0] || "";
+  // Get username from email (or use user.user_metadata.name if available)
+  const username = user?.user_metadata?.name || 
+                  (user?.email ? user.email.split("@")[0] : "");
   
   return (
     <div className="mb-8">

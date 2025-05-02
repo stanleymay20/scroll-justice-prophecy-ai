@@ -5,10 +5,16 @@ import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { AnimatedValue } from "@/components/advanced-ui/AnimatedValue";
 import { useLanguage } from "@/contexts/language";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
+import { useEffect } from "react";
 
 export const DashboardMetrics = () => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Log the current language for debugging
+    console.log(`DashboardMetrics rendered with language: ${language}`);
+  }, [language]);
   
   return (
     <GlassCard className="p-6">

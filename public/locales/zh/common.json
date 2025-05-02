@@ -1,0 +1,128 @@
+
+{
+  "app": {
+    "title": "ScrollJustice.AI",
+    "tagline": "通过数字卷轴实现神圣正义",
+    "loading": "正在加载神圣卷轴..."
+  },
+  "nav": {
+    "home": "首页",
+    "dashboard": "控制面板",
+    "precedent": "先例",
+    "community": "社区",
+    "profile": "个人资料",
+    "signin": "登录",
+    "signout": "登出",
+    "language": "语言"
+  },
+  "language": {
+    "select": "选择语言",
+    "extended": "扩展语言",
+    "sacred": "神圣语言"
+  },
+  "subscription": {
+    "title": "神圣订阅计划",
+    "basic": "基础",
+    "professional": "专业",
+    "enterprise": "企业",
+    "current": "当前计划",
+    "subscribe": "订阅",
+    "manage": "管理订阅"
+  },
+  "court": {
+    "oath": "神圣誓言",
+    "simulation": "模拟审判",
+    "emergency": "紧急警报",
+    "feedback": "神圣反馈"
+  },
+  "error": {
+    "general": "出现了一个神圣挑战。请重试。",
+    "auth": "您的卷轴凭证需要验证。请重新登录。",
+    "notfound": "这个神圣卷轴尚未被撰写。"
+  },
+  "success": {
+    "general": "神圣卷轴已更新。",
+    "auth": "您已被赐予访问神圣卷轴的权限。",
+    "subscription": "您的神圣订阅已激活。"
+  },
+  "oath": {
+    "title": "需要神圣誓言",
+    "text": "我庄严宣誓在这一神圣程序中维护真理与正义的原则。",
+    "confirm": "立下神圣誓言"
+  },
+  "button": {
+    "submit": "提交",
+    "cancel": "取消",
+    "continue": "继续",
+    "back": "返回",
+    "register": "注册"
+  },
+  "features": {
+    "precedents": {
+      "title": "神圣先例",
+      "description": "访问法律先例和原则的古代卷轴库"
+    },
+    "courtrooms": {
+      "title": "安全法庭",
+      "description": "参与带有誓言保护的加密神圣法庭会议"
+    },
+    "analysis": {
+      "title": "正义分析",
+      "description": "从高级卷轴分析和模式识别获取洞见"
+    },
+    "trials": {
+      "title": "模拟审判",
+      "description": "在实际程序之前，在安全的模拟法庭环境中练习"
+    }
+  },
+  "dashboard": {
+    "welcome": "欢迎回来，{0}",
+    "metrics": "神圣正义指标",
+    "activeCases": "活跃案件",
+    "courts": "法庭",
+    "precedents": "先例",
+    "justiceScore": "正义分数",
+    "systemMetrics": "系统健康指标",
+    "recentCases": "最近案件",
+    "scrollPhase": "神圣卷轴阶段",
+    "quickActions": "快速操作",
+    "uploadEvidence": "上传证据",
+    "communityForum": "社区论坛",
+    "sacredPrinciples": "神圣原则",
+    "masterControlPanel": "主控制面板",
+    "newPetition": "提交新请愿",
+    "petitionDescription": "创建新的请愿以从神圣卷轴中寻求正义。"
+  },
+  "landing": {
+    "cta": {
+      "title": "数字时代的神圣正义",
+      "description": "ScrollJustice.AI将古代智慧与前沿技术相结合，提供革命性的法律平台。获取先例，参与安全法庭会议，并接收AI驱动的洞见。",
+      "secure": "安全与加密",
+      "secureDesc": "所有法庭会话和证据都受ScrollSeal加密保护。",
+      "knowledge": "古代知识",
+      "knowledgeDesc": "获取数千年的法律先例和神圣原则。",
+      "experience": "体验神圣正义",
+      "experienceDesc": "加入已经使用ScrollJustice.AI来转变其实践的数千名法律专业人士。",
+      "viewPlans": "查看神圣计划"
+    }
+  },
+  "profile": {
+    "title": "您的资料",
+    "subtitle": "管理您的账户设置和订阅偏好。",
+    "accountInfo": "账户信息",
+    "email": "电子邮件",
+    "userId": "用户ID",
+    "lastSignIn": "上次登录",
+    "updateEmail": "更新电子邮件",
+    "newEmailLabel": "新电子邮件地址",
+    "newEmailPlaceholder": "输入新电子邮件地址",
+    "updating": "更新中...",
+    "changePassword": "更改密码",
+    "currentPasswordLabel": "当前密码",
+    "currentPasswordPlaceholder": "输入当前密码",
+    "newPasswordLabel": "新密码",
+    "newPasswordPlaceholder": "输入新密码",
+    "confirmPasswordLabel": "确认新密码",
+    "confirmPasswordPlaceholder": "确认新密码"
+  }
+}

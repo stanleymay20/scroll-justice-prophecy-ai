@@ -1,0 +1,128 @@
+
+{
+  "app": {
+    "title": "ScrollJustice.AI",
+    "tagline": "צדק קדוש דרך מגילות דיגיטליות",
+    "loading": "טוען מגילות קדושות..."
+  },
+  "nav": {
+    "home": "בית",
+    "dashboard": "לוח בקרה",
+    "precedent": "תקדימים",
+    "community": "קהילה",
+    "profile": "פרופיל",
+    "signin": "התחברות",
+    "signout": "התנתקות",
+    "language": "שפה"
+  },
+  "language": {
+    "select": "בחר שפה",
+    "extended": "שפות מורחבות",
+    "sacred": "שפות קדושות"
+  },
+  "subscription": {
+    "title": "תכניות מנוי קדושות",
+    "basic": "בסיסי",
+    "professional": "מקצועי",
+    "enterprise": "ארגוני",
+    "current": "תכנית נוכחית",
+    "subscribe": "הרשם למנוי",
+    "manage": "נהל מנוי"
+  },
+  "court": {
+    "oath": "שבועה קדושה",
+    "simulation": "סימולציית משפט",
+    "emergency": "התראת חירום",
+    "feedback": "משוב קדוש"
+  },
+  "error": {
+    "general": "התעורר אתגר קדוש. אנא נסה שוב.",
+    "auth": "אישורי המגילה שלך דורשים אימות. אנא התחבר מחדש.",
+    "notfound": "מגילה קדושה זו טרם נכתבה."
+  },
+  "success": {
+    "general": "המגילות הקדושות עודכנו.",
+    "auth": "זכית בגישה למגילות הקדושות.",
+    "subscription": "המנוי הקדוש שלך הופעל."
+  },
+  "oath": {
+    "title": "נדרשת שבועה קדושה",
+    "text": "אני נשבע בחגיגיות לשמור על עקרונות האמת והצדק בהליך קדוש זה.",
+    "confirm": "בצע שבועה קדושה"
+  },
+  "button": {
+    "submit": "שלח",
+    "cancel": "ביטול",
+    "continue": "המשך",
+    "back": "חזור",
+    "register": "הרשמה"
+  },
+  "features": {
+    "precedents": {
+      "title": "תקדימים קדושים",
+      "description": "גישה לספריית מגילות עתיקה של תקדימים ועקרונות משפטיים"
+    },
+    "courtrooms": {
+      "title": "אולמות משפט מאובטחים",
+      "description": "השתתף בדיוני בית משפט קדושים מוצפנים עם הגנת שבועה"
+    },
+    "analysis": {
+      "title": "ניתוח צדק",
+      "description": "קבל תובנות מניתוח מגילות מתקדם וזיהוי דפוסים"
+    },
+    "trials": {
+      "title": "משפטי סימולציה",
+      "description": "התאמן בסביבות בית משפט מדומות בטוחות לפני הליכים אמיתיים"
+    }
+  },
+  "dashboard": {
+    "welcome": "ברוך שובך, {0}",
+    "metrics": "מדדי צדק קדושים",
+    "activeCases": "תיקים פעילים",
+    "courts": "בתי משפט",
+    "precedents": "תקדימים",
+    "justiceScore": "ציון צדק",
+    "systemMetrics": "מדדי בריאות המערכת",
+    "recentCases": "תיקים אחרונים",
+    "scrollPhase": "שלב מגילה קדושה",
+    "quickActions": "פעולות מהירות",
+    "uploadEvidence": "העלאת ראיות",
+    "communityForum": "פורום קהילה",
+    "sacredPrinciples": "עקרונות קדושים",
+    "masterControlPanel": "לוח בקרה ראשי",
+    "newPetition": "הגש עתירה חדשה",
+    "petitionDescription": "צור עתירה חדשה לחיפוש צדק מהמגילות הקדושות."
+  },
+  "landing": {
+    "cta": {
+      "title": "צדק קדוש לעידן הדיגיטלי",
+      "description": "ScrollJustice.AI משלב חוכמה עתיקה עם טכנולוגיה מתקדמת כדי לספק פלטפורמה משפטית מהפכנית. גישה לתקדימים, השתתפות בישיבות בית משפט מאובטחות וקבלת תובנות מבוססות בינה מלאכותית.",
+      "secure": "מאובטח ומוצפן",
+      "secureDesc": "כל ישיבות בית המשפט והראיות מוגנות באמצעות הצפנת ScrollSeal.",
+      "knowledge": "ידע עתיק",
+      "knowledgeDesc": "גישה לאלפי שנים של תקדימים משפטיים ועקרונות קדושים.",
+      "experience": "חווה צדק קדוש",
+      "experienceDesc": "הצטרף לאלפי אנשי מקצוע משפטיים שכבר משתמשים ב-ScrollJustice.AI כדי לשנות את הפרקטיקה שלהם.",
+      "viewPlans": "צפה בתכניות קדושות"
+    }
+  },
+  "profile": {
+    "title": "הפרופיל שלך",
+    "subtitle": "נהל את הגדרות החשבון שלך והעדפות המנוי.",
+    "accountInfo": "פרטי חשבון",
+    "email": "אימייל",
+    "userId": "מזהה משתמש",
+    "lastSignIn": "התחברות אחרונה",
+    "updateEmail": "עדכון אימייל",
+    "newEmailLabel": "כתובת אימייל חדשה",
+    "newEmailPlaceholder": "הזן כתובת אימייל חדשה",
+    "updating": "מעדכן...",
+    "changePassword": "שינוי סיסמה",
+    "currentPasswordLabel": "סיסמה נוכחית",
+    "currentPasswordPlaceholder": "הזן סיסמה נוכחית",
+    "newPasswordLabel": "סיסמה חדשה",
+    "newPasswordPlaceholder": "הזן סיסמה חדשה",
+    "confirmPasswordLabel": "אשר סיסמה חדשה",
+    "confirmPasswordPlaceholder": "אשר סיסמה חדשה"
+  }
+}

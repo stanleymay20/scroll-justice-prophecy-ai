@@ -1,0 +1,128 @@
+
+{
+  "app": {
+    "title": "ScrollJustice.AI",
+    "tagline": "Haki takatifu kupitia hati za kidijitali",
+    "loading": "Inapakia hati takatifu..."
+  },
+  "nav": {
+    "home": "Nyumbani",
+    "dashboard": "Dashibodi",
+    "precedent": "Mifano ya Awali",
+    "community": "Jamii",
+    "profile": "Wasifu",
+    "signin": "Ingia",
+    "signout": "Toka",
+    "language": "Lugha"
+  },
+  "language": {
+    "select": "Chagua Lugha",
+    "extended": "Lugha za Ziada",
+    "sacred": "Lugha Takatifu"
+  },
+  "subscription": {
+    "title": "Mipango ya Usajili Takatifu",
+    "basic": "Msingi",
+    "professional": "Kitaalamu",
+    "enterprise": "Shirika",
+    "current": "Mpango wa Sasa",
+    "subscribe": "Sajili",
+    "manage": "Simamia Usajili"
+  },
+  "court": {
+    "oath": "Kiapo Takatifu",
+    "simulation": "Majaribio ya Kesi",
+    "emergency": "Taadhari ya Dharura",
+    "feedback": "Maoni Takatifu"
+  },
+  "error": {
+    "general": "Changamoto takatifu imejitokeza. Tafadhali jaribu tena.",
+    "auth": "Vitambulisho vyako vya hati vinahitaji uthibitisho. Tafadhali ingia tena.",
+    "notfound": "Hati hii takatifu bado haijaandikwa."
+  },
+  "success": {
+    "general": "Hati takatifu zimesasishwa.",
+    "auth": "Umebarikiwa na ufikiaji wa hati takatifu.",
+    "subscription": "Usajili wako mtakatifu umeamilishwa."
+  },
+  "oath": {
+    "title": "Kiapo Takatifu Kinahitajika",
+    "text": "Ninaapa kwa dhati kudumisha kanuni za ukweli na haki katika mchakato huu mtakatifu.",
+    "confirm": "Kuapa Kiapo Takatifu"
+  },
+  "button": {
+    "submit": "Wasilisha",
+    "cancel": "Ghairi",
+    "continue": "Endelea",
+    "back": "Rudi",
+    "register": "Sajili"
+  },
+  "features": {
+    "precedents": {
+      "title": "Mifano Takatifu",
+      "description": "Fikia maktaba ya kale ya hati za mifano ya kisheria na kanuni"
+    },
+    "courtrooms": {
+      "title": "Mahakama Salama",
+      "description": "Shiriki katika vikao vya mahakama takatifu vilivyosimbwa kwa ulinzi wa kiapo"
+    },
+    "analysis": {
+      "title": "Uchambuzi wa Haki",
+      "description": "Pata maarifa kutoka kwa uchambuzi wa hati wa hali ya juu na utambuzi wa mifumo"
+    },
+    "trials": {
+      "title": "Majaribio ya Kesi",
+      "description": "Fanya mazoezi katika mazingira salama ya mahakama ya jaribio kabla ya taratibu halisi"
+    }
+  },
+  "dashboard": {
+    "welcome": "Karibu tena, {0}",
+    "metrics": "Vipimo vya Haki Takatifu",
+    "activeCases": "Kesi Hai",
+    "courts": "Mahakama",
+    "precedents": "Mifano ya Awali",
+    "justiceScore": "Alama ya Haki",
+    "systemMetrics": "Vipimo vya Afya ya Mfumo",
+    "recentCases": "Kesi za Hivi Karibuni",
+    "scrollPhase": "Awamu ya Hati Takatifu",
+    "quickActions": "Vitendo vya Haraka",
+    "uploadEvidence": "Pakia Ushahidi",
+    "communityForum": "Jukwaa la Jamii",
+    "sacredPrinciples": "Kanuni Takatifu",
+    "masterControlPanel": "Paneli Kuu ya Udhibiti",
+    "newPetition": "Wasilisha Ombi Jipya",
+    "petitionDescription": "Unda ombi jipya kutafuta haki kutoka kwa hati takatifu."
+  },
+  "landing": {
+    "cta": {
+      "title": "Haki Takatifu kwa Enzi ya Kidijitali",
+      "description": "ScrollJustice.AI inaunganisha hekima ya kale na teknolojia ya kisasa kutoa mfumo wa kisheria wa kimapinduzi. Fikia mifano ya awali, shiriki katika vikao salama vya mahakama, na pokea maarifa yanayoendeshwa na AI.",
+      "secure": "Salama & Iliyosimbwa",
+      "secureDesc": "Vikao vyote vya mahakama na ushahidi vinalindwa na usimbaji wa ScrollSeal.",
+      "knowledge": "Ujuzi wa Kale",
+      "knowledgeDesc": "Fikia maelfu ya miaka ya mifano ya kisheria na kanuni takatifu.",
+      "experience": "Pata Uzoefu wa Haki Takatifu",
+      "experienceDesc": "Jiunge na maelfu ya wataalamu wa kisheria ambao tayari wanatumia ScrollJustice.AI kubadilisha utendaji wao.",
+      "viewPlans": "Tazama Mipango Takatifu"
+    }
+  },
+  "profile": {
+    "title": "Wasifu Wako",
+    "subtitle": "Simamia mipangilio ya akaunti yako na mapendeleo ya usajili.",
+    "accountInfo": "Taarifa za Akaunti",
+    "email": "Barua pepe",
+    "userId": "Kitambulisho cha Mtumiaji",
+    "lastSignIn": "Kuingia kwa Mwisho",
+    "updateEmail": "Sasisha Barua Pepe",
+    "newEmailLabel": "Anwani Mpya ya Barua Pepe",
+    "newEmailPlaceholder": "Ingiza anwani mpya ya barua pepe",
+    "updating": "Inasasisha...",
+    "changePassword": "Badilisha Nenosiri",
+    "currentPasswordLabel": "Nenosiri la Sasa",
+    "currentPasswordPlaceholder": "Ingiza nenosiri la sasa",
+    "newPasswordLabel": "Nenosiri Jipya",
+    "newPasswordPlaceholder": "Ingiza nenosiri jipya",
+    "confirmPasswordLabel": "Thibitisha Nenosiri Jipya",
+    "confirmPasswordPlaceholder": "Thibitisha nenosiri jipya"
+  }
+}
