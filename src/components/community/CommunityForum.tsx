@@ -51,6 +51,7 @@ export function CommunityForum() {
     setLoading(true);
     setError(null);
     try {
+      // Modified query to not use the join with profiles since that relationship isn't set up
       let query = supabase
         .from('posts')
         .select(`
@@ -62,8 +63,7 @@ export function CommunityForum() {
           created_at,
           updated_at,
           likes,
-          comments_count,
-          profiles (username, avatar_url)
+          comments_count
         `)
         .order('created_at', { ascending: false })
         .limit(25);
@@ -84,10 +84,11 @@ export function CommunityForum() {
         return;
       }
       
+      // Modified to use a default username since we're not getting it from profiles
       const formattedPosts: Post[] = data.map(post => ({
         id: post.id,
         user_id: post.user_id,
-        username: post.profiles?.username || t("community.anonymousWitness"),
+        username: t("community.anonymousWitness") || "Anonymous Witness", // Default username
         title: post.title,
         content: post.content,
         category: post.category as PostCategory,
