@@ -1,0 +1,128 @@
+
+{
+  "app": {
+    "title": "ScrollJustice.AI",
+    "tagline": "Sacred justice through digital scrolls",
+    "loading": "Loading sacred scrolls..."
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "precedent": "Precedents",
+    "community": "Community",
+    "profile": "Profile",
+    "signin": "Sign In",
+    "signout": "Sign Out",
+    "language": "Language"
+  },
+  "language": {
+    "select": "Select Language",
+    "extended": "Extended Languages",
+    "sacred": "Sacred Languages"
+  },
+  "subscription": {
+    "title": "Sacred Subscription Plans",
+    "basic": "Basic",
+    "professional": "Professional",
+    "enterprise": "Enterprise",
+    "current": "Current Plan",
+    "subscribe": "Subscribe",
+    "manage": "Manage Subscription"
+  },
+  "court": {
+    "oath": "Sacred Oath",
+    "simulation": "Simulation Trial",
+    "emergency": "Emergency Alert",
+    "feedback": "Sacred Feedback"
+  },
+  "error": {
+    "general": "A sacred challenge has appeared. Please try again.",
+    "auth": "Your scroll credentials require verification. Please sign in again.",
+    "notfound": "This sacred scroll has not yet been written."
+  },
+  "success": {
+    "general": "The sacred scrolls have been updated.",
+    "auth": "You have been blessed with access to the sacred scrolls.",
+    "subscription": "Your sacred subscription has been activated."
+  },
+  "oath": {
+    "title": "Sacred Oath Required",
+    "text": "I solemnly swear to uphold the principles of truth and justice in this sacred proceeding.",
+    "confirm": "Take Sacred Oath"
+  },
+  "button": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "back": "Back",
+    "register": "Register"
+  },
+  "features": {
+    "precedents": {
+      "title": "Sacred Precedents",
+      "description": "Access the ancient scroll library of legal precedents and principles"
+    },
+    "courtrooms": {
+      "title": "Secure Courtrooms",
+      "description": "Participate in encrypted sacred court sessions with oath protection"
+    },
+    "analysis": {
+      "title": "Justice Analysis",
+      "description": "Gain insights from advanced scroll analytics and pattern recognition"
+    },
+    "trials": {
+      "title": "Simulation Trials",
+      "description": "Practice in safe, simulated court environments before real proceedings"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back, {0}",
+    "metrics": "Sacred Justice Metrics",
+    "activeCases": "Active Cases",
+    "courts": "Courts",
+    "precedents": "Precedents",
+    "justiceScore": "Justice Score",
+    "systemMetrics": "System Health Metrics",
+    "recentCases": "Recent Cases",
+    "scrollPhase": "Sacred Scroll Phase",
+    "quickActions": "Quick Actions",
+    "uploadEvidence": "Upload Evidence",
+    "communityForum": "Community Forum",
+    "sacredPrinciples": "Sacred Principles",
+    "masterControlPanel": "Master Control Panel",
+    "newPetition": "Submit New Petition",
+    "petitionDescription": "Create a new petition to seek justice from the sacred scrolls."
+  },
+  "landing": {
+    "cta": {
+      "title": "Sacred Justice for the Digital Age",
+      "description": "ScrollJustice.AI combines ancient wisdom with cutting-edge technology to deliver a revolutionary legal platform. Access precedents, participate in secure court sessions, and receive AI-powered insights.",
+      "secure": "Secure & Encrypted",
+      "secureDesc": "All court sessions and evidence are protected by ScrollSeal encryption.",
+      "knowledge": "Ancient Knowledge",
+      "knowledgeDesc": "Access thousands of years of legal precedents and sacred principles.",
+      "experience": "Experience Sacred Justice",
+      "experienceDesc": "Join thousands of legal professionals already using ScrollJustice.AI to transform their practice.",
+      "viewPlans": "View Sacred Plans"
+    }
+  },
+  "profile": {
+    "title": "Your Profile",
+    "subtitle": "Manage your account settings and subscription preferences.",
+    "accountInfo": "Account Information",
+    "email": "Email",
+    "userId": "User ID",
+    "lastSignIn": "Last Sign In",
+    "updateEmail": "Update Email",
+    "newEmailLabel": "New Email Address",
+    "newEmailPlaceholder": "Enter new email address",
+    "updating": "Updating...",
+    "changePassword": "Change Password",
+    "currentPasswordLabel": "Current Password",
+    "currentPasswordPlaceholder": "Enter current password",
+    "newPasswordLabel": "New Password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPasswordLabel": "Confirm New Password",
+    "confirmPasswordPlaceholder": "Confirm new password"
+  }
+}

@@ -3,9 +3,11 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/language";
 
 const NotFound = () => {
   const location = useLocation();
+  const { t } = useLanguage();
 
   useEffect(() => {
     console.error(
@@ -22,16 +24,16 @@ const NotFound = () => {
             <AlertCircle size={32} />
           </div>
           <h1 className="text-5xl font-bold mb-2 text-white">404</h1>
-          <p className="text-xl text-gray-400 mb-6">Page not found</p>
+          <p className="text-xl text-gray-400 mb-6">{t("error.notfound")}</p>
           <p className="text-gray-500 mb-8">
-            The resource at <span className="text-justice-primary">{location.pathname}</span> could not be located in the FastTrackJusticeAI system.
+            {t("error.general")} <span className="text-justice-primary">{location.pathname}</span>
           </p>
           <div className="flex flex-col md:flex-row gap-4 justify-center">
             <Button asChild className="bg-justice-primary hover:bg-justice-secondary transition-all">
-              <Link to="/">Return to Dashboard</Link>
+              <Link to="/">{t("nav.home")}</Link>
             </Button>
             <Button asChild variant="outline" className="border-justice-primary/30 hover:bg-justice-primary/10">
-              <Link to="/case-classification">Case Analysis Tools</Link>
+              <Link to="/case-classification">{t("dashboard.uploadEvidence")}</Link>
             </Button>
           </div>
         </div>

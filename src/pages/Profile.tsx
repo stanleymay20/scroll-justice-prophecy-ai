@@ -7,9 +7,12 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Loader2, User, Mail, Key } from "lucide-react";
+import { useLanguage } from "@/contexts/language";
+import { MetaTags } from "@/components/MetaTags";
 
 const Profile = () => {
   const { user, signOut } = useAuth();
+  const { t, formatDate } = useLanguage();
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -131,11 +134,12 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black p-4 md:p-8">
+      <MetaTags title={t("nav.profile")} />
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">Your Profile</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">{t("profile.title")}</h1>
           <p className="text-justice-light/80">
-            Manage your account settings and subscription preferences.
+            {t("profile.subtitle")}
           </p>
         </div>
 
@@ -145,24 +149,25 @@ const Profile = () => {
               <div className="bg-justice-primary/20 p-3 rounded-full">
                 <User className="h-6 w-6 text-justice-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-white ml-3">Account Information</h2>
+              <h2 className="text-2xl font-bold text-white ml-3">{t("profile.accountInfo")}</h2>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-justice-light/70">Email</label>
+                <label className="text-sm text-justice-light/70">{t("profile.email")}</label>
                 <p className="text-white">{user?.email}</p>
               </div>
               
               <div>
-                <label className="text-sm text-justice-light/70">User ID</label>
+                <label className="text-sm text-justice-light/70">{t("profile.userId")}</label>
                 <p className="text-white font-mono text-sm truncate">{user?.id}</p>
               </div>
               
               <div>
-                <label className="text-sm text-justice-light/70">Last Sign In</label>
+                <label className="text-sm text-justice-light/70">{t("profile.lastSignIn")}</label>
                 <p className="text-white">
-                  {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : "N/A"}
+                  {user?.last_sign_in_at ? formatDate(new Date(user.last_sign_in_at), 
+                    { dateStyle: 'medium', timeStyle: 'short' }) : "N/A"}
                 </p>
               </div>
             </div>
@@ -173,20 +178,20 @@ const Profile = () => {
               <div className="bg-justice-primary/20 p-3 rounded-full">
                 <Mail className="h-6 w-6 text-justice-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-white ml-3">Update Email</h2>
+              <h2 className="text-2xl font-bold text-white ml-3">{t("profile.updateEmail")}</h2>
             </div>
             
             <form onSubmit={handleUpdateEmail} className="space-y-4">
               <div>
                 <label htmlFor="newEmail" className="text-sm text-justice-light/70">
-                  New Email Address
+                  {t("profile.newEmailLabel")}
                 </label>
                 <Input
                   id="newEmail"
                   type="email"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="Enter new email address"
+                  placeholder={t("profile.newEmailPlaceholder")}
                   disabled={isUpdatingEmail}
                   className="mt-1"
                 />
@@ -196,10 +201,10 @@ const Profile = () => {
                 {isUpdatingEmail ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
+                    {t("profile.updating")}
                   </>
                 ) : (
-                  "Update Email"
+                  t("profile.updateEmail")
                 )}
               </Button>
             </form>
@@ -210,20 +215,20 @@ const Profile = () => {
               <div className="bg-justice-primary/20 p-3 rounded-full">
                 <Key className="h-6 w-6 text-justice-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-white ml-3">Change Password</h2>
+              <h2 className="text-2xl font-bold text-white ml-3">{t("profile.changePassword")}</h2>
             </div>
             
             <form onSubmit={handleUpdatePassword} className="space-y-4">
               <div>
                 <label htmlFor="currentPassword" className="text-sm text-justice-light/70">
-                  Current Password
+                  {t("profile.currentPasswordLabel")}
                 </label>
                 <Input
                   id="currentPassword"
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password"
+                  placeholder={t("profile.currentPasswordPlaceholder")}
                   disabled={isUpdatingPassword}
                   className="mt-1"
                 />
@@ -231,14 +236,14 @@ const Profile = () => {
               
               <div>
                 <label htmlFor="newPassword" className="text-sm text-justice-light/70">
-                  New Password
+                  {t("profile.newPasswordLabel")}
                 </label>
                 <Input
                   id="newPassword"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
+                  placeholder={t("profile.newPasswordPlaceholder")}
                   disabled={isUpdatingPassword}
                   className="mt-1"
                 />
@@ -246,14 +251,14 @@ const Profile = () => {
               
               <div>
                 <label htmlFor="confirmPassword" className="text-sm text-justice-light/70">
-                  Confirm New Password
+                  {t("profile.confirmPasswordLabel")}
                 </label>
                 <Input
                   id="confirmPassword"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
+                  placeholder={t("profile.confirmPasswordPlaceholder")}
                   disabled={isUpdatingPassword}
                   className="mt-1"
                 />
@@ -263,10 +268,10 @@ const Profile = () => {
                 {isUpdatingPassword ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
+                    {t("profile.updating")}
                   </>
                 ) : (
-                  "Change Password"
+                  t("profile.changePassword")
                 )}
               </Button>
             </form>
@@ -274,7 +279,7 @@ const Profile = () => {
 
           <div className="text-center pt-4">
             <Button variant="outline" onClick={signOut}>
-              Sign Out
+              {t("nav.signout")}
             </Button>
           </div>
         </div>

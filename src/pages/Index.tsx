@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage } from "@/contexts/language";
 import { NavBar } from "@/components/layout/NavBar";
 import { ScrollText, Shield, Scale, Gavel } from "lucide-react";
 import { AnimatedValue } from "@/components/advanced-ui/AnimatedValue";
@@ -64,29 +64,29 @@ const Index = () => {
   const features = [
     {
       icon: <ScrollText className="h-6 w-6 text-justice-primary" />,
-      title: "Sacred Precedents",
-      description: "Access the ancient scroll library of legal precedents and principles",
+      title: t("features.precedents.title"),
+      description: t("features.precedents.description"),
     },
     {
       icon: <Shield className="h-6 w-6 text-justice-primary" />,
-      title: "Secure Courtrooms",
-      description: "Participate in encrypted sacred court sessions with oath protection",
+      title: t("features.courtrooms.title"),
+      description: t("features.courtrooms.description"),
     },
     {
       icon: <Scale className="h-6 w-6 text-justice-primary" />,
-      title: "Justice Analysis",
-      description: "Gain insights from advanced scroll analytics and pattern recognition",
+      title: t("features.analysis.title"),
+      description: t("features.analysis.description"),
     },
     {
       icon: <Gavel className="h-6 w-6 text-justice-primary" />,
-      title: "Simulation Trials",
-      description: "Practice in safe, simulated court environments before real proceedings",
+      title: t("features.trials.title"),
+      description: t("features.trials.description"),
     },
   ];
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
-      <MetaTags title={user ? "Dashboard" : "Welcome"} />
+      <MetaTags title={user ? t("nav.dashboard") : t("nav.home")} />
       <NavBar />
       
       {user ? (
@@ -94,41 +94,41 @@ const Index = () => {
         <div className="pt-20 pb-16 px-4 container mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">
-              {t("app.title")} <span className="text-justice-primary">Dashboard</span>
+              {t("app.title")} <span className="text-justice-primary">{t("nav.dashboard")}</span>
             </h1>
             <p className="text-justice-light/80">
-              Welcome back, {user.email?.split("@")[0]}
+              {t("dashboard.welcome", user.email?.split("@")[0])}
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-6">
               <GlassCard className="p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Sacred Justice Metrics</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">{t("dashboard.metrics")}</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div className="bg-black/30 rounded-lg p-4 text-center">
-                    <p className="text-justice-light/70 text-sm mb-1">Active Cases</p>
+                    <p className="text-justice-light/70 text-sm mb-1">{t("dashboard.activeCases")}</p>
                     <AnimatedValue 
                       value={23} 
                       className="text-2xl font-bold text-white"
                     />
                   </div>
                   <div className="bg-black/30 rounded-lg p-4 text-center">
-                    <p className="text-justice-light/70 text-sm mb-1">Courts</p>
+                    <p className="text-justice-light/70 text-sm mb-1">{t("dashboard.courts")}</p>
                     <AnimatedValue 
                       value={7} 
                       className="text-2xl font-bold text-white"
                     />
                   </div>
                   <div className="bg-black/30 rounded-lg p-4 text-center">
-                    <p className="text-justice-light/70 text-sm mb-1">Precedents</p>
+                    <p className="text-justice-light/70 text-sm mb-1">{t("dashboard.precedents")}</p>
                     <AnimatedValue 
                       value={342} 
                       className="text-2xl font-bold text-white"
                     />
                   </div>
                   <div className="bg-black/30 rounded-lg p-4 text-center">
-                    <p className="text-justice-light/70 text-sm mb-1">Justice Score</p>
+                    <p className="text-justice-light/70 text-sm mb-1">{t("dashboard.justiceScore")}</p>
                     <AnimatedValue 
                       value={98.7} 
                       decimals={1}
@@ -140,17 +140,17 @@ const Index = () => {
                 
                 <div className="mt-6 flex flex-wrap gap-2">
                   <Button onClick={() => navigate("/precedent")}>
-                    Browse Precedents
+                    {t("nav.precedent")}
                   </Button>
                   <Button onClick={() => navigate("/courtroom")}>
-                    Enter Courtroom
+                    {t("court.oath")}
                   </Button>
                   <Button 
                     variant="default"
                     className="bg-justice-tertiary hover:bg-justice-tertiary/80 relative"
                     onClick={() => navigate("/simulation-trial")}
                   >
-                    <span>Start Simulation Trial</span>
+                    <span>{t("court.simulation")}</span>
                     <div className="absolute -top-1 -right-1">
                       <PulseEffect color="bg-justice-primary" />
                     </div>
@@ -161,14 +161,14 @@ const Index = () => {
               <SystemMetricsPanel data={mockSystemHealth} />
               
               <GlassCard className="p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Recent Cases</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">{t("dashboard.recentCases")}</h2>
                 <CaseList cases={mockCases} />
               </GlassCard>
             </div>
             
             <div className="space-y-6">
               <GlassCard className="p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Sacred Scroll Phase</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">{t("dashboard.scrollPhase")}</h2>
                 <ScrollPhaseIndicator 
                   phase={currentScrollPhase as any} 
                   gate={currentScrollGate as any} 
@@ -179,12 +179,12 @@ const Index = () => {
                   className="w-full mt-4"
                   onClick={() => navigate("/scroll-time")}
                 >
-                  View Scroll Calendar
+                  {t("dashboard.scrollPhase")}
                 </Button>
               </GlassCard>
               
               <GlassCard className="p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">{t("dashboard.quickActions")}</h2>
                 <div className="space-y-2">
                   <Button 
                     variant="outline" 
@@ -192,7 +192,7 @@ const Index = () => {
                     onClick={() => navigate("/document-upload")}
                   >
                     <ScrollText className="mr-2 h-4 w-4" />
-                    Upload Evidence
+                    {t("dashboard.uploadEvidence")}
                   </Button>
                   <Button 
                     variant="outline" 
@@ -200,7 +200,7 @@ const Index = () => {
                     onClick={() => navigate("/community")}
                   >
                     <Shield className="mr-2 h-4 w-4" />
-                    Community Forum
+                    {t("dashboard.communityForum")}
                     <div className="absolute top-1 right-2">
                       <PulseEffect size="sm" color="bg-justice-tertiary" />
                     </div>
@@ -211,7 +211,7 @@ const Index = () => {
                     onClick={() => navigate("/principles")}
                   >
                     <Scale className="mr-2 h-4 w-4" />
-                    Sacred Principles
+                    {t("dashboard.sacredPrinciples")}
                   </Button>
                   <Button 
                     variant="outline" 
@@ -219,21 +219,21 @@ const Index = () => {
                     onClick={() => navigate("/admin/mcp")}
                   >
                     <Gavel className="mr-2 h-4 w-4" />
-                    Master Control Panel
+                    {t("dashboard.masterControlPanel")}
                   </Button>
                 </div>
               </GlassCard>
               
               <GlassCard className="p-6 border-justice-primary/30">
-                <h2 className="text-xl font-semibold text-white mb-4">Submit New Petition</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">{t("dashboard.newPetition")}</h2>
                 <p className="text-justice-light/80 mb-4">
-                  Create a new petition to seek justice from the sacred scrolls.
+                  {t("dashboard.petitionDescription")}
                 </p>
                 <Button 
                   className="w-full bg-justice-tertiary hover:bg-justice-tertiary/80 relative"
                   onClick={() => navigate("/courtroom")}
                 >
-                  Submit Petition
+                  {t("dashboard.newPetition")}
                   <div className="absolute -top-1 -right-1">
                     <PulseEffect color="bg-justice-primary" />
                   </div>
@@ -262,7 +262,7 @@ const Index = () => {
                     {t("nav.signin")}
                   </Button>
                   <Button size="lg" variant="outline" onClick={() => navigate("/signup")}>
-                    Register
+                    {t("button.register")}
                   </Button>
                 </div>
               </div>
@@ -288,12 +288,10 @@ const Index = () => {
               <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
                 <div>
                   <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-                    Sacred Justice for the Digital Age
+                    {t("landing.cta.title")}
                   </h2>
                   <p className="mt-3 max-w-3xl text-lg text-justice-light">
-                    ScrollJustice.AI combines ancient wisdom with cutting-edge technology to deliver a 
-                    revolutionary legal platform. Access precedents, participate in secure court sessions, 
-                    and receive AI-powered insights.
+                    {t("landing.cta.description")}
                   </p>
                   <div className="mt-8">
                     <div className="flex items-center">
@@ -301,9 +299,9 @@ const Index = () => {
                         <Shield className="h-6 w-6 text-justice-primary" />
                       </div>
                       <div className="ml-3">
-                        <h3 className="text-lg font-medium text-white">Secure & Encrypted</h3>
+                        <h3 className="text-lg font-medium text-white">{t("landing.cta.secure")}</h3>
                         <p className="mt-2 text-justice-light/80">
-                          All court sessions and evidence are protected by ScrollSeal encryption.
+                          {t("landing.cta.secureDesc")}
                         </p>
                       </div>
                     </div>
@@ -312,9 +310,9 @@ const Index = () => {
                         <ScrollText className="h-6 w-6 text-justice-primary" />
                       </div>
                       <div className="ml-3">
-                        <h3 className="text-lg font-medium text-white">Ancient Knowledge</h3>
+                        <h3 className="text-lg font-medium text-white">{t("landing.cta.knowledge")}</h3>
                         <p className="mt-2 text-justice-light/80">
-                          Access thousands of years of legal precedents and sacred principles.
+                          {t("landing.cta.knowledgeDesc")}
                         </p>
                       </div>
                     </div>
@@ -322,15 +320,15 @@ const Index = () => {
                 </div>
                 <div className="mt-10 lg:mt-0">
                   <GlassCard className="p-6">
-                    <h3 className="text-xl font-bold text-white mb-4">Experience Sacred Justice</h3>
+                    <h3 className="text-xl font-bold text-white mb-4">{t("landing.cta.experience")}</h3>
                     <p className="text-justice-light/80 mb-6">
-                      Join thousands of legal professionals already using ScrollJustice.AI to transform their practice.
+                      {t("landing.cta.experienceDesc")}
                     </p>
                     <Button 
                       className="w-full" 
                       onClick={() => navigate("/subscription/plans")}
                     >
-                      View Sacred Plans
+                      {t("landing.cta.viewPlans")}
                     </Button>
                   </GlassCard>
                 </div>

@@ -8,7 +8,8 @@ export type LanguageCode =
 export type LanguageContextType = {
   language: LanguageCode;
   setLanguage: (lang: LanguageCode) => void;
-  t: (key: string) => string;
+  t: (key: string, ...args: any[]) => string;
+  isLoading?: boolean;
 };
 
 export type TranslationsType = Record<string, Record<string, string>>;

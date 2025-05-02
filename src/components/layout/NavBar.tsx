@@ -117,7 +117,7 @@ export function NavBar() {
                   {isAdmin && (
                     <DropdownMenuItem onClick={() => navigate("/admin/dashboard")}>
                       <Shield className="mr-2 h-4 w-4" />
-                      <span>Developer Dashboard</span>
+                      <span>{t("dashboard.masterControlPanel")}</span>
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuGroup>
@@ -189,7 +189,7 @@ export function NavBar() {
                       onClick={() => setIsOpen(false)}
                     >
                       <Shield className="h-4 w-4 mr-2" />
-                      Developer Dashboard
+                      {t("dashboard.masterControlPanel")}
                     </Link>
                   )}
                   

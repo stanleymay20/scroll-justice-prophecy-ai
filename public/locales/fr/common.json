@@ -1,0 +1,128 @@
+
+{
+  "app": {
+    "title": "ScrollJustice.AI",
+    "tagline": "Justice sacrée par parchemins numériques",
+    "loading": "Chargement des parchemins sacrés..."
+  },
+  "nav": {
+    "home": "Accueil",
+    "dashboard": "Tableau de Bord",
+    "precedent": "Précédents",
+    "community": "Communauté",
+    "profile": "Profil",
+    "signin": "Connexion",
+    "signout": "Déconnexion",
+    "language": "Langue"
+  },
+  "language": {
+    "select": "Choisir la Langue",
+    "extended": "Langues Étendues",
+    "sacred": "Langues Sacrées"
+  },
+  "subscription": {
+    "title": "Plans d'Abonnement Sacrés",
+    "basic": "Basique",
+    "professional": "Professionnel",
+    "enterprise": "Entreprise",
+    "current": "Plan Actuel",
+    "subscribe": "S'abonner",
+    "manage": "Gérer l'Abonnement"
+  },
+  "court": {
+    "oath": "Serment Sacré",
+    "simulation": "Simulation de Procès",
+    "emergency": "Alerte d'Urgence",
+    "feedback": "Retour Sacré"
+  },
+  "error": {
+    "general": "Un défi sacré est apparu. Veuillez réessayer.",
+    "auth": "Vos identifiants de parchemin nécessitent une vérification. Veuillez vous reconnecter.",
+    "notfound": "Ce parchemin sacré n'a pas encore été écrit."
+  },
+  "success": {
+    "general": "Les parchemins sacrés ont été mis à jour.",
+    "auth": "Vous avez été béni avec l'accès aux parchemins sacrés.",
+    "subscription": "Votre abonnement sacré a été activé."
+  },
+  "oath": {
+    "title": "Serment Sacré Requis",
+    "text": "Je jure solennellement de respecter les principes de vérité et de justice dans cette procédure sacrée.",
+    "confirm": "Prêter le Serment Sacré"
+  },
+  "button": {
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "continue": "Continuer",
+    "back": "Retour",
+    "register": "S'inscrire"
+  },
+  "features": {
+    "precedents": {
+      "title": "Précédents Sacrés",
+      "description": "Accédez à la bibliothèque ancienne de précédents et principes juridiques"
+    },
+    "courtrooms": {
+      "title": "Tribunaux Sécurisés",
+      "description": "Participez à des sessions judiciaires sacrées cryptées avec protection par serment"
+    },
+    "analysis": {
+      "title": "Analyse de Justice",
+      "description": "Obtenez des insights à partir d'analyses avancées et de reconnaissance de motifs"
+    },
+    "trials": {
+      "title": "Procès de Simulation",
+      "description": "Pratiquez dans des environnements judiciaires simulés sécurisés avant les procédures réelles"
+    }
+  },
+  "dashboard": {
+    "welcome": "Bon retour, {0}",
+    "metrics": "Métriques de Justice Sacrée",
+    "activeCases": "Affaires Actives",
+    "courts": "Tribunaux",
+    "precedents": "Précédents",
+    "justiceScore": "Score de Justice",
+    "systemMetrics": "Métriques de Santé du Système",
+    "recentCases": "Affaires Récentes",
+    "scrollPhase": "Phase de Parchemin Sacré",
+    "quickActions": "Actions Rapides",
+    "uploadEvidence": "Télécharger des Preuves",
+    "communityForum": "Forum Communautaire",
+    "sacredPrinciples": "Principes Sacrés",
+    "masterControlPanel": "Panneau de Contrôle Principal",
+    "newPetition": "Soumettre une Nouvelle Pétition",
+    "petitionDescription": "Créez une nouvelle pétition pour demander justice aux parchemins sacrés."
+  },
+  "landing": {
+    "cta": {
+      "title": "Justice Sacrée pour l'Ère Numérique",
+      "description": "ScrollJustice.AI combine la sagesse ancienne avec la technologie de pointe pour fournir une plateforme juridique révolutionnaire. Accédez aux précédents, participez à des sessions judiciaires sécurisées et recevez des insights alimentés par l'IA.",
+      "secure": "Sécurisé & Crypté",
+      "secureDesc": "Toutes les sessions judiciaires et les preuves sont protégées par le cryptage ScrollSeal.",
+      "knowledge": "Connaissance Ancienne",
+      "knowledgeDesc": "Accédez à des milliers d'années de précédents juridiques et de principes sacrés.",
+      "experience": "Expérimentez la Justice Sacrée",
+      "experienceDesc": "Rejoignez des milliers de professionnels du droit qui utilisent déjà ScrollJustice.AI pour transformer leur pratique.",
+      "viewPlans": "Voir les Plans Sacrés"
+    }
+  },
+  "profile": {
+    "title": "Votre Profil",
+    "subtitle": "Gérez vos paramètres de compte et préférences d'abonnement.",
+    "accountInfo": "Informations du Compte",
+    "email": "Email",
+    "userId": "ID Utilisateur",
+    "lastSignIn": "Dernière Connexion",
+    "updateEmail": "Mettre à jour l'Email",
+    "newEmailLabel": "Nouvelle Adresse Email",
+    "newEmailPlaceholder": "Entrez une nouvelle adresse email",
+    "updating": "Mise à jour...",
+    "changePassword": "Changer le Mot de Passe",
+    "currentPasswordLabel": "Mot de Passe Actuel",
+    "currentPasswordPlaceholder": "Entrez le mot de passe actuel",
+    "newPasswordLabel": "Nouveau Mot de Passe",
+    "newPasswordPlaceholder": "Entrez le nouveau mot de passe",
+    "confirmPasswordLabel": "Confirmez le Nouveau Mot de Passe",
+    "confirmPasswordPlaceholder": "Confirmez le nouveau mot de passe"
+  }
+}
