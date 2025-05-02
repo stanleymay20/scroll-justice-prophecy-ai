@@ -45,7 +45,15 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     const fetchTranslations = async () => {
       setIsLoading(true);
       try {
+        // First try to load translations from JSON file
         const loadedTranslations = await loadTranslations(language);
+        
+        console.log(`Loaded translations for ${language}:`, 
+          Object.keys(loadedTranslations).length > 0 ? 
+          `${Object.keys(loadedTranslations).length} keys found` : 
+          'No keys found, using fallback'
+        );
+        
         setTranslations(loadedTranslations);
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
@@ -103,9 +111,28 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     // Return the key itself as a last resort
     return key;
   };
+  
+  // Method to reload translations manually
+  const reloadTranslations = async () => {
+    setIsLoading(true);
+    try {
+      const loadedTranslations = await loadTranslations(language);
+      setTranslations(loadedTranslations);
+    } catch (error) {
+      console.error(`Failed to reload translations for ${language}:`, error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, isLoading }}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      setLanguage, 
+      t, 
+      isLoading, 
+      reloadTranslations 
+    }}>
       {children}
     </LanguageContext.Provider>
   );

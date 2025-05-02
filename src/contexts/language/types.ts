@@ -1,28 +1,25 @@
 
-// Define language codes as string literal types
 export type LanguageCode = 
-  | "en" | "fr" | "es" | "de"  // Primary
-  | "zh" | "ar" | "hi" | "pt"  // Extended
-  | "he" | "sw" | "am";        // Sacred
+  | "en" 
+  | "fr" 
+  | "es" 
+  | "de" 
+  | "zh" 
+  | "ar" 
+  | "hi" 
+  | "pt" 
+  | "he" 
+  | "sw" 
+  | "am";
 
-export type LanguageContextType = {
+export interface LanguageContextType {
   language: LanguageCode;
-  setLanguage: (lang: LanguageCode) => void;
+  setLanguage: (language: LanguageCode) => void;
   t: (key: string, ...args: any[]) => string;
-  isLoading?: boolean;
-};
-
-export type TranslationsType = Record<string, Record<string, string>>;
-
-export interface LanguageMetadata {
-  code: LanguageCode;
-  name: string;
-  flag: string;
-  group: 'primary' | 'extended' | 'sacred';
+  isLoading: boolean;
+  reloadTranslations?: () => Promise<void>;
 }
 
-export type LanguageGroups = {
-  primary: LanguageCode[];
-  extended: LanguageCode[];
-  sacred: LanguageCode[];
+export type TranslationsType = {
+  [key in LanguageCode]?: Record<string, string>;
 };

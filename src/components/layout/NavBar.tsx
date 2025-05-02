@@ -7,6 +7,7 @@ import { NavLinks } from "./nav/NavLinks";
 import { UserMenu } from "./nav/UserMenu";
 import { MobileMenu } from "./nav/MobileMenu";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { LanguageTranslator } from "@/components/LanguageTranslator";
 
 // Admin user IDs with access to developer dashboard
 const ADMIN_USER_IDS = ['f7d71f55-ae04-491e-87d0-df4a10e1f669'];
@@ -39,6 +40,7 @@ export function NavBar() {
         <div className="hidden md:flex items-center space-x-1">
           <NavLinks />
           <LanguageSelector />
+          {isAdmin && <LanguageTranslator />}
           <UserMenu isAdmin={isAdmin} />
         </div>
 
