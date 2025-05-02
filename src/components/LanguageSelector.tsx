@@ -9,10 +9,10 @@ import {
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage } from "@/contexts/language";
 import { Globe } from "lucide-react";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
-import type { LanguageCode } from "@/contexts/LanguageContext";
+import type { LanguageCode } from "@/contexts/language";
 import { getLanguageGroups, getLanguageDisplayName } from "@/utils/languageUtils";
 
 export function LanguageSelector() {

@@ -1,6 +1,6 @@
 
 import { Helmet } from "react-helmet";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage } from "@/contexts/language";
 
 interface MetaTagsProps {
   title?: string;

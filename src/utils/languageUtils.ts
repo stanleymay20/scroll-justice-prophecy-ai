@@ -1,5 +1,5 @@
 
-import type { LanguageCode } from "@/contexts/LanguageContext";
+import type { LanguageCode } from "@/contexts/language/types";
 
 // Normalize language codes (e.g., 'en-US' -> 'en')
 export const normalizeLanguageCode = (code: string): string => {

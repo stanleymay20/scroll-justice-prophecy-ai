@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Menu, X, User, LogOut, ScrollText, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage } from "@/contexts/language";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
 // Admin user IDs with access to developer dashboard
