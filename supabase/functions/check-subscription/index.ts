@@ -15,7 +15,7 @@ const logStep = (step: string, details?: any) => {
 
 // Helper to map subscription tier to user role
 const mapTierToRole = (tier: string | null): string => {
-  if (!tier) return 'guest';
+  if (!tier) return 'flame_seeker';
   
   switch(tier?.toLowerCase()) {
     case 'professional':
@@ -49,20 +49,50 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    const authHeader = req.headers.get("Authorization")!;
-    if (!authHeader) throw new Error("No authorization header provided");
-    logStep("Authorization header found");
+    let userId: string;
+    let userEmail: string;
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data, error } = await supabaseClient.auth.getUser(token);
-    
-    if (error) throw new Error(`Authentication error: ${error.message}`);
-    const user = data.user;
-    
-    if (!user?.email) {
-      throw new Error("User not authenticated or email not available");
+    // Check if this is a direct request with user_id in the body
+    if (req.method === "POST") {
+      try {
+        const requestBody = await req.json();
+        userId = requestBody.user_id;
+        
+        if (!userId) {
+          throw new Error("No user_id provided in request body");
+        }
+        
+        // Get user email
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+        if (userError) throw new Error(`User lookup error: ${userError.message}`);
+        if (!userData?.user) throw new Error(`User not found with ID: ${userId}`);
+        
+        userEmail = userData.user.email || "";
+        logStep("Using user_id from request body", { userId, userEmail });
+      } catch (err) {
+        logStep("Failed to parse request body or find user", { error: String(err) });
+        throw new Error("Invalid request body or user not found");
+      }
+    } else {
+      // Regular authentication via header
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) throw new Error("No authorization header provided");
+      logStep("Authorization header found");
+
+      const token = authHeader.replace("Bearer ", "");
+      const { data, error } = await supabaseClient.auth.getUser(token);
+      
+      if (error) throw new Error(`Authentication error: ${error.message}`);
+      const user = data.user;
+      
+      if (!user?.email) {
+        throw new Error("User not authenticated or email not available");
+      }
+
+      userId = user.id;
+      userEmail = user.email;
+      logStep("User authenticated", { userId, email: userEmail });
     }
-    logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
@@ -72,7 +102,7 @@ serve(async (req) => {
     });
 
     // Find the customer in Stripe
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     
     if (customers.data.length === 0) {
       // No Stripe customer found for this user
@@ -80,7 +110,7 @@ serve(async (req) => {
       
       // Update subscription in database as inactive with flame_seeker role
       await supabaseAdmin.from("subscriptions").upsert({
-        user_id: user.id,
+        user_id: userId,
         status: "inactive",
         tier: "basic",
         customer_id: null,
@@ -91,7 +121,7 @@ serve(async (req) => {
       
       // Update user_roles table with flame_seeker role
       await supabaseAdmin.from("user_roles").upsert({
-        user_id: user.id,
+        user_id: userId,
         role: "flame_seeker",
         last_role_change: new Date().toISOString(),
         created_at: new Date().toISOString(),
@@ -122,7 +152,7 @@ serve(async (req) => {
     });
     
     const hasActiveSub = subscriptions.data.length > 0;
-    let subscriptionTier = null;
+    let subscriptionTier = "basic";
     let userRole = "flame_seeker"; // Default role
     let subscriptionEnd = null;
     let priceId = null;
@@ -160,7 +190,7 @@ serve(async (req) => {
     
     // Update subscription in database
     await supabaseAdmin.from("subscriptions").upsert({
-      user_id: user.id,
+      user_id: userId,
       status: hasActiveSub ? "active" : "inactive",
       tier: subscriptionTier,
       customer_id: customerId,
@@ -171,7 +201,7 @@ serve(async (req) => {
     
     // Update user_roles table with appropriate role
     await supabaseAdmin.from("user_roles").upsert({
-      user_id: user.id,
+      user_id: userId,
       role: userRole,
       last_role_change: new Date().toISOString(),
       created_at: new Date().toISOString(),
@@ -179,7 +209,7 @@ serve(async (req) => {
     }, { onConflict: 'user_id' });
     
     logStep("Database updated", { 
-      userId: user.id,
+      userId,
       status: hasActiveSub ? "active" : "inactive",
       tier: subscriptionTier,
       role: userRole

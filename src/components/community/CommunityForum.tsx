@@ -80,8 +80,8 @@ export function CommunityForum() {
         category: post.category as PostCategory,
         created_at: post.created_at,
         updated_at: post.updated_at,
-        likes: post.likes,
-        comments_count: post.comments_count
+        likes: post.likes || 0,
+        comments_count: post.comments_count || 0
       })) || [];
       
       setPosts(formattedPosts);

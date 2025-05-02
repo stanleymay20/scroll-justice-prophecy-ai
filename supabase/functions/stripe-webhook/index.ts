@@ -82,7 +82,7 @@ serve(async (req) => {
       
       // Extract metadata
       const userId = session.metadata?.user_id;
-      const role = session.metadata?.role || 'flame_seeker';
+      const role = session.metadata?.role || 'basic';
       
       if (!userId) {
         logStep("Missing user_id in metadata");
@@ -92,12 +92,21 @@ serve(async (req) => {
         });
       }
       
-      logStep("Processing role update", { userId, role });
+      // Map tier from metadata to actual user role
+      let userRole = 'flame_seeker';  // Default role
+      
+      if (role === 'professional') {
+        userRole = 'scroll_advocate';
+      } else if (role === 'enterprise') {
+        userRole = 'elder_judge';
+      }
+      
+      logStep("Processing role update", { userId, role, userRole });
       
       // Update user_roles table with the new role
       const { error: roleError } = await supabaseAdmin.from("user_roles").upsert({
         user_id: userId,
-        role: role,
+        role: userRole,
         last_role_change: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
@@ -110,7 +119,7 @@ serve(async (req) => {
         });
       }
       
-      logStep("Successfully updated user role", { userId, role });
+      logStep("Successfully updated user role", { userId, userRole });
       
       // Trigger subscription check to update subscription table
       try {

@@ -43,15 +43,21 @@ export const createCheckoutSession = async (priceId: string, returnUrl: string) 
       throw new Error("User must be logged in to create a checkout session");
     }
     
-    // Use the provided price ID directly (should be a valid Stripe price ID)
+    // Map priceId back to subscription tier for correct role mapping
+    let role = 'basic';
+    if (priceId === stripePriceIds.professional) {
+      role = 'professional';
+    } else if (priceId === stripePriceIds.enterprise) {
+      role = 'enterprise';
+    }
+    
     console.log("Creating checkout with price ID:", {
       priceId,
       returnUrl,
       metadata: {
         user_id: user.id,
         email: user.email,
-        role: priceId === stripePriceIds.professional ? 'professional' :
-              priceId === stripePriceIds.enterprise ? 'enterprise' : 'basic'
+        role
       }
     });
     
@@ -62,8 +68,7 @@ export const createCheckoutSession = async (priceId: string, returnUrl: string) 
         metadata: {
           user_id: user.id,
           email: user.email,
-          role: priceId === stripePriceIds.professional ? 'professional' :
-                priceId === stripePriceIds.enterprise ? 'enterprise' : 'basic'
+          role
         }
       }
     });

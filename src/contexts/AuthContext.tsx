@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>("flame_seeker"); // Default to flame_seeker
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return;
     }
 
-    // Set up the auth state listener
+    // Set up the auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -58,26 +58,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Use setTimeout to defer subscription check to avoid auth deadlocks
         setTimeout(() => {
           checkSubscriptionStatus();
-          fetchUserRole(session.user.id);
         }, 0);
       } else {
         setSubscriptionStatus(null);
         setSubscriptionTier(null);
         setSubscriptionEnd(null);
-        setUserRole(null);
+        setUserRole("flame_seeker"); // Default role when logged out
       }
       
       setLoading(false);
     });
 
-    // Check for existing session
+    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
         checkSubscriptionStatus();
-        fetchUserRole(session.user.id);
       }
       
       setLoading(false);
@@ -96,27 +94,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         
       if (error) {
         console.error("Error fetching user role:", error);
-        return;
+        return "flame_seeker"; // Default role
       }
       
       if (data) {
         console.log("User role from database:", data.role);
-        setUserRole(data.role);
+        return data.role;
       } else {
         console.log("No role found, setting to flame_seeker");
-        setUserRole("flame_seeker");
         
-        // Create default role if none exists
-        await supabase.from("user_roles").upsert({
-          user_id: userId,
-          role: "flame_seeker",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          last_role_change: new Date().toISOString()
-        });
+        // Create default role if none exists - might fail due to RLS but handled in catch
+        try {
+          await supabase.from("user_roles").upsert({
+            user_id: userId,
+            role: "flame_seeker",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            last_role_change: new Date().toISOString()
+          });
+        } catch (insertError) {
+          console.log("Couldn't insert default role, will be handled by edge function");
+        }
+        
+        return "flame_seeker";
       }
     } catch (error) {
       console.error("Error in fetchUserRole:", error);
+      return "flame_seeker"; // Default role
     }
   };
 
@@ -143,11 +147,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setSubscriptionTier(dbSubscription.tier as SubscriptionTier);
         setSubscriptionEnd(dbSubscription.current_period_end);
         
-        // Update user role based on subscription tier if needed
+        // Map subscription tier to role
         const expectedRole = mapTierToRole(dbSubscription.tier);
-        if (expectedRole !== userRole) {
-          await fetchUserRole(user.id);
-        }
+        setUserRole(expectedRole);
       }
 
       // Then call the check-subscription function to verify with Stripe and update database
@@ -169,13 +171,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (data.user_role) {
           console.log("Setting user role from API response:", data.user_role);
           setUserRole(data.user_role);
+        } else {
+          // Fallback to mapping from subscription tier
+          const role = mapTierToRole(data.subscription_tier);
+          console.log("Setting user role from mapped tier:", role);
+          setUserRole(role);
         }
+      }
+      
+      // As a final fallback, ensure we at least have the user role set
+      if (!userRole) {
+        const role = await fetchUserRole(user.id);
+        setUserRole(role);
       }
     } catch (error) {
       console.error("Error in checkSubscriptionStatus:", error);
       setSubscriptionStatus("inactive");
-      setSubscriptionTier(null);
+      setSubscriptionTier("basic");
       setSubscriptionEnd(null);
+      setUserRole("flame_seeker"); // Default to basic role
     }
   };
 
@@ -241,7 +255,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setSubscriptionStatus(null);
       setSubscriptionTier(null);
       setSubscriptionEnd(null);
-      setUserRole(null);
+      setUserRole("flame_seeker"); // Default when logged out
       navigate("/");
     } catch (error: any) {
       toast({
