@@ -75,7 +75,9 @@ export function CommunityForum() {
         id: post.id,
         user_id: post.user_id,
         // Fix: Access the username correctly from the profiles array
-        username: post.profiles?.username || 'Anonymous Witness',
+        username: Array.isArray(post.profiles) && post.profiles.length > 0 
+          ? post.profiles[0].username 
+          : 'Anonymous Witness',
         title: post.title,
         content: post.content,
         category: post.category as PostCategory,
