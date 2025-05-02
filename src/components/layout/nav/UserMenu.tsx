@@ -10,18 +10,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, ScrollText, Shield } from "lucide-react";
+import { User, LogOut, ScrollText, Shield, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/language";
 
-// Admin user IDs with access to developer dashboard
-const ADMIN_USER_IDS = ['f7d71f55-ae04-491e-87d0-df4a10e1f669'];
+interface UserMenuProps {
+  isAdmin?: boolean;
+}
 
-export const UserMenu = () => {
+export const UserMenu = ({ isAdmin }: UserMenuProps) => {
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const isAdmin = user && ADMIN_USER_IDS.includes(user.id);
 
   const handleSignOut = async () => {
     await signOut();
@@ -53,6 +53,10 @@ export const UserMenu = () => {
           <DropdownMenuItem onClick={() => navigate("/profile")}>
             <User className="mr-2 h-4 w-4" />
             <span>{t("nav.profile")}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/community")}>
+            <Users className="mr-2 h-4 w-4" />
+            <span>{t("nav.community")}</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate("/subscription/manage")}>
             <ScrollText className="mr-2 h-4 w-4" />

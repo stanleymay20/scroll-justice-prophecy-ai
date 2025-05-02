@@ -129,7 +129,7 @@ export type Database = {
       }
       posts: {
         Row: {
-          category: string
+          category: Database["public"]["Enums"]["post_category"]
           comments_count: number | null
           content: string
           created_at: string | null
@@ -140,7 +140,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          category: string
+          category: Database["public"]["Enums"]["post_category"]
           comments_count?: number | null
           content: string
           created_at?: string | null
@@ -151,7 +151,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          category?: string
+          category?: Database["public"]["Enums"]["post_category"]
           comments_count?: number | null
           content?: string
           created_at?: string | null
@@ -614,7 +614,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      post_category:
+        | "testimony"
+        | "prayer_request"
+        | "legal_question"
+        | "righteous_insight"
+        | "announcement"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -729,6 +734,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      post_category: [
+        "testimony",
+        "prayer_request",
+        "legal_question",
+        "righteous_insight",
+        "announcement",
+      ],
+    },
   },
 } as const

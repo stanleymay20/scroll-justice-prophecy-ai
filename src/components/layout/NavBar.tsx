@@ -39,7 +39,7 @@ export function NavBar() {
         <div className="hidden md:flex items-center space-x-1">
           <NavLinks />
           <LanguageSelector />
-          <UserMenu />
+          <UserMenu isAdmin={isAdmin} />
         </div>
 
         {/* Mobile Navigation Toggle */}
