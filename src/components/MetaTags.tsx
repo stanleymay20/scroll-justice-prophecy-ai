@@ -6,12 +6,14 @@ interface MetaTagsProps {
   title?: string;
   description?: string;
   imageUrl?: string;
+  keywords?: string;
 }
 
 export function MetaTags({ 
   title, 
   description,
-  imageUrl = "/lovable-uploads/54136c6b-c4a6-40ac-9c48-47c0ecd617e9.png"
+  imageUrl = "/lovable-uploads/54136c6b-c4a6-40ac-9c48-47c0ecd617e9.png",
+  keywords
 }: MetaTagsProps) {
   const { t, language } = useLanguage();
   
@@ -24,6 +26,7 @@ export function MetaTags({
       <html lang={language} />
       <title>{pageTitle}</title>
       <meta name="description" content={pageDescription} />
+      {keywords && <meta name="keywords" content={keywords} />}
       
       {/* Open Graph / Facebook */}
       <meta property="og:type" content="website" />
