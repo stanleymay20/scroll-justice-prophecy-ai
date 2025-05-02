@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { ensureEvidenceBucketExists } from "@/services/evidenceService";
+import { MetaTags } from "@/components/MetaTags";
 
 // Pages
 import Index from "./pages/Index";
@@ -55,11 +56,11 @@ const queryClient = new QueryClient({
 const App = () => {
   // Add console logging to help with debugging
   useEffect(() => {
-    console.log("App component mounted");
+    console.log("info: App component mounted");
     
     // Log window dimensions to help with responsive design debugging
     const logDimensions = () => {
-      console.log(`Window size: ${window.innerWidth}x${window.innerHeight}`);
+      console.log(`info: Window size: ${window.innerWidth}x${window.innerHeight}`);
     };
     
     logDimensions();
@@ -67,7 +68,7 @@ const App = () => {
     
     // Ensure evidence bucket exists
     ensureEvidenceBucketExists().then(exists => {
-      console.log("Evidence bucket ready:", exists);
+      console.log("info: Evidence bucket ready:", exists);
     });
     
     return () => {
@@ -81,6 +82,8 @@ const App = () => {
         <LanguageProvider>
           <AuthProvider>
             <TooltipProvider>
+              {/* Add global meta tags */}
+              <MetaTags />
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Index />} />

@@ -102,7 +102,7 @@ export function NavBar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-justice-dark border-justice-light/20">
-                <DropdownMenuLabel>Account</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("nav.profile")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem onClick={() => navigate("/profile")}>
@@ -179,7 +179,7 @@ export function NavBar() {
                     onClick={() => setIsOpen(false)}
                   >
                     <ScrollText className="h-4 w-4 mr-2" />
-                    {t("subscription.manage")}
+                    <span>{t("subscription.manage")}</span>
                   </Link>
                   
                   {isAdmin && (

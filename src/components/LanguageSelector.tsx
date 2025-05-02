@@ -13,7 +13,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Globe } from "lucide-react";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 import type { LanguageCode } from "@/contexts/LanguageContext";
-import { getLanguageGroups } from "@/utils/languageUtils";
+import { getLanguageGroups, getLanguageDisplayName } from "@/utils/languageUtils";
 
 export function LanguageSelector() {
   const { language, setLanguage, t } = useLanguage();
@@ -22,21 +22,21 @@ export function LanguageSelector() {
   // Expanded language list with additional metadata
   const languages = [
     // Main languages
-    { code: "en" as LanguageCode, name: "English", flag: "🇬🇧", group: "primary" },
-    { code: "fr" as LanguageCode, name: "Français", flag: "🇫🇷", group: "primary" },
-    { code: "es" as LanguageCode, name: "Español", flag: "🇪🇸", group: "primary" },
-    { code: "de" as LanguageCode, name: "Deutsch", flag: "🇩🇪", group: "primary" },
+    { code: "en" as LanguageCode, name: getLanguageDisplayName("en"), flag: "🇬🇧", group: "primary" },
+    { code: "fr" as LanguageCode, name: getLanguageDisplayName("fr"), flag: "🇫🇷", group: "primary" },
+    { code: "es" as LanguageCode, name: getLanguageDisplayName("es"), flag: "🇪🇸", group: "primary" },
+    { code: "de" as LanguageCode, name: getLanguageDisplayName("de"), flag: "🇩🇪", group: "primary" },
     
     // Extended languages
-    { code: "zh" as LanguageCode, name: "中文", flag: "🇨🇳", group: "extended" },
-    { code: "ar" as LanguageCode, name: "العربية", flag: "🇸🇦", group: "extended" },
-    { code: "hi" as LanguageCode, name: "हिन्दी", flag: "🇮🇳", group: "extended" },
-    { code: "pt" as LanguageCode, name: "Português", flag: "🇧🇷", group: "extended" },
+    { code: "zh" as LanguageCode, name: getLanguageDisplayName("zh"), flag: "🇨🇳", group: "extended" },
+    { code: "ar" as LanguageCode, name: getLanguageDisplayName("ar"), flag: "🇸🇦", group: "extended" },
+    { code: "hi" as LanguageCode, name: getLanguageDisplayName("hi"), flag: "🇮🇳", group: "extended" },
+    { code: "pt" as LanguageCode, name: getLanguageDisplayName("pt"), flag: "🇧🇷", group: "extended" },
     
     // Sacred languages
-    { code: "he" as LanguageCode, name: "עברית", flag: "🕮", group: "sacred" },
-    { code: "sw" as LanguageCode, name: "Kiswahili", flag: "🇰🇪", group: "sacred" },
-    { code: "am" as LanguageCode, name: "አማርኛ", flag: "🇪🇹", group: "sacred" },
+    { code: "he" as LanguageCode, name: getLanguageDisplayName("he"), flag: "🕮", group: "sacred" },
+    { code: "sw" as LanguageCode, name: getLanguageDisplayName("sw"), flag: "🇰🇪", group: "sacred" },
+    { code: "am" as LanguageCode, name: getLanguageDisplayName("am"), flag: "🇪🇹", group: "sacred" },
   ];
 
   const handleLanguageChange = (lang: LanguageCode) => {

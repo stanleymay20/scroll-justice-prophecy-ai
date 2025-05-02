@@ -1,5 +1,14 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { normalizeLanguageCode, isRtlLanguage, getLanguageGroups } from "@/utils/languageUtils";
+import { 
+  normalizeLanguageCode, 
+  isRtlLanguage, 
+  getLanguageGroups, 
+  getSavedLanguagePreference, 
+  getBrowserLanguage, 
+  applyLanguageDirection, 
+  saveLanguagePreference 
+} from "@/utils/languageUtils";
 
 // Define language codes as string literal types
 export type LanguageCode = 
@@ -250,52 +259,108 @@ const translations: Record<string, Record<string, string>> = {
   // Add minimal translation sets for all other languages
   zh: {
     "app.title": "ScrollJustice.AI",
+    "app.tagline": "通过数字卷轴实现神圣正义",
     "nav.language": "语言",
     "language.select": "选择语言",
     "language.extended": "扩展语言",
     "language.sacred": "神圣语言",
+    "nav.home": "首页",
+    "nav.dashboard": "仪表板",
+    "nav.precedent": "先例",
+    "nav.community": "社区",
+    "nav.profile": "个人资料",
+    "nav.signin": "登录",
+    "nav.signout": "登出",
   },
   ar: {
     "app.title": "ScrollJustice.AI",
+    "app.tagline": "العدالة المقدسة من خلال المخطوطات الرقمية",
     "nav.language": "اللغة",
     "language.select": "اختر اللغة",
     "language.extended": "اللغات الموسعة",
     "language.sacred": "اللغات المقدسة",
+    "nav.home": "الرئيسية",
+    "nav.dashboard": "لوحة التحكم",
+    "nav.precedent": "السوابق",
+    "nav.community": "المجتمع",
+    "nav.profile": "الملف الشخصي",
+    "nav.signin": "تسجيل الدخول",
+    "nav.signout": "تسجيل الخروج",
   },
   hi: {
     "app.title": "ScrollJustice.AI",
+    "app.tagline": "डिजिटल स्क्रॉल के माध्यम से पवित्र न्याय",
     "nav.language": "भाषा",
     "language.select": "भाषा चुनें",
     "language.extended": "विस्तारित भाषाएँ",
     "language.sacred": "पवित्र भाषाएँ",
+    "nav.home": "होम",
+    "nav.dashboard": "डैशबोर्ड",
+    "nav.precedent": "पूर्वोदाहरण",
+    "nav.community": "समुदाय",
+    "nav.profile": "प्रोफ़ाइल",
+    "nav.signin": "साइन इन करें",
+    "nav.signout": "साइन आउट करें",
   },
   pt: {
     "app.title": "ScrollJustice.AI",
+    "app.tagline": "Justiça sagrada através de pergaminhos digitais",
     "nav.language": "Idioma",
     "language.select": "Selecionar Idioma",
     "language.extended": "Idiomas Estendidos",
     "language.sacred": "Idiomas Sagrados",
+    "nav.home": "Início",
+    "nav.dashboard": "Painel",
+    "nav.precedent": "Precedentes",
+    "nav.community": "Comunidade",
+    "nav.profile": "Perfil",
+    "nav.signin": "Entrar",
+    "nav.signout": "Sair",
   },
   he: {
     "app.title": "ScrollJustice.AI",
+    "app.tagline": "צדק קדוש באמצעות מגילות דיגיטליות",
     "nav.language": "שפה",
     "language.select": "בחר שפה",
     "language.extended": "שפות מורחבות",
     "language.sacred": "שפות קדושות",
+    "nav.home": "דף הבית",
+    "nav.dashboard": "לוח בקרה",
+    "nav.precedent": "תקדימים",
+    "nav.community": "קהילה",
+    "nav.profile": "פרופיל",
+    "nav.signin": "התחברות",
+    "nav.signout": "התנתקות",
   },
   sw: {
     "app.title": "ScrollJustice.AI",
+    "app.tagline": "Haki takatifu kupitia vitabu vya kidijitali",
     "nav.language": "Lugha",
     "language.select": "Chagua Lugha",
     "language.extended": "Lugha za Ziada",
     "language.sacred": "Lugha Takatifu",
+    "nav.home": "Nyumbani",
+    "nav.dashboard": "Dashibodi",
+    "nav.precedent": "Misaada",
+    "nav.community": "Jumuiya",
+    "nav.profile": "Wasifu",
+    "nav.signin": "Ingia",
+    "nav.signout": "Toka",
   },
   am: {
     "app.title": "ScrollJustice.AI",
+    "app.tagline": "በዲጂታል ጥቅሎች በኩል ቅዱስ ፍትሕ",
     "nav.language": "ቋንቋ",
     "language.select": "ቋንቋ ይምረጡ",
     "language.extended": "ተጨማሪ ቋንቋዎች",
     "language.sacred": "ቅዱስ ቋንቋዎች",
+    "nav.home": "መነሻ",
+    "nav.dashboard": "ዳሽቦርድ",
+    "nav.precedent": "ቀደምት",
+    "nav.community": "ማህበረሰብ",
+    "nav.profile": "መገለጫ",
+    "nav.signin": "ይግቡ",
+    "nav.signout": "ይውጡ",
   },
 };
 
@@ -303,49 +368,44 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   children 
 }) => {
   const [language, setLanguage] = useState<LanguageCode>(() => {
-    // Try to get language from localStorage
-    const savedLanguage = localStorage.getItem("scrollJustice-language");
-    if (savedLanguage && isValidLanguageCode(savedLanguage)) {
-      return savedLanguage as LanguageCode;
+    // Try to get language from localStorage first
+    const savedLanguage = getSavedLanguagePreference();
+    if (savedLanguage) {
+      return savedLanguage;
     }
     
-    // Try to detect browser language and normalize it
-    const browserLang = normalizeLanguageCode(navigator.language);
-    if (isValidLanguageCode(browserLang)) {
-      return browserLang as LanguageCode;
-    }
-    
-    return defaultLanguage;
+    // Try to detect browser language if no saved preference
+    return getBrowserLanguage();
   });
 
-  // Helper function to check if a language code is valid
-  function isValidLanguageCode(code: string): boolean {
-    return code in translations;
-  }
-
+  // Apply language effects when language changes
   useEffect(() => {
     // Save language preference to localStorage
-    localStorage.setItem("scrollJustice-language", language);
+    saveLanguagePreference(language);
     
-    // Update document language for accessibility
-    document.documentElement.setAttribute('lang', language);
-    
-    // Handle RTL languages
-    if (isRtlLanguage(language)) {
-      document.documentElement.setAttribute('dir', 'rtl');
-      document.body.classList.add('rtl');
-    } else {
-      document.documentElement.setAttribute('dir', 'ltr');
-      document.body.classList.remove('rtl');
-    }
+    // Update document language attributes for accessibility and RTL
+    applyLanguageDirection(language);
 
     // Dispatch a custom event that components can listen for
     window.dispatchEvent(new CustomEvent('languageChanged', { detail: language }));
+    
+    console.log(`Language set to: ${language}`);
   }, [language]);
   
-  // Translation function
+  // Translation function with fallbacks
   const t = (key: string): string => {
-    return translations[language]?.[key] || translations.en[key] || key;
+    // Try to get the translation for the current language
+    const translation = translations[language]?.[key];
+    
+    if (translation) {
+      return translation;
+    }
+    
+    // Fallback to English if translation doesn't exist
+    const englishTranslation = translations.en[key];
+    
+    // Return the key itself as a last resort
+    return englishTranslation || key;
   };
 
   return (
