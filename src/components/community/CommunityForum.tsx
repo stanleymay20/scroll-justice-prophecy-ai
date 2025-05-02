@@ -18,7 +18,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ScrollText, MessageSquare, Heart, Clock, Plus, Send, X } from "lucide-react";
 import { Post, PostCategory } from "@/types/community";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -74,7 +74,8 @@ export function CommunityForum() {
       const formattedPosts: Post[] = data?.map(post => ({
         id: post.id,
         user_id: post.user_id,
-        username: post.profiles?.[0]?.username || 'Anonymous Witness',
+        // Fix: Access the username correctly from the profiles array
+        username: post.profiles?.username || 'Anonymous Witness',
         title: post.title,
         content: post.content,
         category: post.category as PostCategory,
