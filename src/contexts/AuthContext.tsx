@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
@@ -55,6 +54,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        // Ensure the user has a role record
+        ensureUserRole(session.user.id);
+        
         // Use setTimeout to defer subscription check to avoid auth deadlocks
         setTimeout(() => {
           checkSubscriptionStatus();
@@ -75,6 +77,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        // Ensure the user has a role record
+        ensureUserRole(session.user.id);
         checkSubscriptionStatus();
       }
       
@@ -83,6 +87,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const ensureUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("ensure-user-role", {
+        body: { userId }
+      });
+      
+      if (error) {
+        console.error("Error ensuring user role:", error);
+        return;
+      }
+      
+      if (data && data.success) {
+        console.log("User role checked:", data.message);
+        // Update user role in state if needed
+        setUserRole(data.role);
+      }
+    } catch (err) {
+      console.error("Failed to invoke ensure-user-role function:", err);
+    }
+  };
 
   const fetchUserRole = async (userId: string) => {
     try {
@@ -129,6 +154,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     
     try {
       console.log("Checking subscription status for user:", user.id);
+      
+      // First ensure user has a role
+      await ensureUserRole(user.id);
       
       // First try to get subscription from database
       const { data: dbSubscription, error: dbError } = await supabase

@@ -51,54 +51,27 @@ export function CommunityForum() {
     setLoading(true);
     setError(null);
     try {
-      // Modified query to not use the join with profiles since that relationship isn't set up
-      let query = supabase
-        .from('posts')
-        .select(`
-          id, 
-          user_id,
-          title,
-          content,
-          category,
-          created_at,
-          updated_at,
-          likes,
-          comments_count
-        `)
-        .order('created_at', { ascending: false })
-        .limit(25);
-      
-      if (activeTab !== "all") {
-        query = query.eq('category', activeTab);
-      }
-      
-      const { data, error } = await query;
+      // Use the new edge function to fix post queries and avoid RLS issues
+      const { data, error } = await supabase.functions.invoke("fix-post-queries", {
+        body: { category: activeTab }
+      });
       
       if (error) {
-        console.error("Supabase error fetching posts:", error);
+        console.error("Error invoking fix-post-queries function:", error);
         throw new Error(t("error.postsFetch") || "Error fetching posts");
       }
       
-      if (!data || data.length === 0) {
+      if (!data || !data.success) {
+        console.error("Error in fix-post-queries response:", data?.error);
+        throw new Error(data?.error || t("error.postsFetch") || "Error fetching posts");
+      }
+      
+      if (!data.posts || data.posts.length === 0) {
         setPosts([]);
         return;
       }
       
-      // Modified to use a default username since we're not getting it from profiles
-      const formattedPosts: Post[] = data.map(post => ({
-        id: post.id,
-        user_id: post.user_id,
-        username: t("community.anonymousWitness") || "Anonymous Witness", // Default username
-        title: post.title,
-        content: post.content,
-        category: post.category as PostCategory,
-        created_at: post.created_at,
-        updated_at: post.updated_at,
-        likes: post.likes || 0,
-        comments_count: post.comments_count || 0
-      }));
-      
-      setPosts(formattedPosts);
+      setPosts(data.posts);
     } catch (err) {
       console.error("Error fetching posts:", err);
       setError((err as Error).message || t("error.general"));

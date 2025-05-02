@@ -84,7 +84,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     console.log(`Language set to: ${language}`);
   }, [language]);
   
-  // Translation function with fallbacks
+  // Enhanced translation function with better fallbacks
   const t = (key: string, ...args: any[]): string => {
     // Try to get the translation from loaded JSON file
     if (translations && Object.keys(translations).length > 0) {
@@ -96,20 +96,27 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     }
     
-    // Fallback to in-memory translations
+    // Fallback to in-memory translations for current language
     const fallbackTranslation = getNestedValue(fallbackTranslations[language] || {}, key);
     if (fallbackTranslation !== key) {
       return formatTranslation(fallbackTranslation, args);
     }
     
-    // Fallback to English if translation doesn't exist
+    // Fallback to English if translation doesn't exist in current language
     const englishTranslation = getNestedValue(fallbackTranslations.en || {}, key);
     if (englishTranslation !== key) {
       return formatTranslation(englishTranslation, args);
     }
     
-    // Return the key itself as a last resort
-    return key;
+    // If still no translation found, try minimal translations
+    if (fallbackTranslations[language]) {
+      // Check if we have other keys for this language, but just not this specific one
+      // This indicates the language is supported but the specific key is missing
+      return formatTranslation(key, args);
+    }
+    
+    // Return the key itself as a last resort with formatting applied
+    return formatTranslation(key, args);
   };
   
   // Method to reload translations manually

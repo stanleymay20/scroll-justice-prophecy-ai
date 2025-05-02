@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -70,11 +69,28 @@ const App = () => {
     ensureEvidenceBucketExists().then(exists => {
       console.log("info: Evidence bucket ready:", exists);
     });
+
+    // Apply RLS policies to fix permission issues
+    applyRlsPolicies();
     
     return () => {
       window.removeEventListener('resize', logDimensions);
     };
   }, []);
+
+  // Function to apply RLS policies
+  const applyRlsPolicies = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("add-rls-policies");
+      if (error) {
+        console.error("Error applying RLS policies:", error);
+      } else {
+        console.log("RLS policies applied:", data);
+      }
+    } catch (err) {
+      console.error("Failed to invoke add-rls-policies function:", err);
+    }
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
