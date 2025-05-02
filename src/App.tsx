@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,7 @@ import { LanguageProvider } from "@/contexts/language";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { ensureEvidenceBucketExists } from "@/services/evidenceService";
 import { MetaTags } from "@/components/MetaTags";
+import { supabase } from "@/integrations/supabase/client";
 
 // Pages
 import Index from "./pages/Index";
