@@ -2,11 +2,8 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuLabel,
-  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/language";
@@ -14,14 +11,15 @@ import { Globe } from "lucide-react";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 import type { LanguageCode } from "@/contexts/language";
 import { getLanguageGroups, getLanguageDisplayName } from "@/utils/languageUtils";
+import { LanguageGroup, LanguageItem } from "./language/LanguageGroup";
 
 export function LanguageSelector() {
   const { language, setLanguage, t } = useLanguage();
   const languageGroups = getLanguageGroups();
 
-  // Expanded language list with additional metadata
-  const languages = [
-    // Main languages
+  // Generate the language list with metadata
+  const allLanguages: LanguageItem[] = [
+    // Primary languages
     { code: "en" as LanguageCode, name: getLanguageDisplayName("en"), flag: "🇬🇧", group: "primary" },
     { code: "fr" as LanguageCode, name: getLanguageDisplayName("fr"), flag: "🇫🇷", group: "primary" },
     { code: "es" as LanguageCode, name: getLanguageDisplayName("es"), flag: "🇪🇸", group: "primary" },
@@ -49,9 +47,9 @@ export function LanguageSelector() {
   };
 
   // Group languages by category
-  const primaryLanguages = languages.filter(lang => lang.group === 'primary');
-  const extendedLanguages = languages.filter(lang => lang.group === 'extended');
-  const sacredLanguages = languages.filter(lang => lang.group === 'sacred');
+  const primaryLanguages = allLanguages.filter(lang => lang.group === 'primary');
+  const extendedLanguages = allLanguages.filter(lang => lang.group === 'extended');
+  const sacredLanguages = allLanguages.filter(lang => lang.group === 'sacred');
 
   return (
     <DropdownMenu>
@@ -65,67 +63,30 @@ export function LanguageSelector() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-justice-dark border-justice-light/20">
-        <DropdownMenuLabel className="text-justice-light/70">
-          {t("language.select")}
-        </DropdownMenuLabel>
-        
-        <DropdownMenuGroup>
-          {primaryLanguages.map(lang => (
-            <DropdownMenuItem 
-              key={lang.code}
-              onClick={() => handleLanguageChange(lang.code)}
-              className={`flex items-center gap-2 ${language === lang.code ? "bg-justice-primary/20" : ""}`}
-            >
-              <span>{lang.flag}</span>
-              <span>{lang.name}</span>
-              {language === lang.code && (
-                <span className="ml-auto text-justice-primary text-xs">✓</span>
-              )}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
+        <LanguageGroup
+          title={t("language.select")}
+          languages={primaryLanguages}
+          currentLanguage={language}
+          onLanguageSelect={handleLanguageChange}
+        />
         
         <DropdownMenuSeparator className="bg-justice-light/10" />
-        <DropdownMenuLabel className="text-justice-light/70">
-          {t("language.extended")}
-        </DropdownMenuLabel>
         
-        <DropdownMenuGroup>
-          {extendedLanguages.map(lang => (
-            <DropdownMenuItem 
-              key={lang.code}
-              onClick={() => handleLanguageChange(lang.code)}
-              className={`flex items-center gap-2 ${language === lang.code ? "bg-justice-primary/20" : ""}`}
-            >
-              <span>{lang.flag}</span>
-              <span>{lang.name}</span>
-              {language === lang.code && (
-                <span className="ml-auto text-justice-primary text-xs">✓</span>
-              )}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
+        <LanguageGroup
+          title={t("language.extended")}
+          languages={extendedLanguages}
+          currentLanguage={language}
+          onLanguageSelect={handleLanguageChange}
+        />
         
         <DropdownMenuSeparator className="bg-justice-light/10" />
-        <DropdownMenuLabel className="text-justice-light/70">
-          {t("language.sacred")}
-        </DropdownMenuLabel>
         
-        <DropdownMenuGroup>
-          {sacredLanguages.map(lang => (
-            <DropdownMenuItem 
-              key={lang.code}
-              onClick={() => handleLanguageChange(lang.code)}
-              className={`flex items-center gap-2 ${language === lang.code ? "bg-justice-primary/20" : ""}`}
-            >
-              <span>{lang.flag}</span>
-              <span>{lang.name}</span>
-              {language === lang.code && (
-                <span className="ml-auto text-justice-primary text-xs">✓</span>
-              )}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
+        <LanguageGroup
+          title={t("language.sacred")}
+          languages={sacredLanguages}
+          currentLanguage={language}
+          onLanguageSelect={handleLanguageChange}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );
