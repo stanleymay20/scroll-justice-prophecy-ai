@@ -14,10 +14,15 @@ export interface AIAuditLogEntry {
  */
 export const logAIInteraction = async (entry: AIAuditLogEntry) => {
   try {
+    // Get current user
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+    
+    // Insert the audit log entry
     const { error } = await supabase
       .from('ai_audit_log')
       .insert({
-        user_id: supabase.auth.getUser().then(({ data }) => data.user?.id),
+        user_id: userId,
         action_type: entry.action_type,
         ai_model: entry.ai_model,
         input_summary: entry.input_summary,
