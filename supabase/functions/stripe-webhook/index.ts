@@ -132,6 +132,19 @@ serve(async (req) => {
           body: JSON.stringify({ user_id: userId })
         });
         logStep("Triggered subscription check");
+        
+        // Set a flag in the user's profile or preferences to show the blessing page
+        const { error: blessingError } = await supabaseAdmin.from("user_preferences").upsert({
+          user_id: userId,
+          show_blessing: true,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+        
+        if (blessingError) {
+          logStep("Error setting blessing flag", { error: blessingError });
+        } else {
+          logStep("Set blessing flag");
+        }
       } catch (err) {
         logStep("Failed to trigger subscription check", { error: String(err) });
       }
@@ -214,6 +227,15 @@ serve(async (req) => {
         last_role_change: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
+      
+      // Set blessing flag if subscription was activated
+      if (status === 'active') {
+        await supabaseAdmin.from("user_preferences").upsert({
+          user_id: userId,
+          show_blessing: true,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+      }
       
       logStep("Successfully updated user subscription and role", { userId, status, tier, role });
     }

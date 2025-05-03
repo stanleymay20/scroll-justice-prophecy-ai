@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-AI-AUDIT] ${step}${detailsStr}`);
+  console.log(`[LOG-AI-INTERACTION] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
@@ -20,6 +20,21 @@ serve(async (req) => {
   try {
     logStep("Function started");
     
+    // Parse the request body for parameters
+    const { 
+      user_id_param, 
+      action_type_param, 
+      ai_model_param, 
+      input_summary_param, 
+      output_summary_param 
+    } = await req.json();
+    
+    logStep("Parameters received", {
+      user_id: user_id_param,
+      action_type: action_type_param,
+      ai_model: ai_model_param
+    });
+    
     // Initialize Supabase client with the service role key
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -27,34 +42,19 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
     
-    // Check if the ai_audit_logs table exists
-    try {
-      const { data: tableExists, error: tableCheckError } = await supabaseAdmin.rpc(
-        'check_table_exists',
-        { table_name: 'ai_audit_logs' }
-      );
-      
-      if (tableCheckError) {
-        console.error("Error creating AI audit log table:", tableCheckError);
-        throw tableCheckError;
-      }
-      
-      if (!tableExists) {
-        // Create the ai_audit_logs table if it doesn't exist
-        const { error: createError } = await supabaseAdmin.rpc('create_ai_audit_logs_table');
-        
-        if (createError) {
-          console.error("Error creating AI audit log table:", createError);
-          throw createError;
-        }
-        
-        logStep("AI audit log table created successfully");
-      } else {
-        logStep("AI audit log table already exists");
-      }
-    } catch (err) {
-      logStep("Error checking/creating AI audit log table", { error: String(err) });
-    }
+    // Insert into ai_audit_logs table
+    const { error } = await supabaseAdmin.from('ai_audit_logs').insert({
+      user_id: user_id_param,
+      action_type: action_type_param,
+      ai_model: ai_model_param,
+      input_summary: input_summary_param,
+      output_summary: output_summary_param,
+      created_at: new Date().toISOString()
+    });
+    
+    if (error) throw error;
+    
+    logStep("AI interaction logged successfully");
     
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

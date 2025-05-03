@@ -17,6 +17,10 @@ import { SacredOathScreen } from '@/components/courtroom/SacredOathScreen';
 import { SealAnimation } from './SealAnimation';
 import { useAuth } from '@/contexts/AuthContext';
 import { EvidenceDisplay } from './EvidenceDisplay';
+import { FlameIntegrityMonitor } from './FlameIntegrityMonitor';
+import { AudioVerdictPlayer } from './AudioVerdictPlayer';
+import { AudioVerdictRecorder } from './AudioVerdictRecorder';
+import { checkSelfVerdict } from '@/services/integrityService';
 
 export function PetitionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -36,6 +40,7 @@ export function PetitionDetail() {
   const [isSubmittingVerdict, setIsSubmittingVerdict] = useState(false);
   const [isLoadingAiVerdict, setIsLoadingAiVerdict] = useState(false);
   const [showSealAnimation, setShowSealAnimation] = useState(false);
+  const [audioVerdictRecorded, setAudioVerdictRecorded] = useState(false);
   
   // Load petition data and user role
   useEffect(() => {
@@ -52,6 +57,11 @@ export function PetitionDetail() {
         // Fetch petition
         const petitionData = await fetchPetitionById(id);
         setPetition(petitionData);
+        
+        // Check if audio verdict exists
+        if (petitionData.audio_verdict_url) {
+          setAudioVerdictRecorded(true);
+        }
       } catch (err: any) {
         console.error('Error loading petition:', err);
         setError(err.message || 'Failed to load petition');
@@ -96,10 +106,21 @@ export function PetitionDetail() {
   
   // Submit verdict
   const handleDeliverVerdict = async () => {
-    if (!petition || !id) return;
+    if (!petition || !id || !user) return;
     
     try {
       setIsSubmittingVerdict(true);
+      
+      // Check for self-verdict violation
+      const isSelfVerdict = await checkSelfVerdict(id, user.id);
+      if (isSelfVerdict) {
+        toast({
+          variant: "destructive",
+          title: "Scroll Integrity Violation",
+          description: "You cannot issue verdicts on your own petitions. This violation has been logged.",
+        });
+        return;
+      }
       
       // Deliver verdict
       const updatedPetition = await deliverVerdict(id, verdictText, verdictReasoning);
@@ -177,6 +198,16 @@ export function PetitionDetail() {
     setShowOathScreen(false);
   };
   
+  // Handle audio verdict recorded
+  const handleAudioVerdictRecorded = () => {
+    setAudioVerdictRecorded(true);
+    
+    // Refresh petition data to get the updated audio URL
+    if (id) {
+      fetchPetitionById(id).then(data => setPetition(data));
+    }
+  };
+  
   // Format date
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'PPpp');
@@ -187,6 +218,10 @@ export function PetitionDetail() {
   
   // Check if user is the petitioner
   const isPetitioner = petition && user && petition.petitioner_id === user.id;
+  
+  const canSeal = petition && petition.verdict && !petition.is_sealed && 
+                  (petition.audio_verdict_url || audioVerdictRecorded) && 
+                  (canReview || isPetitioner);
   
   if (showOathScreen && user) {
     return (
@@ -241,145 +276,213 @@ export function PetitionDetail() {
         Back to Courtroom
       </Button>
       
-      <GlassCard className={`p-6 ${petition.is_sealed ? 'border-purple-500/50' : ''}`}>
-        <div className="mb-6">
-          <div className="flex flex-wrap justify-between items-start gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">{petition.title}</h2>
-              
-              <div className="flex flex-wrap gap-3 items-center text-sm text-justice-light/70 mb-2">
-                <div className="flex items-center">
-                  <CalendarClock className="h-4 w-4 mr-1" />
-                  Submitted {formatDate(petition.created_at)}
-                </div>
-                <div className="flex items-center">
-                  <User className="h-4 w-4 mr-1" />
-                  Petitioner #{petition.petitioner_id.substring(0, 8)}
-                </div>
-                <div className="flex items-center">
-                  <Shield className="h-4 w-4 mr-1" />
-                  Integrity: {petition.scroll_integrity_score}
-                </div>
-              </div>
-              
-              <div className="flex gap-2 items-center">
-                <Badge className={
-                  petition.status === 'pending' ? 'bg-amber-500 text-justice-dark' :
-                  petition.status === 'in_review' ? 'bg-blue-500 text-justice-dark' :
-                  petition.status === 'verdict_delivered' ? 'bg-green-500 text-justice-dark' :
-                  petition.status === 'sealed' ? 'bg-purple-500 text-justice-dark' :
-                  petition.status === 'rejected' ? 'bg-destructive text-white' :
-                  'bg-justice-light/50'
-                }>
-                  {petition.status === 'pending' ? 'Awaiting Review' :
-                   petition.status === 'in_review' ? 'In Review' :
-                   petition.status === 'verdict_delivered' ? 'Verdict Delivered' :
-                   petition.status === 'sealed' ? 'Sealed' :
-                   petition.status === 'rejected' ? 'Rejected' : 'Unknown'}
-                </Badge>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <GlassCard className={`p-6 lg:col-span-3 ${petition.is_sealed ? 'border-purple-500/50' : ''}`}>
+          <div className="mb-6">
+            <div className="flex flex-wrap justify-between items-start gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-2">{petition.title}</h2>
                 
-                {petition.assigned_judge_id && (
-                  <div className="text-sm text-justice-light/70 flex items-center">
-                    <Gavel className="h-4 w-4 mr-1" />
-                    Assigned to Judge #{petition.assigned_judge_id.substring(0, 8)}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <Separator className="my-4 bg-justice-light/10" />
-        
-        <div className="mb-6">
-          <h3 className="text-lg font-medium text-white mb-2">Petition Details</h3>
-          <div className={`text-justice-light whitespace-pre-wrap ${petition.is_sealed && !canReview ? 'blur-sm select-none' : ''}`}>
-            {petition.description}
-          </div>
-        </div>
-        
-        <Separator className="my-4 bg-justice-light/10" />
-        
-        <div className="mb-6">
-          <h3 className="text-lg font-medium text-white mb-2">Evidence</h3>
-          {id && <EvidenceDisplay 
-            petitionId={id} 
-            isSealed={petition.is_sealed} 
-            canView={canReview}
-          />}
-        </div>
-        
-        {petition.verdict && (
-          <>
-            <Separator className="my-4 bg-justice-light/10" />
-            
-            <div className="mb-4">
-              <div className="flex items-center mb-2">
-                <Gavel className="h-5 w-5 text-justice-primary mr-2" />
-                <h3 className="text-lg font-medium text-white">Sacred Verdict</h3>
-              </div>
-              
-              <div className={petition.is_sealed && !canReview ? 'blur-sm select-none' : ''}>
-                <div className="p-4 bg-justice-primary/10 border border-justice-primary/30 rounded-md mb-4">
-                  <p className="text-white font-medium">{petition.verdict}</p>
-                </div>
-                
-                {petition.verdict_reasoning && (
-                  <div>
-                    <h4 className="text-base font-medium text-white mb-2">Reasoning</h4>
-                    <p className="text-justice-light whitespace-pre-wrap">{petition.verdict_reasoning}</p>
-                  </div>
-                )}
-                
-                {petition.verdict_timestamp && (
-                  <div className="mt-3 text-sm text-justice-light/70 flex items-center">
+                <div className="flex flex-wrap gap-3 items-center text-sm text-justice-light/70 mb-2">
+                  <div className="flex items-center">
                     <CalendarClock className="h-4 w-4 mr-1" />
-                    Verdict delivered {formatDate(petition.verdict_timestamp)}
+                    Submitted {formatDate(petition.created_at)}
                   </div>
-                )}
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 mr-1" />
+                    Petitioner #{petition.petitioner_id.substring(0, 8)}
+                  </div>
+                  <div className="flex items-center">
+                    <Shield className="h-4 w-4 mr-1" />
+                    Integrity: {petition.scroll_integrity_score}
+                  </div>
+                </div>
+                
+                <div className="flex gap-2 items-center">
+                  <Badge className={
+                    petition.status === 'pending' ? 'bg-amber-500 text-justice-dark' :
+                    petition.status === 'in_review' ? 'bg-blue-500 text-justice-dark' :
+                    petition.status === 'verdict_delivered' ? 'bg-green-500 text-justice-dark' :
+                    petition.status === 'sealed' ? 'bg-purple-500 text-justice-dark' :
+                    petition.status === 'rejected' ? 'bg-destructive text-white' :
+                    'bg-justice-light/50'
+                  }>
+                    {petition.status === 'pending' ? 'Awaiting Review' :
+                     petition.status === 'in_review' ? 'In Review' :
+                     petition.status === 'verdict_delivered' ? 'Verdict Delivered' :
+                     petition.status === 'sealed' ? 'Sealed' :
+                     petition.status === 'rejected' ? 'Rejected' : 'Unknown'}
+                  </Badge>
+                  
+                  {petition.assigned_judge_id && (
+                    <div className="text-sm text-justice-light/70 flex items-center">
+                      <Gavel className="h-4 w-4 mr-1" />
+                      Assigned to Judge #{petition.assigned_judge_id.substring(0, 8)}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </>
-        )}
-        
-        <div className="mt-6 flex flex-wrap gap-3">
-          {/* Review actions - only for judges/admins */}
-          {canReview && !petition.verdict && !isReviewing && (
-            <div className="relative">
+          </div>
+          
+          <Separator className="my-4 bg-justice-light/10" />
+          
+          <div className="mb-6">
+            <h3 className="text-lg font-medium text-white mb-2">Petition Details</h3>
+            <div className={`text-justice-light whitespace-pre-wrap ${petition.is_sealed && !canReview ? 'blur-sm select-none' : ''}`}>
+              {petition.description}
+            </div>
+          </div>
+          
+          <Separator className="my-4 bg-justice-light/10" />
+          
+          <div className="mb-6">
+            <h3 className="text-lg font-medium text-white mb-2">Evidence</h3>
+            {id && <EvidenceDisplay 
+              petitionId={id} 
+              isSealed={petition.is_sealed} 
+              canView={canReview}
+            />}
+          </div>
+          
+          {petition.verdict && (
+            <>
+              <Separator className="my-4 bg-justice-light/10" />
+              
+              <div className="mb-4">
+                <div className="flex items-center mb-2">
+                  <Gavel className="h-5 w-5 text-justice-primary mr-2" />
+                  <h3 className="text-lg font-medium text-white">Sacred Verdict</h3>
+                </div>
+                
+                <div className={petition.is_sealed && !canReview ? 'blur-sm select-none' : ''}>
+                  <div className="p-4 bg-justice-primary/10 border border-justice-primary/30 rounded-md mb-4">
+                    <p className="text-white font-medium">{petition.verdict}</p>
+                  </div>
+                  
+                  {petition.verdict_reasoning && (
+                    <div>
+                      <h4 className="text-base font-medium text-white mb-2">Reasoning</h4>
+                      <p className="text-justice-light whitespace-pre-wrap">{petition.verdict_reasoning}</p>
+                    </div>
+                  )}
+                  
+                  {petition.verdict_timestamp && (
+                    <div className="mt-3 text-sm text-justice-light/70 flex items-center">
+                      <CalendarClock className="h-4 w-4 mr-1" />
+                      Verdict delivered {formatDate(petition.verdict_timestamp)}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Audio verdict player - if one exists */}
+              {petition.audio_verdict_url && (
+                <>
+                  <Separator className="my-4 bg-justice-light/10" />
+                  
+                  <AudioVerdictPlayer 
+                    audioUrl={petition.audio_verdict_url}
+                    transcript={petition.verdict_transcription || undefined}
+                  />
+                </>
+              )}
+              
+              {/* Audio verdict recorder - for judges if verdict exists but no audio yet */}
+              {petition.verdict && canReview && !petition.is_sealed && !petition.audio_verdict_url && (
+                <>
+                  <Separator className="my-4 bg-justice-light/10" />
+                  
+                  <AudioVerdictRecorder 
+                    petitionId={id || ''}
+                    onVerdictRecorded={handleAudioVerdictRecorded}
+                  />
+                </>
+              )}
+            </>
+          )}
+          
+          <div className="mt-6 flex flex-wrap gap-3">
+            {/* Review actions - only for judges/admins */}
+            {canReview && !petition.verdict && !isReviewing && (
+              <div className="relative">
+                <Button 
+                  onClick={handleStartReview}
+                  className="bg-justice-tertiary hover:bg-justice-tertiary/80"
+                >
+                  Begin Sacred Review
+                </Button>
+                <div className="absolute -top-1 -right-1">
+                  <PulseEffect color="bg-justice-primary" />
+                </div>
+              </div>
+            )}
+            
+            {/* Sealing action - for judges or petitioners after verdict and audio */}
+            {canSeal && (
               <Button 
-                onClick={handleStartReview}
-                className="bg-justice-tertiary hover:bg-justice-tertiary/80"
+                onClick={handleSealPetition}
+                variant="outline"
+                className="border-purple-500 text-purple-500 hover:bg-purple-500/20"
               >
-                Begin Sacred Review
+                Seal Verdict in Scrolls
               </Button>
-              <div className="absolute -top-1 -right-1">
-                <PulseEffect color="bg-justice-primary" />
-              </div>
-            </div>
+            )}
+            
+            {/* View sealed witness page */}
+            {petition.is_sealed && id && (
+              <Button
+                onClick={() => navigate(`/witness/${id}`)}
+                variant="outline"
+                className="border-purple-500 text-purple-500 hover:bg-purple-500/20"
+              >
+                View Witness Record
+              </Button>
+            )}
+            
+            {/* Return button */}
+            {isReviewing && (
+              <Button 
+                variant="outline"
+                onClick={() => setIsReviewing(false)}
+              >
+                Cancel Review
+              </Button>
+            )}
+          </div>
+        </GlassCard>
+        
+        {/* Side panel with flame integrity monitor */}
+        <div className="lg:row-span-full space-y-4">
+          <FlameIntegrityMonitor 
+            petitionId={id} 
+          />
+          
+          {/* Informational cards can go here */}
+          {petition.is_sealed && (
+            <GlassCard className="p-4 bg-purple-500/10 border border-purple-500/30">
+              <h3 className="text-sm font-medium text-white mb-2">Sealed Record</h3>
+              <p className="text-xs text-justice-light/80">
+                This petition has been sealed in the sacred scrolls for eternal preservation.
+              </p>
+              {petition.scroll_seal_timestamp && (
+                <p className="text-xs text-justice-light/60 mt-2">
+                  Sealed on {formatDate(petition.scroll_seal_timestamp)}
+                </p>
+              )}
+            </GlassCard>
           )}
           
-          {/* Sealing action - for judges or petitioners after verdict */}
-          {petition.verdict && !petition.is_sealed && (canReview || isPetitioner) && (
-            <Button 
-              onClick={handleSealPetition}
-              variant="outline"
-              className="border-purple-500 text-purple-500 hover:bg-purple-500/20"
-            >
-              Seal Verdict in Scrolls
-            </Button>
-          )}
-          
-          {/* Return button */}
-          {isReviewing && (
-            <Button 
-              variant="outline"
-              onClick={() => setIsReviewing(false)}
-            >
-              Cancel Review
-            </Button>
+          {petition.flame_signature_hash && (
+            <GlassCard className="p-4 bg-black/30">
+              <h3 className="text-sm font-medium text-white mb-2">Flame Signature</h3>
+              <p className="text-xs font-mono text-justice-light/60 break-all">
+                {petition.flame_signature_hash}
+              </p>
+            </GlassCard>
           )}
         </div>
-      </GlassCard>
+      </div>
       
       {/* Review interface */}
       {isReviewing && (

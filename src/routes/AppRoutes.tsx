@@ -22,7 +22,9 @@ import { CommunityForum } from "@/components/community/CommunityForum";
 import DeveloperDashboard from "@/pages/Admin/DeveloperDashboard";
 import MCPDashboard from "@/pages/Admin/MCPDashboard";
 import Courtroom from "@/pages/Courtroom";
+import Witness from "@/pages/Witness";
 import AIUsagePolicy from "@/pages/policy/AIUsagePolicy";
+import Blessing from "@/pages/Blessing";
 
 // Auth Pages
 import SignIn from "@/pages/Auth/SignIn";
@@ -47,6 +49,9 @@ export const AppRoutes = () => {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/update-password" element={<UpdatePassword />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        
+        {/* Blessing and Onboarding */}
+        <Route path="/blessing" element={<Blessing />} />
         
         {/* Policy Routes */}
         <Route path="/policy/ai-usage" element={<AIUsagePolicy />} />
@@ -95,6 +100,9 @@ export const AppRoutes = () => {
         {/* Courtroom Routes */}
         <Route path="/courtroom" element={<Courtroom />} />
         <Route path="/courtroom/:id" element={<Courtroom />} />
+        
+        {/* Witness Routes */}
+        <Route path="/witness/:id" element={<Witness />} />
         
         {/* Community Forum */}
         <Route path="/community" element={<CommunityForum />} />

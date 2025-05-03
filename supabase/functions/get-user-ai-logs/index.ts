@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-AI-AUDIT] ${step}${detailsStr}`);
+  console.log(`[GET-USER-AI-LOGS] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
@@ -20,43 +20,47 @@ serve(async (req) => {
   try {
     logStep("Function started");
     
-    // Initialize Supabase client with the service role key
+    // Initialize Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+    
+    // Get user from auth header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Authorization header is missing');
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    
+    if (userError || !userData.user) {
+      throw new Error('Authentication failed');
+    }
+    
+    const userId = userData.user.id;
+    logStep("User authenticated", { userId });
+    
+    // Use the service role key for database operations
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
     
-    // Check if the ai_audit_logs table exists
-    try {
-      const { data: tableExists, error: tableCheckError } = await supabaseAdmin.rpc(
-        'check_table_exists',
-        { table_name: 'ai_audit_logs' }
-      );
-      
-      if (tableCheckError) {
-        console.error("Error creating AI audit log table:", tableCheckError);
-        throw tableCheckError;
-      }
-      
-      if (!tableExists) {
-        // Create the ai_audit_logs table if it doesn't exist
-        const { error: createError } = await supabaseAdmin.rpc('create_ai_audit_logs_table');
-        
-        if (createError) {
-          console.error("Error creating AI audit log table:", createError);
-          throw createError;
-        }
-        
-        logStep("AI audit log table created successfully");
-      } else {
-        logStep("AI audit log table already exists");
-      }
-    } catch (err) {
-      logStep("Error checking/creating AI audit log table", { error: String(err) });
-    }
+    // Get user's AI logs
+    const { data, error } = await supabaseAdmin
+      .from('ai_audit_logs')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
     
-    return new Response(JSON.stringify({ success: true }), {
+    if (error) throw error;
+    
+    logStep("Retrieved user AI logs", { count: data?.length || 0 });
+    
+    return new Response(JSON.stringify(data || []), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });

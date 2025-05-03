@@ -1,161 +1,208 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from "@/hooks/use-toast";
 import { ScrollEvidence } from '@/types/petition';
+import { logIntegrityAction } from './petitionQueries';
 
-// Ensure the evidence bucket exists
-export const ensureEvidenceBucketExists = async (): Promise<boolean> => {
-  try {
-    // Check if the bucket already exists
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some(bucket => bucket.name === 'scroll_evidence');
-    
-    if (bucketExists) {
-      console.log("Evidence bucket already exists");
-      return true;
-    }
-    
-    // If it doesn't exist, call our edge function to create it
-    const { data, error } = await supabase.functions.invoke("create-evidence-bucket");
-    
-    if (error) {
-      console.error("Error creating evidence bucket:", error);
-      toast({
-        title: "Storage Error",
-        description: "Could not initialize evidence storage system",
-        variant: "destructive"
-      });
-      return false;
-    }
-    
-    console.log("Evidence bucket created successfully:", data);
-    return true;
-  } catch (error) {
-    console.error("Error ensuring evidence bucket exists:", error);
-    return false;
-  }
-};
-
-// Upload evidence file
-export const uploadEvidence = async (
-  petitionId: string,
-  file: File,
-  userId: string
-): Promise<{ success: boolean; filePath?: string; error?: string }> => {
-  try {
-    // Ensure bucket exists first
-    const bucketReady = await ensureEvidenceBucketExists();
-    if (!bucketReady) {
-      return { success: false, error: "Evidence storage system not available" };
-    }
-    
-    // Create a unique filename to prevent collisions
-    const timestamp = new Date().getTime();
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${userId}_${timestamp}.${fileExt}`;
-    const filePath = `${petitionId}/${fileName}`;
-    
-    // Upload file to storage
-    const { error: uploadError } = await supabase.storage
-      .from('scroll_evidence')
-      .upload(filePath, file);
-      
-    if (uploadError) {
-      console.error("Error uploading file:", uploadError);
-      return { success: false, error: uploadError.message };
-    }
-    
-    // Get the public URL
-    const { data: publicURL } = supabase.storage
-      .from('scroll_evidence')
-      .getPublicUrl(filePath);
-      
-    // Record in the scroll_evidence table
-    const { error: dbError } = await supabase
-      .from('scroll_evidence')
-      .insert({
-        petition_id: petitionId,
-        uploaded_by: userId,
-        file_path: publicURL.publicUrl,
-        file_type: file.type,
-        description: file.name,
-        is_sealed: false
-      });
-      
-    if (dbError) {
-      console.error("Error recording evidence in database:", dbError);
-      return { success: false, error: dbError.message };
-    }
-    
-    return { success: true, filePath: publicURL.publicUrl };
-  } catch (error) {
-    console.error("Error in uploadEvidence:", error);
-    return { success: false, error: String(error) };
-  }
-};
-
-// Get all evidence for a petition
-export const getEvidenceForPetition = async (petitionId: string): Promise<ScrollEvidence[]> => {
+export async function getEvidenceForPetition(petitionId: string): Promise<ScrollEvidence[]> {
   try {
     const { data, error } = await supabase
       .from('scroll_evidence')
       .select('*')
-      .eq('petition_id', petitionId);
+      .eq('petition_id', petitionId)
+      .order('uploaded_at', { ascending: false });
       
     if (error) throw error;
-    return data || [];
+    return data as ScrollEvidence[] || [];
   } catch (error) {
-    console.error("Error fetching evidence:", error);
+    console.error('Error fetching evidence:', error);
     return [];
   }
-};
+}
 
-// Get public URL for evidence file path
-export const getEvidencePublicUrl = (filePath: string): string => {
-  // Check if the filepath is already a complete URL
-  if (filePath.startsWith('http')) {
-    return filePath;
-  }
-  
-  // Otherwise, get the public URL from Supabase
-  const { data } = supabase.storage
-    .from('scroll_evidence')
-    .getPublicUrl(filePath);
-    
-  return data.publicUrl;
-};
-
-// Delete evidence
-export const deleteEvidence = async (evidenceId: string, filePath: string) => {
+export async function uploadEvidence(
+  petitionId: string,
+  file: File,
+  description: string
+): Promise<ScrollEvidence | null> {
   try {
-    // Extract just the path part from the full URL if needed
-    let storagePath = filePath;
-    if (filePath.includes('scroll_evidence/')) {
-      storagePath = filePath.split('scroll_evidence/')[1];
-    }
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
     
-    // Delete from storage
-    const { error: storageError } = await supabase.storage
+    if (!userId) throw new Error('User must be logged in to upload evidence');
+    
+    // Determine file type
+    const fileType = file.type;
+    
+    // Create a file path with proper organization
+    const filePath = `evidence/${petitionId}/${userId}_${Date.now()}_${file.name}`;
+    
+    // Upload the file to storage
+    const { data: uploadData, error: uploadError } = await supabase
+      .storage
       .from('scroll_evidence')
-      .remove([storagePath]);
+      .upload(filePath, file);
       
-    if (storageError) {
-      console.error("Error deleting file from storage:", storageError);
-    }
+    if (uploadError) throw uploadError;
     
-    // Delete from database
-    const { error: dbError } = await supabase
+    // Get the public URL for the file
+    const { data: publicUrlData } = await supabase
+      .storage
+      .from('scroll_evidence')
+      .getPublicUrl(filePath);
+      
+    const fileUrl = publicUrlData.publicUrl;
+    
+    // Add a record to the scroll_evidence table
+    const { data: evidenceData, error: evidenceError } = await supabase
+      .from('scroll_evidence')
+      .insert({
+        petition_id: petitionId,
+        file_path: fileUrl,
+        file_type: fileType,
+        uploaded_by: userId,
+        description: description,
+        is_sealed: false
+      })
+      .select()
+      .single();
+      
+    if (evidenceError) throw evidenceError;
+    
+    // Log the upload as an integrity action
+    await logIntegrityAction(
+      'EVIDENCE_UPLOADED',
+      2, // Small positive impact
+      `Evidence uploaded for petition #${petitionId.substring(0, 8)}`,
+      petitionId
+    );
+    
+    return evidenceData as ScrollEvidence;
+  } catch (error) {
+    console.error('Error uploading evidence:', error);
+    throw error;
+  }
+}
+
+export async function deleteEvidence(evidenceId: string): Promise<boolean> {
+  try {
+    const { data: evidenceData, error: fetchError } = await supabase
+      .from('scroll_evidence')
+      .select('*')
+      .eq('id', evidenceId)
+      .single();
+      
+    if (fetchError) throw fetchError;
+    
+    // Delete the file from storage
+    const filePath = evidenceData.file_path;
+    const fileName = filePath.split('/').pop();
+    
+    const { error: storageError } = await supabase
+      .storage
+      .from('scroll_evidence')
+      .remove([`evidence/${evidenceData.petition_id}/${fileName}`]);
+      
+    if (storageError) console.warn('Error deleting file from storage:', storageError);
+    
+    // Delete the record from the database
+    const { error: deleteError } = await supabase
       .from('scroll_evidence')
       .delete()
       .eq('id', evidenceId);
       
-    if (dbError) {
-      console.error("Error deleting evidence from database:", dbError);
-      return false;
-    }
+    if (deleteError) throw deleteError;
+    
+    // Log the deletion as an integrity action
+    await logIntegrityAction(
+      'EVIDENCE_DELETED',
+      -1, // Small negative impact
+      `Evidence deleted from petition #${evidenceData.petition_id.substring(0, 8)}`,
+      evidenceData.petition_id
+    );
     
     return true;
   } catch (error) {
-    console.error("Error in deleteEvidence:", error);
+    console.error('Error deleting evidence:', error);
     return false;
   }
-};
+}
+
+// Upload audio verdict evidence
+export async function uploadAudioVerdict(
+  petitionId: string,
+  audioBlob: Blob,
+  transcription: string | null = null
+): Promise<string> {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+    
+    if (!userId) throw new Error('User must be logged in to upload audio verdict');
+    
+    // Create a file path with proper organization
+    const filePath = `verdicts/${petitionId}/${userId}_${Date.now()}.webm`;
+    
+    // Upload the audio file to storage
+    const { data: uploadData, error: uploadError } = await supabase
+      .storage
+      .from('scroll_verdicts')
+      .upload(filePath, audioBlob, {
+        contentType: 'audio/webm'
+      });
+      
+    if (uploadError) throw uploadError;
+    
+    // Get the public URL for the file
+    const { data: publicUrlData } = await supabase
+      .storage
+      .from('scroll_verdicts')
+      .getPublicUrl(filePath);
+      
+    const audioUrl = publicUrlData.publicUrl;
+    
+    // Generate a flame signature hash for the verdict
+    const flameSealHash = generateFlameSignatureHash(petitionId, userId);
+    
+    // Update the petition with the audio verdict information
+    await saveAudioVerdict(petitionId, audioUrl, flameSealHash, transcription);
+    
+    return audioUrl;
+  } catch (error) {
+    console.error('Error uploading audio verdict:', error);
+    throw error;
+  }
+}
+
+// Generate a flame signature hash (simplified)
+function generateFlameSignatureHash(petitionId: string, judgeId: string): string {
+  const timestamp = new Date().getTime();
+  const baseString = `${petitionId}-${judgeId}-${timestamp}`;
+  
+  // Simple hash generation for demo purposes
+  let hash = 0;
+  for (let i = 0; i < baseString.length; i++) {
+    const char = baseString.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  return `flame-${Math.abs(hash).toString(16)}-${timestamp.toString(16)}`;
+}
+
+// Check if an audio verdict exists for a petition
+export async function hasAudioVerdict(petitionId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('scroll_petitions')
+      .select('audio_verdict_url')
+      .eq('id', petitionId)
+      .single();
+      
+    if (error) throw error;
+    
+    return !!data.audio_verdict_url;
+  } catch (error) {
+    console.error('Error checking for audio verdict:', error);
+    return false;
+  }
+}

@@ -1,291 +1,321 @@
 
-import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { GlassCard } from "@/components/advanced-ui/GlassCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
-import { Loader2, User, Mail, Key } from "lucide-react";
-import { useLanguage } from "@/contexts/language";
-import { MetaTags } from "@/components/MetaTags";
+import { useEffect, useState } from 'react';
+import { NavBar } from '@/components/layout/NavBar';
+import { MetaTags } from '@/components/MetaTags';
+import { Button } from '@/components/ui/button';
+import { GlassCard } from '@/components/advanced-ui/GlassCard';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2, Save, LogOut } from 'lucide-react';
+import { FlameIntegrityMonitor } from '@/components/courtroom/FlameIntegrityMonitor';
+import { QRJoinLink } from '@/components/onboarding/QRJoinLink';
 
-const Profile = () => {
+export default function Profile() {
   const { user, signOut } = useAuth();
-  const { t, formatDate } = useLanguage();
-  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-  const [newEmail, setNewEmail] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  const handleUpdateEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newEmail) {
-      toast({
-        title: "Email Required",
-        description: "Please enter a new email address.",
-        variant: "destructive",
-      });
-      return;
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState({
+    username: '',
+    bio: '',
+    avatar_url: ''
+  });
+  
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
     }
-    
+  }, [user]);
+  
+  const fetchProfile = async () => {
     try {
-      setIsUpdatingEmail(true);
+      setLoading(true);
       
-      const { error } = await supabase.auth.updateUser({
-        email: newEmail,
-      });
-      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+        
       if (error) throw error;
       
-      toast({
-        title: "Email Update Initiated",
-        description: "Please check your new email for a confirmation link.",
-      });
-      
-      setNewEmail("");
-    } catch (error: any) {
-      toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update email address.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpdatingEmail(false);
-    }
-  };
-
-  const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      toast({
-        title: "Missing Fields",
-        description: "Please fill in all password fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (newPassword !== confirmPassword) {
-      toast({
-        title: "Passwords Don't Match",
-        description: "New password and confirmation don't match.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (newPassword.length < 8) {
-      toast({
-        title: "Password Too Short",
-        description: "New password must be at least 8 characters long.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      setIsUpdatingPassword(true);
-      
-      // First verify the current password
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user?.email || "",
-        password: currentPassword,
-      });
-      
-      if (signInError) {
-        toast({
-          title: "Incorrect Password",
-          description: "Current password is incorrect.",
-          variant: "destructive",
+      if (data) {
+        setProfile({
+          username: data.username || '',
+          bio: data.bio || '',
+          avatar_url: data.avatar_url || ''
         });
-        return;
       }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    try {
+      setSaving(true);
       
-      // Then update to the new password
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-      
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          username: profile.username,
+          bio: profile.bio,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+        
       if (error) throw error;
       
       toast({
-        title: "Password Updated",
-        description: "Your password has been successfully changed.",
+        title: "Profile Updated",
+        description: "Your scroll identity has been saved."
       });
-      
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error updating profile:', error);
       toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update password.",
         variant: "destructive",
+        title: "Update Failed",
+        description: "Could not update your profile."
       });
     } finally {
-      setIsUpdatingPassword(false);
+      setSaving(false);
     }
   };
-
+  
+  const handleLogout = async () => {
+    await signOut();
+  };
+  
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user || !e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    const fileExt = file.name.split('.').pop();
+    const filePath = `avatars/${user.id}.${fileExt}`;
+    
+    try {
+      setSaving(true);
+      
+      // Upload avatar to storage
+      const { error: uploadError } = await supabase
+        .storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+        
+      if (uploadError) throw uploadError;
+      
+      // Get public URL
+      const { data: urlData } = supabase
+        .storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+        
+      // Update profile with avatar URL
+      const avatar_url = urlData.publicUrl;
+      
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          avatar_url,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', user.id);
+        
+      if (updateError) throw updateError;
+      
+      // Update local state
+      setProfile(prev => ({
+        ...prev,
+        avatar_url
+      }));
+      
+      toast({
+        title: "Avatar Updated",
+        description: "Your sacred image has been changed."
+      });
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      toast({
+        variant: "destructive",
+        title: "Avatar Update Failed",
+        description: "Could not update your avatar image."
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black p-4 md:p-8">
-      <MetaTags title={t("nav.profile")} />
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">{t("profile.title")}</h1>
-          <p className="text-justice-light/80">
-            {t("profile.subtitle")}
-          </p>
-        </div>
-
-        <div className="space-y-8">
-          <GlassCard className="p-6">
-            <div className="flex items-center mb-6">
-              <div className="bg-justice-primary/20 p-3 rounded-full">
-                <User className="h-6 w-6 text-justice-primary" />
-              </div>
-              <h2 className="text-2xl font-bold text-white ml-3">{t("profile.accountInfo")}</h2>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
+      <MetaTags title="Profile" />
+      <NavBar />
+      
+      <div className="container mx-auto px-4 pt-20 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <GlassCard className="p-6">
+              <h1 className="text-2xl font-bold text-white mb-6">Sacred Scroll Identity</h1>
+              
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-justice-primary" />
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex flex-col md:flex-row gap-6 items-start">
+                    {/* Avatar */}
+                    <div className="flex flex-col items-center space-y-3">
+                      <Avatar className="h-24 w-24">
+                        {profile.avatar_url ? (
+                          <AvatarImage src={profile.avatar_url} alt="Profile" />
+                        ) : (
+                          <AvatarFallback className="bg-justice-primary/20 text-justice-primary text-xl">
+                            {profile.username?.charAt(0) || user?.email?.charAt(0) || '?'}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      
+                      <div>
+                        <label className="block">
+                          <span className="sr-only">Choose profile photo</span>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarChange}
+                            className="w-full text-sm text-justice-light
+                              file:mr-4 file:py-2 file:px-4 file:rounded
+                              file:border-0 file:text-sm file:font-semibold
+                              file:bg-justice-primary/20 file:text-justice-primary
+                              hover:file:bg-justice-primary/30"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    
+                    {/* Basic Info */}
+                    <div className="flex-1 space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-justice-light mb-1">
+                          Sacred Identity Name
+                        </label>
+                        <Input
+                          value={profile.username}
+                          onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
+                          placeholder="Your seeker name"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-justice-light mb-1">
+                          Email
+                        </label>
+                        <Input
+                          value={user?.email || ''}
+                          disabled
+                          className="text-justice-light/70"
+                        />
+                        <p className="text-xs mt-1 text-justice-light/50">
+                          Email cannot be changed
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-justice-light mb-1">
+                      Sacred Bio
+                    </label>
+                    <Textarea
+                      value={profile.bio || ''}
+                      onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
+                      placeholder="Share your purpose in seeking justice..."
+                      rows={4}
+                    />
+                  </div>
+                  
+                  <div className="pt-2 flex justify-between">
+                    <Button 
+                      onClick={handleSaveProfile} 
+                      disabled={saving}
+                      className="bg-justice-tertiary hover:bg-justice-tertiary/80"
+                    >
+                      {saving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" /> 
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      onClick={handleLogout} 
+                      variant="outline"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" /> 
+                      Sign Out
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </GlassCard>
             
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-justice-light/70">{t("profile.email")}</label>
-                <p className="text-white">{user?.email}</p>
-              </div>
+            <GlassCard className="p-6 mt-6">
+              <h2 className="text-xl font-bold text-white mb-4">Sacred Account Information</h2>
               
-              <div>
-                <label className="text-sm text-justice-light/70">{t("profile.userId")}</label>
-                <p className="text-white font-mono text-sm truncate">{user?.id}</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-justice-light/70">User ID</p>
+                    <p className="text-justice-light font-mono text-xs">
+                      {user?.id || 'Not logged in'}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-justice-light/70">Account Created</p>
+                    <p className="text-justice-light">
+                      {user?.created_at ? 
+                        new Date(user.created_at).toLocaleDateString() : 
+                        'Unknown'}
+                    </p>
+                  </div>
+                </div>
+                
+                <Separator className="my-4 bg-justice-light/10" />
+                
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/subscription/manage')}
+                  className="w-full justify-start"
+                >
+                  Manage Subscription
+                </Button>
               </div>
-              
-              <div>
-                <label className="text-sm text-justice-light/70">{t("profile.lastSignIn")}</label>
-                <p className="text-white">
-                  {user?.last_sign_in_at ? formatDate(new Date(user.last_sign_in_at), 
-                    { dateStyle: 'medium', timeStyle: 'short' }) : "N/A"}
-                </p>
-              </div>
-            </div>
-          </GlassCard>
-
-          <GlassCard className="p-6">
-            <div className="flex items-center mb-6">
-              <div className="bg-justice-primary/20 p-3 rounded-full">
-                <Mail className="h-6 w-6 text-justice-primary" />
-              </div>
-              <h2 className="text-2xl font-bold text-white ml-3">{t("profile.updateEmail")}</h2>
-            </div>
+            </GlassCard>
+          </div>
+          
+          <div className="space-y-6">
+            <FlameIntegrityMonitor 
+              userId={user?.id}
+            />
             
-            <form onSubmit={handleUpdateEmail} className="space-y-4">
-              <div>
-                <label htmlFor="newEmail" className="text-sm text-justice-light/70">
-                  {t("profile.newEmailLabel")}
-                </label>
-                <Input
-                  id="newEmail"
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder={t("profile.newEmailPlaceholder")}
-                  disabled={isUpdatingEmail}
-                  className="mt-1"
-                />
-              </div>
-              
-              <Button type="submit" disabled={isUpdatingEmail}>
-                {isUpdatingEmail ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t("profile.updating")}
-                  </>
-                ) : (
-                  t("profile.updateEmail")
-                )}
-              </Button>
-            </form>
-          </GlassCard>
-
-          <GlassCard className="p-6">
-            <div className="flex items-center mb-6">
-              <div className="bg-justice-primary/20 p-3 rounded-full">
-                <Key className="h-6 w-6 text-justice-primary" />
-              </div>
-              <h2 className="text-2xl font-bold text-white ml-3">{t("profile.changePassword")}</h2>
-            </div>
-            
-            <form onSubmit={handleUpdatePassword} className="space-y-4">
-              <div>
-                <label htmlFor="currentPassword" className="text-sm text-justice-light/70">
-                  {t("profile.currentPasswordLabel")}
-                </label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder={t("profile.currentPasswordPlaceholder")}
-                  disabled={isUpdatingPassword}
-                  className="mt-1"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="newPassword" className="text-sm text-justice-light/70">
-                  {t("profile.newPasswordLabel")}
-                </label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder={t("profile.newPasswordPlaceholder")}
-                  disabled={isUpdatingPassword}
-                  className="mt-1"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="confirmPassword" className="text-sm text-justice-light/70">
-                  {t("profile.confirmPasswordLabel")}
-                </label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder={t("profile.confirmPasswordPlaceholder")}
-                  disabled={isUpdatingPassword}
-                  className="mt-1"
-                />
-              </div>
-              
-              <Button type="submit" disabled={isUpdatingPassword}>
-                {isUpdatingPassword ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t("profile.updating")}
-                  </>
-                ) : (
-                  t("profile.changePassword")
-                )}
-              </Button>
-            </form>
-          </GlassCard>
-
-          <div className="text-center pt-4">
-            <Button variant="outline" onClick={signOut}>
-              {t("nav.signout")}
-            </Button>
+            <QRJoinLink />
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default Profile;
+}
