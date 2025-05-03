@@ -18,6 +18,20 @@ interface LogAIInteractionParams {
   output_summary_param: string | null;
 }
 
+// Define the expected return type for log_ai_interaction
+type LogAIInteractionResponse = boolean;
+
+// Define the expected return type for get_user_ai_logs
+interface AILogEntry {
+  id: string;
+  user_id: string;
+  action_type: string;
+  ai_model: string;
+  input_summary: string | null;
+  output_summary: string | null;
+  created_at: string;
+}
+
 /**
  * Logs an AI interaction to the audit log
  */
@@ -29,13 +43,13 @@ export const logAIInteraction = async (entry: AIAuditLogEntry) => {
     
     // Use rpc to insert the audit log entry instead of direct table access
     // This avoids TypeScript errors with table definitions
-    const { error } = await supabase.rpc<any>('log_ai_interaction', {
+    const { error } = await supabase.rpc<LogAIInteractionResponse, LogAIInteractionParams>('log_ai_interaction', {
       user_id_param: userId,
       action_type_param: entry.action_type,
       ai_model_param: entry.ai_model,
       input_summary_param: entry.input_summary || null,
       output_summary_param: entry.output_summary || null
-    } as LogAIInteractionParams);
+    });
 
     if (error) throw error;
     return true;
@@ -51,7 +65,7 @@ export const logAIInteraction = async (entry: AIAuditLogEntry) => {
 export const fetchUserAILogs = async () => {
   try {
     // Use rpc to fetch logs instead of direct table access
-    const { data, error } = await supabase.rpc<any>('get_user_ai_logs', {});
+    const { data, error } = await supabase.rpc<AILogEntry[], Record<string, never>>('get_user_ai_logs', {});
 
     if (error) throw error;
     return data || [];
