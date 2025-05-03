@@ -31,6 +31,7 @@ import { CommunityForum } from "./components/community/CommunityForum";
 import DeveloperDashboard from "./pages/Admin/DeveloperDashboard";
 import MCPDashboard from "./pages/Admin/MCPDashboard";
 import Courtroom from "./pages/Courtroom";
+import AIUsagePolicy from "./pages/policy/AIUsagePolicy";
 
 // Auth Pages
 import SignIn from "./pages/Auth/SignIn";
@@ -75,6 +76,9 @@ const App = () => {
     // Apply RLS policies to fix permission issues
     applyRlsPolicies();
     
+    // Initialize AI audit log table
+    initializeAiAuditLog();
+    
     return () => {
       window.removeEventListener('resize', logDimensions);
     };
@@ -91,6 +95,20 @@ const App = () => {
       }
     } catch (err) {
       console.error("Failed to invoke add-rls-policies function:", err);
+    }
+  };
+  
+  // Initialize AI audit log table
+  const initializeAiAuditLog = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("create-ai-audit-table");
+      if (error) {
+        console.error("Error creating AI audit log table:", error);
+      } else {
+        console.log("AI audit log table status:", data);
+      }
+    } catch (err) {
+      console.error("Failed to invoke create-ai-audit-table function:", err);
     }
   };
 
@@ -110,6 +128,9 @@ const App = () => {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/update-password" element={<UpdatePassword />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
+                
+                {/* Policy Routes */}
+                <Route path="/policy/ai-usage" element={<AIUsagePolicy />} />
                 
                 {/* Subscription Routes */}
                 <Route path="/subscription/plans" element={<SubscriptionPlans />} />

@@ -7,6 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles, CheckCircle, XCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AIConsentToggle } from "@/components/compliance/AIConsentToggle";
+import { logAIInteraction } from "@/services/aiAuditService";
+import { useLanguage } from "@/contexts/language";
 
 interface VerdictFormProps {
   petitionId: string;
@@ -26,9 +29,20 @@ export const VerdictForm = ({
   const [loading, setLoading] = useState(false);
   const [suggestingVerdict, setSuggestingVerdict] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiConsent, setAiConsent] = useState(true);
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const handleGetAiSuggestion = async () => {
+    if (!aiConsent) {
+      toast({
+        title: t("verdict.aiConsentRequired"),
+        description: t("verdict.enableAiConsent"),
+        variant: "destructive"
+      });
+      return;
+    }
+
     setSuggestingVerdict(true);
     setError(null);
     
@@ -37,8 +51,8 @@ export const VerdictForm = ({
       
       if (aiVerdict) {
         toast({
-          title: "AI Verdict Suggestion",
-          description: "The sacred algorithms have considered this case and provided guidance.",
+          title: t("verdict.aiSuggested"),
+          description: t("verdict.aiConsideredCase"),
         });
         
         // Update database with AI suggestion
@@ -49,12 +63,20 @@ export const VerdictForm = ({
           
         // Set the reasoning field with AI's reasoning
         setReasoning(aiVerdict.reasoning || "");
+
+        // Log the AI interaction
+        await logAIInteraction({
+          action_type: "VERDICT_SUGGESTION",
+          ai_model: "scroll-verdict-assistant-1.0",
+          input_summary: `Petition title: ${petitionTitle.substring(0, 50)}...`,
+          output_summary: `AI verdict suggested: ${aiVerdict.verdict.substring(0, 50)}...`
+        });
       } else {
-        setError("The AI could not provide a suggestion at this time.");
+        setError(t("verdict.aiSuggestionFailed"));
       }
     } catch (err) {
       console.error("Error getting AI verdict:", err);
-      setError("Failed to receive AI guidance: " + (err instanceof Error ? err.message : String(err)));
+      setError(t("verdict.aiError") + (err instanceof Error ? err.message : String(err)));
     } finally {
       setSuggestingVerdict(false);
     }
@@ -63,8 +85,8 @@ export const VerdictForm = ({
   const handleSubmitVerdict = async (approved: boolean) => {
     if (!reasoning) {
       toast({
-        title: "Missing Information",
-        description: "Please provide reasoning for your verdict.",
+        title: t("verdict.missingReasoning"),
+        description: t("verdict.provideReasoning"),
         variant: "destructive"
       });
       return;
@@ -99,14 +121,14 @@ export const VerdictForm = ({
         });
       
       toast({
-        title: `Petition ${verdictText}`,
-        description: "The sacred verdict has been recorded in the scrolls.",
+        title: t(`verdict.${approved ? 'approved' : 'rejected'}`),
+        description: t("verdict.recorded"),
       });
       
       onVerdictSubmitted();
     } catch (err) {
       console.error("Error submitting verdict:", err);
-      setError("Failed to submit verdict: " + (err instanceof Error ? err.message : String(err)));
+      setError(t("verdict.submissionError") + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -114,7 +136,7 @@ export const VerdictForm = ({
   
   return (
     <div className="space-y-4 bg-black/20 p-4 rounded-lg border border-justice-primary/30">
-      <h3 className="text-lg font-medium text-white">Sacred Verdict</h3>
+      <h3 className="text-lg font-medium text-white">{t("verdict.sacred")}</h3>
       
       {error && (
         <Alert variant="destructive">
@@ -124,29 +146,34 @@ export const VerdictForm = ({
       
       <div className="space-y-4">
         <div>
-          <label className="text-sm text-justice-light">Reasoning</label>
+          <label className="text-sm text-justice-light">{t("verdict.reasoning")}</label>
           <Textarea
             value={reasoning}
             onChange={(e) => setReasoning(e.target.value)}
-            placeholder="Explain the reasoning behind your verdict..."
+            placeholder={t("verdict.reasoningPlaceholder")}
             className="mt-1 h-32"
           />
         </div>
+        
+        <AIConsentToggle 
+          userRole="judge"
+          onConsentChange={setAiConsent}
+        />
         
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           <Button
             variant="outline"
             onClick={handleGetAiSuggestion}
-            disabled={suggestingVerdict}
+            disabled={suggestingVerdict || !aiConsent}
             className="flex-1"
           >
             {suggestingVerdict ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Consulting AI
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("verdict.consultingAi")}
               </>
             ) : (
               <>
-                <Sparkles className="mr-2 h-4 w-4" /> Get AI Suggestion
+                <Sparkles className="mr-2 h-4 w-4" /> {t("verdict.getAiSuggestion")}
               </>
             )}
           </Button>
@@ -160,7 +187,7 @@ export const VerdictForm = ({
             disabled={loading || !reasoning}
           >
             <CheckCircle className="mr-2 h-4 w-4" />
-            Approve Petition
+            {t("verdict.approvePetition")}
           </Button>
           
           <Button
@@ -170,7 +197,7 @@ export const VerdictForm = ({
             disabled={loading || !reasoning}
           >
             <XCircle className="mr-2 h-4 w-4" />
-            Reject Petition
+            {t("verdict.rejectPetition")}
           </Button>
         </div>
       </div>

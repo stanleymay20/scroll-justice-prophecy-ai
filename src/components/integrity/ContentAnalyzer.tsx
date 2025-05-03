@@ -5,6 +5,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertTriangle, Shield, Check } from "lucide-react";
 import { analyzeContent } from "@/services/integrityService";
+import { AIConsentToggle } from "@/components/compliance/AIConsentToggle";
+import { logAIInteraction } from "@/services/aiAuditService";
+import { useLanguage } from "@/contexts/language";
 
 interface ContentAnalyzerProps {
   initialContent?: string;
@@ -12,14 +15,21 @@ interface ContentAnalyzerProps {
 }
 
 export const ContentAnalyzer = ({ initialContent = "", onAnalysisComplete }: ContentAnalyzerProps) => {
+  const { t } = useLanguage();
   const [content, setContent] = useState(initialContent);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [aiConsent, setAiConsent] = useState(true);
 
   const handleAnalyze = async () => {
     if (!content.trim()) {
-      setError("Please enter content to analyze");
+      setError(t("analyzer.noContent"));
+      return;
+    }
+
+    if (!aiConsent) {
+      setError(t("analyzer.requireConsent"));
       return;
     }
 
@@ -34,9 +44,17 @@ export const ContentAnalyzer = ({ initialContent = "", onAnalysisComplete }: Con
       if (onAnalysisComplete) {
         onAnalysisComplete(analysisResult);
       }
+
+      // Log the AI interaction
+      await logAIInteraction({
+        action_type: "CONTENT_ANALYSIS",
+        ai_model: "scroll-integrity-analyzer-1.0",
+        input_summary: content.substring(0, 100) + (content.length > 100 ? "..." : ""),
+        output_summary: `Integrity Score: ${analysisResult.integrityScore}%`
+      });
     } catch (err) {
       console.error("Error analyzing content:", err);
-      setError("Failed to analyze content: " + (err instanceof Error ? err.message : String(err)));
+      setError(t("analyzer.error") + (err instanceof Error ? err.message : String(err)));
     } finally {
       setAnalyzing(false);
     }
@@ -50,7 +68,7 @@ export const ContentAnalyzer = ({ initialContent = "", onAnalysisComplete }: Con
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-white">Sacred Integrity Analysis</h3>
+      <h3 className="text-lg font-medium text-white">{t("analyzer.sacredIntegrity")}</h3>
 
       {error && (
         <Alert variant="destructive">
@@ -63,33 +81,38 @@ export const ContentAnalyzer = ({ initialContent = "", onAnalysisComplete }: Con
         <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Enter text to analyze for sacred integrity..."
+          placeholder={t("analyzer.placeholder")}
           className="h-32"
         />
       </div>
 
+      <AIConsentToggle 
+        userRole="petitioner"
+        onConsentChange={setAiConsent}
+      />
+
       <Button
         onClick={handleAnalyze}
-        disabled={analyzing || !content.trim()}
+        disabled={analyzing || !content.trim() || !aiConsent}
       >
         {analyzing ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("analyzer.analyzing")}
           </>
         ) : (
           <>
-            <Shield className="mr-2 h-4 w-4" /> Analyze Integrity
+            <Shield className="mr-2 h-4 w-4" /> {t("analyzer.analyze")}
           </>
         )}
       </Button>
 
       {result && (
         <div className="rounded-md bg-black/30 p-4 border border-justice-tertiary/30">
-          <h4 className="font-medium text-white mb-2">Analysis Results</h4>
+          <h4 className="font-medium text-white mb-2">{t("analyzer.results")}</h4>
           
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-justice-light/70">Integrity Score:</span>
+              <span className="text-justice-light/70">{t("analyzer.score")}:</span>
               <span className={getIntegrityColor(result.integrityScore)}>
                 {result.integrityScore}%
               </span>
@@ -97,7 +120,7 @@ export const ContentAnalyzer = ({ initialContent = "", onAnalysisComplete }: Con
             
             {result.issues && result.issues.length > 0 ? (
               <div>
-                <p className="text-sm text-justice-light/70 mb-1">Potential Issues:</p>
+                <p className="text-sm text-justice-light/70 mb-1">{t("analyzer.issues")}:</p>
                 <ul className="list-disc pl-5 space-y-1">
                   {result.issues.map((issue: string, index: number) => (
                     <li key={index} className="text-sm text-justice-light">
@@ -109,7 +132,7 @@ export const ContentAnalyzer = ({ initialContent = "", onAnalysisComplete }: Con
             ) : (
               <div className="flex items-center text-green-500">
                 <Check className="h-4 w-4 mr-2" />
-                <span>No integrity issues detected</span>
+                <span>{t("analyzer.noIssues")}</span>
               </div>
             )}
           </div>

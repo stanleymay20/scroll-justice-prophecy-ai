@@ -1,61 +1,65 @@
-import { LanguageCode } from '../types';
 
-const en: Record<string, string> = {
-  // General
-  "app.title": "ScrollJustice.AI",
-  "app.tagline": "Sacred justice through digital scrolls",
-  "app.loading": "Loading sacred scrolls...",
-  
-  // Navigation
-  "nav.home": "Home",
-  "nav.dashboard": "Dashboard",
-  "nav.precedent": "Precedents",
-  "nav.community": "Community",
-  "nav.profile": "Profile",
-  "nav.signin": "Sign In",
-  "nav.signout": "Sign Out",
-  "nav.language": "Language",
-  
-  // Language selector
-  "language.select": "Select Language",
-  "language.extended": "Extended Languages",
-  "language.sacred": "Sacred Languages",
-  
-  // Subscription
-  "subscription.title": "Sacred Subscription Plans",
-  "subscription.basic": "Basic",
-  "subscription.professional": "Professional",
-  "subscription.enterprise": "Enterprise",
-  "subscription.current": "Current Plan",
-  "subscription.subscribe": "Subscribe",
-  "subscription.manage": "Manage Subscription",
-  
-  // Court
-  "court.oath": "Sacred Oath",
-  "court.simulation": "Simulation Trial",
-  "court.emergency": "Emergency Alert",
-  "court.feedback": "Sacred Feedback",
-  
-  // Errors
-  "error.general": "A sacred challenge has appeared. Please try again.",
-  "error.auth": "Your scroll credentials require verification. Please sign in again.",
-  "error.notfound": "This sacred scroll has not yet been written.",
-  
-  // Success
-  "success.general": "The sacred scrolls have been updated.",
-  "success.auth": "You have been blessed with access to the sacred scrolls.",
-  "success.subscription": "Your sacred subscription has been activated.",
-  
-  // Sacred Oath
-  "oath.title": "Sacred Oath Required",
-  "oath.text": "I solemnly swear to uphold the principles of truth and justice in this sacred proceeding.",
-  "oath.confirm": "Take Sacred Oath",
-  
-  // Others
-  "button.submit": "Submit",
-  "button.cancel": "Cancel",
-  "button.continue": "Continue",
-  "button.back": "Back"
+import { base } from './minimal-translations';
+
+export const en = {
+  ...base,
+  // Add new translations for AI compliance
+  ai: {
+    disclosure: {
+      banner: "ScrollJustice.AI uses artificial intelligence to assist in various processes. All AI systems have human oversight.",
+      learnMore: "Learn more about how we use AI",
+    },
+    consent: {
+      judge: "Use AI-generated draft suggestions",
+      petitioner: "I understand this content may be reviewed by AI",
+      general: "Allow AI assistance for this feature",
+      judgeTooltip: "When enabled, AI will suggest verdict language based on precedent. You maintain full authority to modify or disregard AI suggestions.",
+      petitionerTooltip: "Your content may be analyzed by AI for integrity assessment. All AI processes include human oversight.",
+      generalTooltip: "AI features assist but do not replace human judgment. You can opt out, but some features may be limited.",
+    },
+  },
+  policy: {
+    ai: {
+      title: "AI Usage Policy",
+      description: "How ScrollJustice.AI uses artificial intelligence with transparency and accountability",
+    },
+  },
+  analyzer: {
+    sacredIntegrity: "Sacred Integrity Analysis",
+    placeholder: "Enter text to analyze for sacred integrity...",
+    analyzing: "Analyzing",
+    analyze: "Analyze Integrity",
+    results: "Analysis Results",
+    score: "Integrity Score",
+    issues: "Potential Issues",
+    noIssues: "No integrity issues detected",
+    noContent: "Please enter content to analyze",
+    requireConsent: "AI consent is required for content analysis",
+    error: "Failed to analyze content: ",
+  },
+  verdict: {
+    sacred: "Sacred Verdict",
+    reasoning: "Reasoning",
+    reasoningPlaceholder: "Explain the reasoning behind your verdict...",
+    consultingAi: "Consulting AI",
+    getAiSuggestion: "Get AI Suggestion",
+    approvePetition: "Approve Petition",
+    rejectPetition: "Reject Petition",
+    aiConsentRequired: "AI Consent Required",
+    enableAiConsent: "Please enable AI consent to use this feature",
+    aiSuggested: "AI Verdict Suggestion",
+    aiConsideredCase: "The sacred algorithms have considered this case and provided guidance.",
+    aiSuggestionFailed: "The AI could not provide a suggestion at this time.",
+    aiError: "Failed to receive AI guidance: ",
+    missingReasoning: "Missing Information",
+    provideReasoning: "Please provide reasoning for your verdict.",
+    approved: "Petition Approved",
+    rejected: "Petition Rejected",
+    recorded: "The sacred verdict has been recorded in the scrolls.",
+    submissionError: "Failed to submit verdict: ",
+  },
+  common: {
+    back: "Back",
+    dismiss: "Dismiss",
+  }
 };
-
-export default en;
