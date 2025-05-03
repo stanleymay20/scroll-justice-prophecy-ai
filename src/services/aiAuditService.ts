@@ -43,16 +43,15 @@ export const logAIInteraction = async (entry: AIAuditLogEntry) => {
     
     // Use rpc to insert the audit log entry instead of direct table access
     // This avoids TypeScript errors with table definitions
-    const { error } = await supabase.rpc(
-      'log_ai_interaction', 
-      {
+    const { error } = await supabase.functions.invoke('log_ai_interaction', {
+      body: {
         user_id_param: userId,
         action_type_param: entry.action_type,
         ai_model_param: entry.ai_model,
         input_summary_param: entry.input_summary || null,
         output_summary_param: entry.output_summary || null
       }
-    );
+    });
 
     if (error) throw error;
     return true;
@@ -68,10 +67,9 @@ export const logAIInteraction = async (entry: AIAuditLogEntry) => {
 export const fetchUserAILogs = async () => {
   try {
     // Use rpc to fetch logs instead of direct table access
-    const { data, error } = await supabase.rpc(
-      'get_user_ai_logs', 
-      {}
-    );
+    const { data, error } = await supabase.functions.invoke('get_user_ai_logs', {
+      body: {}
+    });
 
     if (error) throw error;
     return data || [];
