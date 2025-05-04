@@ -58,7 +58,8 @@ export async function checkSelfVerdict(petitionId: string): Promise<boolean> {
     if (error) throw error;
     
     // Check if user is both petitioner and judge
-    return data.petitioner_id === userId && data.assigned_judge_id === userId;
+    const isSelfVerdict = data.petitioner_id === userId && data.assigned_judge_id === userId;
+    return isSelfVerdict;
   } catch (error) {
     console.error('Error checking for self verdict:', error);
     return false;
