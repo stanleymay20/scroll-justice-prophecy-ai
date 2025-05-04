@@ -51,8 +51,8 @@ export function PetitionForm({ onPetitionCreated, onCancel }: PetitionFormProps)
     try {
       setAnalyzing(true);
       const result = await analyzeContent(text);
-      setIntegrityScore(result.integrityScore);
-      setContentWarnings(result.recommendations || []);
+      setIntegrityScore(result.integrity_score);
+      setContentWarnings(result.flagged_terms || []);
     } catch (err) {
       console.error('Error analyzing content:', err);
     } finally {

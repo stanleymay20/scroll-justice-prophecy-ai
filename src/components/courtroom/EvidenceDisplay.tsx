@@ -24,6 +24,7 @@ export function EvidenceDisplay({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedEvidence, setSelectedEvidence] = useState<ScrollEvidence | null>(null);
+  const [publicUrls, setPublicUrls] = useState<Record<string, string>>({});
   
   useEffect(() => {
     const loadEvidence = async () => {
@@ -31,6 +32,14 @@ export function EvidenceDisplay({
         setLoading(true);
         const evidenceData = await getEvidenceForPetition(petitionId);
         setEvidence(evidenceData);
+        
+        // Pre-fetch all public URLs
+        const urlMap: Record<string, string> = {};
+        for (const item of evidenceData) {
+          const url = await getEvidencePublicUrl(item.file_path);
+          urlMap[item.file_path] = url;
+        }
+        setPublicUrls(urlMap);
       } catch (err: any) {
         console.error('Error loading evidence:', err);
         setError(err.message || 'Failed to load evidence');
@@ -54,8 +63,13 @@ export function EvidenceDisplay({
     setSelectedEvidence(evidenceItem);
   };
   
-  const handleDownload = (evidenceItem: ScrollEvidence) => {
-    const url = getEvidencePublicUrl(evidenceItem.file_path);
+  const handleDownload = async (evidenceItem: ScrollEvidence) => {
+    let url = publicUrls[evidenceItem.file_path];
+    if (!url) {
+      url = await getEvidencePublicUrl(evidenceItem.file_path);
+      setPublicUrls(prev => ({ ...prev, [evidenceItem.file_path]: url }));
+    }
+    
     const a = document.createElement('a');
     a.href = url;
     a.download = evidenceItem.file_path.split('/').pop() || 'evidence';
@@ -66,6 +80,10 @@ export function EvidenceDisplay({
   
   const closePreview = () => {
     setSelectedEvidence(null);
+  };
+  
+  const getPublicUrl = (filePath: string) => {
+    return publicUrls[filePath] || '';
   };
   
   if (loading) {
@@ -152,25 +170,25 @@ export function EvidenceDisplay({
             <div className="p-4">
               {selectedEvidence.file_type.startsWith('image/') ? (
                 <img 
-                  src={getEvidencePublicUrl(selectedEvidence.file_path)} 
+                  src={getPublicUrl(selectedEvidence.file_path)} 
                   alt="Evidence" 
                   className="max-w-full mx-auto"
                 />
               ) : selectedEvidence.file_type.startsWith('video/') ? (
                 <video 
-                  src={getEvidencePublicUrl(selectedEvidence.file_path)} 
+                  src={getPublicUrl(selectedEvidence.file_path)} 
                   controls
                   className="max-w-full mx-auto"
                 />
               ) : selectedEvidence.file_type.startsWith('audio/') ? (
                 <audio 
-                  src={getEvidencePublicUrl(selectedEvidence.file_path)} 
+                  src={getPublicUrl(selectedEvidence.file_path)} 
                   controls
                   className="w-full"
                 />
               ) : selectedEvidence.file_type === 'application/pdf' ? (
                 <iframe 
-                  src={`${getEvidencePublicUrl(selectedEvidence.file_path)}#view=fitH`}
+                  src={`${getPublicUrl(selectedEvidence.file_path)}#view=fitH`}
                   className="w-full h-[70vh]"
                   title="PDF Preview"
                 />

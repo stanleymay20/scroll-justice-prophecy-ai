@@ -90,8 +90,7 @@ export function FlameIntegrityMonitor({
         // Check for alerts
         const alertQuery = supabase
           .from('scroll_integrity_logs')
-          .select('*')
-          .eq('flame_alert', true);
+          .select('*');
           
         // Add filters if applicable
         if (userId) {

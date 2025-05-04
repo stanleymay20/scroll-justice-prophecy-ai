@@ -18,7 +18,7 @@ export async function getEvidenceForPetition(petitionId: string): Promise<Scroll
   }
 }
 
-export async function getEvidencePublicUrl(filePath: string): Promise<string> {
+export async function getEvidencePublicUrl(filePath: string): string {
   // Extract just the filename from the full path if it's already a URL
   const fileName = filePath.includes('/') ? filePath.split('/').pop() || filePath : filePath;
   
@@ -39,14 +39,9 @@ export async function getEvidencePublicUrl(filePath: string): Promise<string> {
 export async function uploadEvidence(
   petitionId: string,
   file: File,
-  description: string
-): Promise<ScrollEvidence> {
+  userId: string
+): Promise<{ success: boolean; evidenceId?: string; error?: string }> {
   try {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id;
-    
-    if (!userId) throw new Error('User must be logged in to upload evidence');
-    
     // Determine file type
     const fileType = file.type;
     
@@ -77,7 +72,7 @@ export async function uploadEvidence(
         file_path: fileUrl,
         file_type: fileType,
         uploaded_by: userId,
-        description: description,
+        description: '',
         is_sealed: false
       })
       .select()
@@ -93,10 +88,16 @@ export async function uploadEvidence(
       petitionId
     );
     
-    return evidenceData as ScrollEvidence;
-  } catch (error) {
+    return {
+      success: true,
+      evidenceId: evidenceData.id
+    };
+  } catch (error: any) {
     console.error('Error uploading evidence:', error);
-    throw error;
+    return {
+      success: false,
+      error: error.message || 'Error uploading evidence'
+    };
   }
 }
 
