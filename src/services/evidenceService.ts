@@ -18,7 +18,7 @@ export async function getEvidenceForPetition(petitionId: string): Promise<Scroll
   }
 }
 
-export async function getEvidencePublicUrl(filePath: string): string {
+export async function getEvidencePublicUrl(filePath: string): Promise<string> {
   // Extract just the filename from the full path if it's already a URL
   const fileName = filePath.includes('/') ? filePath.split('/').pop() || filePath : filePath;
   

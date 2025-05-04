@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 // Flag suspicious activity and record to the scroll_integrity_logs table
@@ -108,12 +109,12 @@ export async function analyzeContent(content: string): Promise<{
     // Calculate integrity score (100 is best, 0 is worst)
     const baseScore = 100;
     const penaltyPerTerm = 20;
-    const integrityScore = Math.max(0, baseScore - (termCount * penaltyPerTerm));
+    const integrity_score = Math.max(0, baseScore - (termCount * penaltyPerTerm));
     
     return {
-      integrity_score: integrityScore,
+      integrity_score: integrity_score,
       flagged_terms: foundTerms,
-      is_appropriate: integrityScore >= 60 // Threshold for appropriateness
+      is_appropriate: integrity_score >= 60 // Threshold for appropriateness
     };
   } catch (error) {
     console.error('Error analyzing content:', error);

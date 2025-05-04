@@ -53,7 +53,7 @@ export const EvidenceUploader = ({
         return;
       }
       
-      // Fix: Pass parameters in the correct order (petitionId, file, userId)
+      // Upload the evidence with the userId
       const result = await uploadEvidence(petitionId, file, user.id);
       
       if (result.success) {
@@ -77,12 +77,12 @@ export const EvidenceUploader = ({
     }
   };
   
-  const handleDelete = async (evidenceId: string, filePath: string) => {
+  const handleDelete = async (evidenceId: string) => {
     if (!user) return;
     
     if (confirm("Are you sure you want to remove this evidence? This action cannot be undone.")) {
       try {
-        const success = await deleteEvidence(evidenceId, filePath);
+        const success = await deleteEvidence(evidenceId);
         
         if (success) {
           toast({
@@ -164,7 +164,7 @@ export const EvidenceUploader = ({
                 <Button
                   variant="ghost" 
                   size="sm"
-                  onClick={() => handleDelete(evidence.id, evidence.file_path)}
+                  onClick={() => handleDelete(evidence.id)}
                 >
                   <Trash2 className="h-4 w-4 text-red-500" />
                 </Button>
