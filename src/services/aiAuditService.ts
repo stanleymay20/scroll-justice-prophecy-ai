@@ -1,80 +1,88 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
-// Types for AI audit logging
-export interface AIAuditLogEntry {
+/**
+ * Interface for AI interaction log entries
+ */
+export interface AIInteractionLog {
   action_type: string;
   ai_model: string;
-  input_summary?: string;
-  output_summary?: string;
-}
-
-// Define types for our RPC function parameters
-interface LogAIInteractionParams {
-  user_id_param: string | null;
-  action_type_param: string;
-  ai_model_param: string;
-  input_summary_param: string | null;
-  output_summary_param: string | null;
-}
-
-// Define the expected return type for log_ai_interaction
-type LogAIInteractionResponse = boolean;
-
-// Define the expected return type for get_user_ai_logs
-interface AILogEntry {
-  id: string;
-  user_id: string;
-  action_type: string;
-  ai_model: string;
-  input_summary: string | null;
-  output_summary: string | null;
-  created_at: string;
+  input_summary: string;
+  output_summary: string;
+  user_id?: string;
+  created_at?: string;
 }
 
 /**
- * Logs an AI interaction to the audit log
+ * Log an AI interaction to the audit log
  */
-export const logAIInteraction = async (entry: AIAuditLogEntry) => {
+export async function logAIInteraction(interaction: AIInteractionLog): Promise<boolean> {
   try {
-    // Get current user
+    // Get current user if available
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
     
-    // Use rpc to insert the audit log entry instead of direct table access
-    // This avoids TypeScript errors with table definitions
-    const { error } = await supabase.functions.invoke('log_ai_interaction', {
-      body: {
-        user_id_param: userId,
-        action_type_param: entry.action_type,
-        ai_model_param: entry.ai_model,
-        input_summary_param: entry.input_summary || null,
-        output_summary_param: entry.output_summary || null
-      }
+    // Prepare the payload with the user ID if available
+    const payload = {
+      user_id_param: userId || null,
+      action_type_param: interaction.action_type,
+      ai_model_param: interaction.ai_model,
+      input_summary_param: interaction.input_summary,
+      output_summary_param: interaction.output_summary
+    };
+    
+    // Call the edge function to log the interaction
+    const { error } = await supabase.functions.invoke('log-ai-interaction', {
+      body: payload
     });
-
-    if (error) throw error;
+    
+    if (error) {
+      console.error('Error logging AI interaction:', error);
+      return false;
+    }
+    
     return true;
-  } catch (err) {
-    console.error("Error logging AI interaction:", err);
+  } catch (error) {
+    console.error('Error in logAIInteraction:', error);
     return false;
   }
 }
 
 /**
- * Fetches AI audit logs for the current user
+ * Fetch AI interaction logs for the current user or a specific user
  */
-export const fetchUserAILogs = async () => {
+export async function fetchAIInteractionLogs(
+  userId?: string, 
+  limit = 50, 
+  offset = 0
+): Promise<AIInteractionLog[]> {
   try {
-    // Use rpc to fetch logs instead of direct table access
-    const { data, error } = await supabase.functions.invoke('get_user_ai_logs', {
-      body: {}
-    });
-
-    if (error) throw error;
-    return data || [];
-  } catch (err) {
-    console.error("Error fetching AI logs:", err);
+    // If no userId provided, get the current user
+    let targetUserId = userId;
+    if (!targetUserId) {
+      const { data: userData } = await supabase.auth.getUser();
+      targetUserId = userData?.user?.id;
+    }
+    
+    if (!targetUserId) {
+      throw new Error('No user ID available for fetching AI logs');
+    }
+    
+    // Fetch logs from the AI audit logs table
+    const { data, error } = await supabase
+      .from('ai_audit_logs')
+      .select('*')
+      .eq('user_id', targetUserId)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+      
+    if (error) {
+      throw error;
+    }
+    
+    return data as AIInteractionLog[];
+  } catch (error) {
+    console.error('Error fetching AI interaction logs:', error);
     return [];
   }
 }

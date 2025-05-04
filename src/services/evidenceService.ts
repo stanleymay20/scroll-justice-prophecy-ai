@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ScrollEvidence } from '@/types/petition';
 import { logIntegrityAction } from './petitionQueries';
@@ -19,11 +18,29 @@ export async function getEvidenceForPetition(petitionId: string): Promise<Scroll
   }
 }
 
+export async function getEvidencePublicUrl(filePath: string): string {
+  // Extract just the filename from the full path if it's already a URL
+  const fileName = filePath.includes('/') ? filePath.split('/').pop() || filePath : filePath;
+  
+  // If it's already a full URL, return it
+  if (filePath.startsWith('http')) {
+    return filePath;
+  }
+  
+  // Otherwise get the public URL from Supabase
+  const { data } = supabase
+    .storage
+    .from('scroll_evidence')
+    .getPublicUrl(fileName);
+    
+  return data.publicUrl;
+}
+
 export async function uploadEvidence(
   petitionId: string,
   file: File,
   description: string
-): Promise<ScrollEvidence | null> {
+): Promise<ScrollEvidence> {
   try {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
@@ -189,6 +206,39 @@ function generateFlameSignatureHash(petitionId: string, judgeId: string): string
   return `flame-${Math.abs(hash).toString(16)}-${timestamp.toString(16)}`;
 }
 
+// Save the audio verdict to the petition
+export async function saveAudioVerdict(
+  petitionId: string,
+  audioUrl: string,
+  flameSealHash: string,
+  transcription: string | null = null
+): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('scroll_petitions')
+      .update({
+        audio_verdict_url: audioUrl,
+        flame_signature_hash: flameSealHash,
+        verdict_transcription: transcription,
+        scroll_seal_timestamp: new Date().toISOString()
+      })
+      .eq('id', petitionId);
+      
+    if (error) throw error;
+    
+    // Log the audio verdict as an integrity action
+    await logIntegrityAction(
+      'AUDIO_VERDICT_UPLOADED',
+      5, // Positive impact
+      `Audio verdict uploaded for petition #${petitionId.substring(0, 8)}`,
+      petitionId
+    );
+  } catch (error) {
+    console.error('Error saving audio verdict:', error);
+    throw error;
+  }
+}
+
 // Check if an audio verdict exists for a petition
 export async function hasAudioVerdict(petitionId: string): Promise<boolean> {
   try {
@@ -198,11 +248,52 @@ export async function hasAudioVerdict(petitionId: string): Promise<boolean> {
       .eq('id', petitionId)
       .single();
       
-    if (error) throw error;
+    if (error) {
+      console.error('Error checking for audio verdict:', error);
+      return false;
+    }
     
-    return !!data.audio_verdict_url;
+    return !!data?.audio_verdict_url;
   } catch (error) {
     console.error('Error checking for audio verdict:', error);
+    return false;
+  }
+}
+
+// Create storage buckets if they don't exist
+export async function ensureEvidenceBucketExists(): Promise<boolean> {
+  try {
+    // Check if evidence bucket exists
+    const { data: buckets, error } = await supabase
+      .storage
+      .listBuckets();
+      
+    if (error) throw error;
+    
+    const evidenceBucketExists = buckets?.some(bucket => bucket.name === 'scroll_evidence');
+    const verdictsBucketExists = buckets?.some(bucket => bucket.name === 'scroll_verdicts');
+    
+    if (!evidenceBucketExists) {
+      // Create evidence bucket
+      const { error: createError } = await supabase
+        .storage
+        .createBucket('scroll_evidence', { public: true });
+        
+      if (createError) throw createError;
+    }
+    
+    if (!verdictsBucketExists) {
+      // Create verdicts bucket
+      const { error: createError } = await supabase
+        .storage
+        .createBucket('scroll_verdicts', { public: true });
+        
+      if (createError) throw createError;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error ensuring evidence bucket exists:', error);
     return false;
   }
 }

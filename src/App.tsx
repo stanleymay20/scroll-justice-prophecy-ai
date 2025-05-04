@@ -7,13 +7,13 @@ import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/language";
 import { MetaTags } from "@/components/MetaTags";
-import { ensureEvidenceBucketExists } from "@/services/evidenceService";
 import { AppRoutes } from "@/routes/AppRoutes";
 import { 
   applyRlsPolicies, 
   initializeAiAuditLog, 
   setupWindowSizeLogger 
 } from "@/services/appInitService";
+import { ensureEvidenceBucketExists } from "@/services/evidenceService";
 
 // Create a client
 const queryClient = new QueryClient({

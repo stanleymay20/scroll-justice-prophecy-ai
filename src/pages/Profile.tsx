@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { NavBar } from '@/components/layout/NavBar';
 import { MetaTags } from '@/components/MetaTags';
@@ -14,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Save, LogOut } from 'lucide-react';
 import { FlameIntegrityMonitor } from '@/components/courtroom/FlameIntegrityMonitor';
 import { QRJoinLink } from '@/components/onboarding/QRJoinLink';
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
   const { user, signOut } = useAuth();
@@ -24,6 +24,7 @@ export default function Profile() {
     bio: '',
     avatar_url: ''
   });
+  const navigate = useNavigate();
   
   useEffect(() => {
     if (user) {

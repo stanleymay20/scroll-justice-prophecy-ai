@@ -37,7 +37,7 @@ export function FlameIntegrityMonitor({
           schema: 'public',
           table: 'scroll_integrity_logs',
           filter: `petition_id=eq.${petitionId}`
-        }, (payload) => {
+        }, () => {
           fetchFlameIntegrity();
         })
         .subscribe();
@@ -66,8 +66,12 @@ export function FlameIntegrityMonitor({
         .eq('flame_alert', true);
         
       // Add filters if applicable
-      if (userId) alertQuery.eq('user_id', userId);
-      if (petitionId) alertQuery.eq('petition_id', petitionId);
+      if (userId) {
+        alertQuery.eq('user_id', userId);
+      }
+      if (petitionId) {
+        alertQuery.eq('petition_id', petitionId);
+      }
       
       const { data: alertData, error: alertError } = await alertQuery;
       

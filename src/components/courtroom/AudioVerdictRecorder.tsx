@@ -6,6 +6,7 @@ import { toast } from '@/hooks/use-toast';
 import { uploadAudioVerdict } from '@/services/evidenceService';
 import { useLanguage } from '@/contexts/language';
 import { logAIInteraction } from '@/services/aiAuditService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AudioVerdictRecorderProps {
   petitionId: string;

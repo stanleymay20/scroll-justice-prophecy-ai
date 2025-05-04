@@ -14,6 +14,10 @@ export type ScrollPetition = {
   ai_suggested_verdict?: string;
   is_sealed: boolean;
   scroll_integrity_score: number;
+  audio_verdict_url?: string;
+  verdict_transcription?: string;
+  flame_signature_hash?: string;
+  scroll_seal_timestamp?: string;
 };
 
 export type ScrollEvidence = {

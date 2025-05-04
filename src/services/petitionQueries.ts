@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ScrollPetition } from '@/types/petition';
 
@@ -219,8 +218,8 @@ export async function assignJudge(petitionId: string, judgeId: string): Promise<
   }
 }
 
-// Log an integrity action
-async function logIntegrityAction(
+// Log an integrity action - Making this function exportable
+export async function logIntegrityAction(
   actionType: string,
   integrityImpact: number,
   description: string,

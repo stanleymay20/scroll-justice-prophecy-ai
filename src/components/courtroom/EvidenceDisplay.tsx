@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { GlassCard } from '@/components/advanced-ui/GlassCard';
 import { ScrollEvidence } from '@/types/petition';
@@ -10,9 +11,15 @@ interface EvidenceDisplayProps {
   petitionId: string;
   isSealed?: boolean;
   canView?: boolean;
+  readOnly?: boolean;
 }
 
-export function EvidenceDisplay({ petitionId, isSealed = false, canView = true }: EvidenceDisplayProps) {
+export function EvidenceDisplay({ 
+  petitionId, 
+  isSealed = false, 
+  canView = true,
+  readOnly = false 
+}: EvidenceDisplayProps) {
   const [evidence, setEvidence] = useState<ScrollEvidence[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

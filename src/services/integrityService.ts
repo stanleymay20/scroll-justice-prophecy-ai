@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Flag suspicious activity and record to the scroll_integrity_logs table
@@ -86,6 +85,43 @@ export async function getUserIntegrityScore(userId: string): Promise<number> {
   } catch (err) {
     console.error('Error getting user integrity score:', err);
     return 100; // Default to 100 on error
+  }
+}
+
+// Add content analyzer functionality that was missing
+export async function analyzeContent(content: string): Promise<{
+  integrity_score: number;
+  flagged_terms: string[];
+  is_appropriate: boolean;
+}> {
+  try {
+    // Simple content analysis implementation
+    const lowercaseContent = content.toLowerCase();
+    const flaggedTerms = [
+      'hack', 'exploit', 'bypass', 'illegal', 'fraud', 'steal', 'attack',
+      'harmful', 'malicious', 'spam', 'scam'
+    ];
+    
+    const foundTerms = flaggedTerms.filter(term => lowercaseContent.includes(term));
+    const termCount = foundTerms.length;
+    
+    // Calculate integrity score (100 is best, 0 is worst)
+    const baseScore = 100;
+    const penaltyPerTerm = 20;
+    const integrityScore = Math.max(0, baseScore - (termCount * penaltyPerTerm));
+    
+    return {
+      integrity_score: integrityScore,
+      flagged_terms: foundTerms,
+      is_appropriate: integrityScore >= 60 // Threshold for appropriateness
+    };
+  } catch (error) {
+    console.error('Error analyzing content:', error);
+    return {
+      integrity_score: 50, // Default middle score
+      flagged_terms: [],
+      is_appropriate: true
+    };
   }
 }
 
