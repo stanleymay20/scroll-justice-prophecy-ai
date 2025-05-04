@@ -49,6 +49,7 @@ export async function checkSelfVerdict(petitionId: string): Promise<boolean> {
     
     if (!userId) return false;
     
+    // Fetch the petition to check the petitioner_id and assigned_judge_id
     const { data, error } = await supabase
       .from('scroll_petitions')
       .select('petitioner_id, assigned_judge_id')
