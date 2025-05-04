@@ -61,14 +61,16 @@ export async function saveAudioVerdict(
   transcription: string | null = null
 ): Promise<void> {
   try {
+    const updateData = {
+      audio_verdict_url: audioUrl,
+      flame_signature_hash: flameSealHash,
+      verdict_transcription: transcription,
+      scroll_seal_timestamp: new Date().toISOString()
+    };
+
     const { error } = await supabase
       .from('scroll_petitions')
-      .update({
-        audio_verdict_url: audioUrl,
-        flame_signature_hash: flameSealHash,
-        verdict_transcription: transcription,
-        scroll_seal_timestamp: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', petitionId);
       
     if (error) throw error;
