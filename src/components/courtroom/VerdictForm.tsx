@@ -47,7 +47,7 @@ export const VerdictForm = ({
     setError(null);
     
     try {
-      const aiVerdict = await getAiSuggestedVerdict(petitionTitle, petitionDescription);
+      const aiVerdict = await getAiSuggestedVerdict(petitionId);
       
       if (aiVerdict) {
         toast({
@@ -58,18 +58,18 @@ export const VerdictForm = ({
         // Update database with AI suggestion
         await supabase
           .from('scroll_petitions')
-          .update({ ai_suggested_verdict: aiVerdict.verdict })
+          .update({ ai_suggested_verdict: aiVerdict })
           .eq('id', petitionId);
           
-        // Set the reasoning field with AI's reasoning
-        setReasoning(aiVerdict.reasoning || "");
+        // Set the reasoning field with a default reasoning
+        setReasoning("AI-suggested verdict based on available evidence and precedents.");
 
         // Log the AI interaction
         await logAIInteraction({
           action_type: "VERDICT_SUGGESTION",
           ai_model: "scroll-verdict-assistant-1.0",
           input_summary: `Petition title: ${petitionTitle.substring(0, 50)}...`,
-          output_summary: `AI verdict suggested: ${aiVerdict.verdict.substring(0, 50)}...`
+          output_summary: `AI verdict suggested: ${aiVerdict.substring(0, 50)}...`
         });
       } else {
         setError(t("verdict.aiSuggestionFailed"));

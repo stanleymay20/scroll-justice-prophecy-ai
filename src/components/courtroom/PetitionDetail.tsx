@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -80,13 +79,14 @@ export function PetitionDetail() {
     try {
       setIsLoadingAiVerdict(true);
       
-      const aiResult = await getAiSuggestedVerdict(
-        petition.title,
-        petition.description
-      );
+      const aiResult = await getAiSuggestedVerdict(petition.id);
       
-      setVerdictText(aiResult.suggested_verdict || '');
-      setVerdictReasoning(aiResult.reasoning || '');
+      // Set the result directly from the returned string
+      if (aiResult) {
+        setVerdictText(aiResult);
+        // You might want to set some default reasoning text here
+        setVerdictReasoning("AI-suggested verdict based on available evidence and precedents.");
+      }
       
       toast({
         title: "AI Verdict Generated",
@@ -112,7 +112,7 @@ export function PetitionDetail() {
       setIsSubmittingVerdict(true);
       
       // Check for self-verdict violation
-      const isSelfVerdict = await checkSelfVerdict(id, user.id);
+      const isSelfVerdict = await checkSelfVerdict(id);
       if (isSelfVerdict) {
         toast({
           variant: "destructive",
