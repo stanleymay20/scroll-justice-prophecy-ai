@@ -19,14 +19,23 @@ export async function flagIntegrityViolation(
       petitionId
     );
     
+    // First get the current integrity score
+    const { data: petitionData, error: fetchError } = await supabase
+      .from('scroll_petitions')
+      .select('scroll_integrity_score')
+      .eq('id', petitionId)
+      .single();
+      
+    if (fetchError) throw fetchError;
+    
+    const currentScore = petitionData?.scroll_integrity_score || 100;
+    const newScore = Math.max(0, Math.min(100, currentScore - 10)); // Ensure score stays within 0-100
+    
     // Update the petition's integrity score
     const { error } = await supabase
       .from('scroll_petitions')
       .update({
-        scroll_integrity_score: supabase.rpc('calculate_new_score', { 
-          current_score: 100, 
-          impact: -10 
-        })
+        scroll_integrity_score: newScore
       })
       .eq('id', petitionId);
       
