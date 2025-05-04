@@ -123,10 +123,10 @@ export async function getUserIntegrityScore(userId: string): Promise<number> {
       
     if (error) throw error;
     
-    if (data.length === 0) return 100; // Default score for new users
+    if (!data || data.length === 0) return 100; // Default score for new users
     
     // Calculate average
-    const total = data.reduce((sum, petition) => sum + petition.scroll_integrity_score, 0);
+    const total = data.reduce((sum, petition) => sum + (petition.scroll_integrity_score || 0), 0);
     return Math.round(total / data.length);
   } catch (error) {
     console.error('Error getting user integrity score:', error);
