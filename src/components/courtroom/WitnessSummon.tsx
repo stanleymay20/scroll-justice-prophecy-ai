@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,7 +64,7 @@ export function WitnessSummon({ sessionId, userId }: WitnessSummonProps) {
       
       const { data, error } = await supabase
         .from('witness_summons')
-        .insert(summonData)
+        .insert([summonData])
         .select();
         
       if (error) throw error;
@@ -78,13 +77,13 @@ export function WitnessSummon({ sessionId, userId }: WitnessSummonProps) {
       // Log in ScrollWitness logs
       await supabase
         .from('scroll_witness_logs')
-        .insert({
+        .insert([{
           session_id: sessionId,
           user_id: userId,
           action: 'witness_summoned',
           details: `Summoned ${email} as ${role}`,
           timestamp: new Date().toISOString()
-        });
+        }]);
         
       // Optional: Send email notification via edge function
       try {

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -58,7 +57,7 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
 
       const { error } = await supabase
         .from('posts')
-        .insert([postData]); // Use an array with the post data
+        .insert([postData]); // Insert expects an array of records
 
       if (error) {
         console.error("Supabase error creating post:", error);

@@ -102,7 +102,7 @@ export function SessionRecording({
       
       await supabase
         .from('scroll_witness_logs')
-        .insert(logData);
+        .insert([logData]);
     } catch (err) {
       console.error("Error starting recording:", err);
       toast({
@@ -177,7 +177,7 @@ export function SessionRecording({
           
           const { error: recordError } = await supabase
             .from('session_recordings')
-            .insert(recordingData);
+            .insert([recordingData]);
             
           if (recordError) throw recordError;
           
@@ -192,7 +192,7 @@ export function SessionRecording({
           
           await supabase
             .from('scroll_witness_logs')
-            .insert(logData);
+            .insert([logData]);
             
           toast({
             title: "Recording Saved",
