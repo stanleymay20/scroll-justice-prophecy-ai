@@ -34,9 +34,9 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
         .update({
           oath_taken: true,
           oath_timestamp: new Date().toISOString()
-        })
-        .eq('session_id', sessionId)
-        .eq('user_id', userId);
+        } as any)
+        .eq('session_id', sessionId as any)
+        .eq('user_id', userId as any);
         
       if (error) throw error;
       

@@ -36,12 +36,12 @@ export const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ sessionId, onClo
       
       const { error: alertError } = await supabase
         .from('emergency_alerts')
-        .insert(alertData as any);
+        .insert(alertData);
       
       if (alertError) throw alertError;
       
       // Log the action in witness logs
-      const logData: Partial<any> = {
+      const logData = {
         session_id: sessionId,
         user_id: user?.id,
         action: 'emergency_alert',
@@ -49,13 +49,13 @@ export const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ sessionId, onClo
         timestamp: new Date().toISOString()
       };
       
-      await supabase.from('scroll_witness_logs').insert(logData as any);
+      await supabase.from('scroll_witness_logs').insert(logData);
       
       // Decrease flame integrity score by 25 points
       const { data: sessionData } = await supabase
         .from('court_sessions')
         .select('flame_integrity_score')
-        .eq('id', sessionId)
+        .eq('id', sessionId as any)
         .single();
       
       const currentScore = sessionData?.flame_integrity_score || 100;
@@ -64,7 +64,7 @@ export const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ sessionId, onClo
       await supabase
         .from('court_sessions')
         .update({ flame_integrity_score: newScore })
-        .eq('id', sessionId);
+        .eq('id', sessionId as any);
       
       // Close alert if callback provided
       if (onClose) {

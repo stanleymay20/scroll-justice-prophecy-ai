@@ -1,5 +1,5 @@
 
-export type PostCategory = 'general' | 'precedent' | 'question' | 'analysis' | 'tutorial';
+export type PostCategory = 'testimony' | 'prayer_request' | 'legal_question' | 'righteous_insight' | 'announcement';
 
 export interface Post {
   id: string;
@@ -15,6 +15,7 @@ export interface Post {
     username?: string;
     avatar_url?: string;
   };
+  username?: string; // Added to support the current UI expectations
 }
 
 export interface Comment {

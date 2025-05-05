@@ -2,16 +2,19 @@
 // Type definitions for Supabase database tables
 
 // Define the types for the 'posts' table
+export type PostCategory = 'testimony' | 'prayer_request' | 'legal_question' | 'righteous_insight' | 'announcement';
+
 export interface Post {
   id: string;
   title: string;
   content: string;
-  category: string;
+  category: PostCategory;
   user_id: string;
   created_at?: string;
   updated_at?: string;
   likes?: number;
   comments_count?: number;
+  username?: string;
 }
 
 // Define the types for the 'emergency_alerts' table
@@ -79,4 +82,14 @@ export interface ScrollIntegrityLog {
   petition_id?: string;
   description?: string;
   created_at: string;
+}
+
+// Define the types for the 'court_session_participants' table
+export interface CourtSessionParticipant {
+  id: string;
+  session_id: string;
+  user_id: string;
+  role: string;
+  oath_taken: boolean;
+  oath_timestamp?: string;
 }

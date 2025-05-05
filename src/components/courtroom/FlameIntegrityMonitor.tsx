@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -77,13 +76,13 @@ export function FlameIntegrityMonitor({
     try {
       if (sessionId) {
         // If monitoring a court session
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('court_sessions')
           .select('flame_integrity_score')
-          .eq('id', sessionId)
+          .eq('id', sessionId as any)
           .single();
           
-        if (!error && data && typeof data.flame_integrity_score === 'number') {
+        if (data && typeof data.flame_integrity_score === 'number') {
           scoreValue = data.flame_integrity_score;
         }
       } else {
@@ -94,10 +93,10 @@ export function FlameIntegrityMonitor({
           
         // Add filters if applicable
         if (userId) {
-          alertQuery.eq('user_id', userId);
+          alertQuery.eq('user_id', userId as any);
         }
         if (petitionId) {
-          alertQuery.eq('petition_id', petitionId);
+          alertQuery.eq('petition_id', petitionId as any);
         }
         
         const { data: alertData, error: alertError } = await alertQuery;
@@ -109,13 +108,13 @@ export function FlameIntegrityMonitor({
         
         // For petition monitoring, calculate the integrity score
         if (petitionId) {
-          const { data: petitionData, error: petitionError } = await supabase
+          const { data: petitionData } = await supabase
             .from('scroll_petitions')
             .select('scroll_integrity_score')
-            .eq('id', petitionId)
+            .eq('id', petitionId as any)
             .single();
             
-          if (!petitionError && petitionData) {
+          if (petitionData) {
             scoreValue = petitionData.scroll_integrity_score;
           }
         }
