@@ -48,7 +48,7 @@ export function FlameIntegrityMonitor({ sessionId, compact = false }: FlameInteg
       const { data, error } = await supabase
         .from('court_sessions')
         .select('flame_integrity_score')
-        .eq('id', sessionId)
+        .eq('id', sessionId as any)
         .single();
         
       if (error) throw error;

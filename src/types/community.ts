@@ -1,25 +1,30 @@
 
-export type PostCategory = "testimony" | "prayer_request" | "legal_question" | "righteous_insight" | "announcement";
+export type PostCategory = 'general' | 'precedent' | 'question' | 'analysis' | 'tutorial';
 
 export interface Post {
   id: string;
-  user_id: string;
-  username: string;
   title: string;
   content: string;
   category: PostCategory;
-  created_at: string;
-  updated_at: string;
-  likes: number;
-  comments_count: number;
+  user_id: string;
+  created_at?: string;
+  updated_at?: string;
+  likes?: number;
+  comments_count?: number;
+  author?: {
+    username?: string;
+    avatar_url?: string;
+  };
 }
 
 export interface Comment {
   id: string;
   post_id: string;
   user_id: string;
-  username: string;
   content: string;
   created_at: string;
-  likes: number;
+  author?: {
+    username?: string;
+    avatar_url?: string;
+  };
 }

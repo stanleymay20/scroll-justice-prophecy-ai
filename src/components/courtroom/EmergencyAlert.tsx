@@ -1,138 +1,120 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { ShieldAlert, AlertTriangle } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { toast } from "@/hooks/use-toast";
-import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
+import React, { useState } from 'react';
+import { AlertTriangle, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import type { EmergencyAlert as EmergencyAlertType } from '@/types/database';
 
 interface EmergencyAlertProps {
   sessionId: string;
-  userId: string;
+  onClose?: () => void;
 }
 
-export function EmergencyAlert({ sessionId, userId }: EmergencyAlertProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
+export const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ sessionId, onClose }) => {
+  const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
   
-  const handleSubmitAlert = async () => {
-    if (!alertMessage.trim()) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim()) return;
     
-    setIsSubmitting(true);
     try {
-      // Create emergency alert record
-      const { data, error } = await supabase
+      setIsSubmitting(true);
+      
+      // Create the emergency alert
+      const alertData: Partial<EmergencyAlertType> = {
+        session_id: sessionId,
+        user_id: user?.id,
+        message: message.trim(),
+        timestamp: new Date().toISOString(),
+        resolved: false
+      };
+      
+      const { error: alertError } = await supabase
         .from('emergency_alerts')
-        .insert({
-          session_id: sessionId,
-          user_id: userId,
-          message: alertMessage,
-          timestamp: new Date().toISOString(),
-          resolved: false
-        })
-        .select();
-        
-      if (error) throw error;
+        .insert(alertData as any);
       
-      // Log in ScrollWitness logs
+      if (alertError) throw alertError;
+      
+      // Log the action in witness logs
+      const logData: Partial<any> = {
+        session_id: sessionId,
+        user_id: user?.id,
+        action: 'emergency_alert',
+        details: message.trim(),
+        timestamp: new Date().toISOString()
+      };
+      
+      await supabase.from('scroll_witness_logs').insert(logData as any);
+      
+      // Decrease flame integrity score by 25 points
+      const { data: sessionData } = await supabase
+        .from('court_sessions')
+        .select('flame_integrity_score')
+        .eq('id', sessionId)
+        .single();
+      
+      const currentScore = sessionData?.flame_integrity_score || 100;
+      const newScore = Math.max(0, currentScore - 25);
+      
       await supabase
-        .from('scroll_witness_logs')
-        .insert({
-          session_id: sessionId,
-          user_id: userId,
-          action: 'emergency_alert',
-          details: 'Emergency alert raised during session',
-          timestamp: new Date().toISOString()
-        });
+        .from('court_sessions')
+        .update({ flame_integrity_score: newScore })
+        .eq('id', sessionId);
       
-      // Notify MCP Light system about the alert
-      await supabase.functions.invoke('mcp-emergency-notification', {
-        body: {
-          alertId: data[0].id,
-          sessionId,
-          userId,
-          alertType: 'emergency_mercy'
-        }
-      });
-      
-      setIsOpen(false);
-      setAlertMessage("");
-      toast({
-        title: "Emergency Alert Sent",
-        description: "Court stewards have been notified of your concern.",
-        variant: "destructive"
-      });
+      // Close alert if callback provided
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
-      console.error("Error submitting emergency alert:", error);
-      toast({
-        title: "Alert Failed",
-        description: "Could not submit emergency alert. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error creating emergency alert:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
   
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          variant="destructive" 
-          size="sm"
-          className="gap-1.5 relative"
-        >
-          <ShieldAlert className="h-4 w-4" />
-          <span>Emergency Alert</span>
-          <div className="absolute -top-1 -right-1">
-            <PulseEffect color="bg-red-500" size="sm" />
-          </div>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-justice-dark border-justice-light/20">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            Emergency Whisper Alert
-          </DialogTitle>
-          <DialogDescription className="text-justice-light/80">
-            This will alert court stewards to an urgent issue. Use this for serious violations of sacred justice principles only.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-4 py-4">
-          <Textarea
-            placeholder="Describe the emergency situation or justice violation..."
-            className="min-h-[100px] bg-black/30 border-justice-light/20 text-justice-light"
-            value={alertMessage}
-            onChange={(e) => setAlertMessage(e.target.value)}
-          />
+    <Card className="bg-red-50 border-red-300 p-4">
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center text-red-600">
+          <AlertTriangle className="h-5 w-5 mr-2" />
+          <h3 className="font-medium">Emergency Alert</h3>
         </div>
-        
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
-            Cancel
-          </Button>
+        {onClose && (
           <Button 
-            variant="destructive"
-            onClick={handleSubmitAlert}
-            disabled={!alertMessage.trim() || isSubmitting}
+            variant="ghost" 
+            size="sm" 
+            className="h-8 w-8 p-0" 
+            onClick={onClose}
           >
-            {isSubmitting ? "Sending Alert..." : "Send Emergency Alert"}
+            <X className="h-4 w-4" />
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        )}
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <Textarea
+          placeholder="Describe the emergency situation..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="min-h-[100px] bg-white border-red-200"
+          required
+        />
+        <div className="flex justify-end">
+          <Button 
+            type="submit" 
+            variant="destructive"
+            disabled={isSubmitting || !message.trim()}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            {isSubmitting ? 'Submitting...' : 'Send Emergency Alert'}
+          </Button>
+        </div>
+      </form>
+    </Card>
   );
-}
+};
