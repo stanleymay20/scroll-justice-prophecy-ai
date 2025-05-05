@@ -2,6 +2,7 @@
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardMainContent } from "./DashboardMainContent";
 import { DashboardSidebar } from "./DashboardSidebar";
+import { ScrollPlanetCard } from "../scroll-time/ScrollPlanetCard";
 
 export const Dashboard = () => {
   return (

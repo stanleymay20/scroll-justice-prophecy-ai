@@ -1,10 +1,7 @@
 
 import { useState } from "react";
-import { getAiSuggestedVerdict } from "@/services/integrityService";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { logAIInteraction } from "@/services/aiAuditService";
-import { useLanguage } from "@/contexts/language";
 
 interface UseAiSuggestionProps {
   petitionId: string;
@@ -14,68 +11,60 @@ interface UseAiSuggestionProps {
   setError: (error: string | null) => void;
 }
 
-export const useAiSuggestion = ({
+export function useAiSuggestion({
   petitionId,
   petitionTitle,
   aiConsent,
   setReasoning,
   setError
-}: UseAiSuggestionProps) => {
+}: UseAiSuggestionProps) {
   const [suggestingVerdict, setSuggestingVerdict] = useState(false);
-  const { toast } = useToast();
-  const { t } = useLanguage();
-  
+
   const getAiSuggestion = async () => {
     if (!aiConsent) {
-      toast({
-        title: t("verdict.aiConsentRequired"),
-        description: t("verdict.enableAiConsent"),
-        variant: "destructive"
-      });
+      setError("You must enable AI assistance to get a suggested verdict");
       return;
     }
 
-    setSuggestingVerdict(true);
-    setError(null);
-    
-    try {
-      const aiVerdict = await getAiSuggestedVerdict(petitionId);
-      
-      if (aiVerdict) {
-        toast({
-          title: t("verdict.aiSuggested"),
-          description: t("verdict.aiConsideredCase"),
-        });
-        
-        // Update database with AI suggestion
-        await supabase
-          .from('scroll_petitions')
-          .update({ ai_suggested_verdict: aiVerdict })
-          .eq('id', petitionId);
-          
-        // Set the reasoning field with a default reasoning
-        setReasoning("AI-suggested verdict based on available evidence and precedents.");
+    if (!petitionId) {
+      setError("No petition selected");
+      return;
+    }
 
-        // Log the AI interaction
+    try {
+      setSuggestingVerdict(true);
+      setError(null);
+
+      // Call the Supabase edge function to get AI verdict suggestion
+      const { data, error } = await supabase.functions.invoke('get-ai-verdict', {
+        body: { petitionId }
+      });
+
+      if (error) throw error;
+
+      if (data?.reasoning) {
+        setReasoning(data.reasoning);
+        
+        // Log this AI interaction
         await logAIInteraction({
-          action_type: "VERDICT_SUGGESTION",
-          ai_model: "scroll-verdict-assistant-1.0",
-          input_summary: `Petition title: ${petitionTitle.substring(0, 50)}...`,
-          output_summary: `AI verdict suggested: ${aiVerdict.substring(0, 50)}...`
+          action_type: "AI_VERDICT_SUGGESTION",
+          ai_model: "gpt-3.5-turbo",
+          input_summary: `Generated verdict suggestion for petition: ${petitionTitle.substring(0, 50)}...`,
+          output_summary: `Verdict reasoning (${data.reasoning.length} chars) was provided to the judge`,
         });
       } else {
-        setError(t("verdict.aiSuggestionFailed"));
+        throw new Error("No verdict suggestion returned");
       }
-    } catch (err) {
-      console.error("Error getting AI verdict:", err);
-      setError(t("verdict.aiError") + (err instanceof Error ? err.message : String(err)));
+    } catch (error) {
+      console.error("Error getting AI suggestion:", error);
+      setError("Failed to get AI verdict suggestion. Please try again.");
     } finally {
       setSuggestingVerdict(false);
     }
   };
-  
+
   return {
     suggestingVerdict,
     getAiSuggestion
   };
-};
+}

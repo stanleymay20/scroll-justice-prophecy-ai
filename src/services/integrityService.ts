@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { logIntegrityAction } from './petitionQueries';
 import { generateFlameSignatureHash } from './utils/hashUtils';
@@ -114,22 +113,19 @@ export async function getAiSuggestedVerdict(petitionId: string): Promise<string 
  */
 export async function getUserIntegrityScore(userId: string): Promise<number> {
   try {
-    // Calculate average integrity score from user's petitions
+    // Calculate integrity score based on logs
     const { data, error } = await supabase
-      .from('scroll_petitions')
-      .select('scroll_integrity_score')
-      .eq('petitioner_id', userId);
-      
-    if (error) throw error;
+      .rpc('calculate_integrity_score', { user_id_param: userId });
     
-    if (data.length === 0) return 100; // Default score for new users
+    if (error) {
+      console.error('Error calculating integrity score:', error);
+      return 50; // Default score
+    }
     
-    // Calculate average
-    const total = data.reduce((sum, petition) => sum + petition.scroll_integrity_score, 0);
-    return Math.round(total / data.length);
+    return data || 50;
   } catch (error) {
-    console.error('Error getting user integrity score:', error);
-    return 75; // Default fallback score
+    console.error('Error in getUserIntegrityScore:', error);
+    return 50; // Default score on error
   }
 }
 

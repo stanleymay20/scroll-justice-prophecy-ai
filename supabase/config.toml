@@ -96,3 +96,9 @@ verify_jwt = true
 
 [functions.transcribe-audio]
 verify_jwt = true
+
+[functions.scrollguard-ai]
+verify_jwt = false
+
+[functions.scrollguard-monitor]
+verify_jwt = false

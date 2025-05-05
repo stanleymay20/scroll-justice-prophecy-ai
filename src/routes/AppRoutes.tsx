@@ -21,10 +21,14 @@ import Profile from "@/pages/Profile";
 import { CommunityForum } from "@/components/community/CommunityForum";
 import DeveloperDashboard from "@/pages/Admin/DeveloperDashboard";
 import MCPDashboard from "@/pages/Admin/MCPDashboard";
+import SuccessionSystem from "@/pages/Admin/SuccessionSystem";
 import Courtroom from "@/pages/Courtroom";
 import Witness from "@/pages/Witness";
 import AIUsagePolicy from "@/pages/policy/AIUsagePolicy";
 import Blessing from "@/pages/Blessing";
+import HallOfSealedScrolls from "@/pages/HallOfSealedScrolls";
+import RecoveryPage from "@/pages/Recovery";
+import PlanetPage from "@/pages/Planet";
 
 // Auth Pages
 import SignIn from "@/pages/Auth/SignIn";
@@ -52,6 +56,7 @@ export const AppRoutes = () => {
         
         {/* Blessing and Onboarding */}
         <Route path="/blessing" element={<Blessing />} />
+        <Route path="/recovery" element={<RecoveryPage />} />
         
         {/* Policy Routes */}
         <Route path="/policy/ai-usage" element={<AIUsagePolicy />} />
@@ -87,6 +92,15 @@ export const AppRoutes = () => {
           } 
         />
         
+        <Route 
+          path="/admin/succession" 
+          element={
+            <ProtectedRoute>
+              <SuccessionSystem />
+            </ProtectedRoute>
+          } 
+        />
+        
         {/* Protected Routes */}
         <Route 
           path="/profile" 
@@ -100,6 +114,12 @@ export const AppRoutes = () => {
         {/* Courtroom Routes */}
         <Route path="/courtroom" element={<Courtroom />} />
         <Route path="/courtroom/:id" element={<Courtroom />} />
+        
+        {/* Hall of Sealed Scrolls */}
+        <Route path="/hall-of-sealed" element={<HallOfSealedScrolls />} />
+        
+        {/* Planet Map */}
+        <Route path="/planet" element={<PlanetPage />} />
         
         {/* Witness Routes */}
         <Route path="/witness/:id" element={<Witness />} />
@@ -162,4 +182,4 @@ export const AppRoutes = () => {
       </Routes>
     </TooltipProvider>
   );
-};
+}
