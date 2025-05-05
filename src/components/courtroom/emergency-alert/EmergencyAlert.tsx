@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -11,12 +11,17 @@ export const EmergencyAlert: React.FC<EmergencyAlertProps> = ({
   sessionId, 
   onClose 
 }) => {
+  const [message, setMessage] = useState('');
   const {
-    message,
-    setMessage,
     isSubmitting,
-    handleSubmit
-  } = useEmergencyAlert(sessionId, onClose);
+    submitAlert
+  } = useEmergencyAlert(sessionId, ''); // We'll need to get the userId from auth context in a real app
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitAlert(message);
+    setMessage('');
+  };
   
   return (
     <Card className="bg-red-50 border-red-300 p-4">
