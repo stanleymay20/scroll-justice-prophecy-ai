@@ -36,7 +36,7 @@ pop3_port = 54326
 [auth]
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-site_url = "https://scrolljustice.xyz"
+site_url = "https://scrollcourt.xyz"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
 additional_redirect_urls = ["https://lovable.dev/projects/f7d71f55-ae04-491e-87d0-df4a10e1f669/preview", "https://scrolljustice.xyz", "https://scrollcourt.xyz"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 seconds (one

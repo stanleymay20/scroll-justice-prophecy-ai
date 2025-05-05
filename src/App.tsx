@@ -30,6 +30,8 @@ const App = () => {
   useEffect(() => {
     console.log("info: App component mounted");
     console.log("Current URL:", window.location.href);
+    console.log("Current hostname:", window.location.hostname);
+    console.log("Domain configured in Supabase:", "https://scrollcourt.xyz");
     
     // Set up window size logger
     const cleanupSizeLogger = setupWindowSizeLogger();
