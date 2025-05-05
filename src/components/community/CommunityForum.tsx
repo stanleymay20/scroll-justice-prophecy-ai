@@ -106,13 +106,13 @@ export function CommunityForum() {
 
     setSubmitting(true);
     try {
-      // Create the post data object with explicit type assertion
-      const postData = {
+      // Create a properly typed post data object
+      const postData: Database["public"]["Tables"]["posts"]["Insert"] = {
         user_id: user.id,
         title: newPostTitle,
         content: newPostContent,
         category: newPostCategory
-      } as Database["public"]["Tables"]["posts"]["Insert"];
+      };
 
       const { error } = await supabase
         .from('posts')
@@ -158,10 +158,10 @@ export function CommunityForum() {
     }
 
     try {
-      // Update the post with proper type assertion
-      const likeData = { 
+      // Create properly typed update data
+      const likeData: Database["public"]["Tables"]["posts"]["Update"] = { 
         likes: currentLikes + 1 
-      } as Database["public"]["Tables"]["posts"]["Update"];
+      };
       
       const { error } = await supabase
         .from('posts')

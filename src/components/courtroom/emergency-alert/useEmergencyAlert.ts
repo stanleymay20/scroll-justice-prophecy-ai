@@ -18,14 +18,14 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
     try {
       setIsSubmitting(true);
       
-      // Create the emergency alert with proper type assertion
-      const alertData = {
+      // Create the emergency alert with proper typing
+      const alertData: Database["public"]["Tables"]["emergency_alerts"]["Insert"] = {
         session_id: sessionId,
         user_id: user?.id,
         message: message.trim(),
         timestamp: new Date().toISOString(),
         resolved: false
-      } as Database["public"]["Tables"]["emergency_alerts"]["Insert"];
+      };
       
       const { error: alertError } = await supabase
         .from('emergency_alerts')
@@ -33,14 +33,14 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
       
       if (alertError) throw alertError;
       
-      // Log the action in witness logs with proper type assertion
-      const logData = {
+      // Log the action in witness logs with proper typing
+      const logData: Database["public"]["Tables"]["scroll_witness_logs"]["Insert"] = {
         session_id: sessionId,
         user_id: user?.id,
         action: 'emergency_alert',
         details: message.trim(),
         timestamp: new Date().toISOString()
-      } as Database["public"]["Tables"]["scroll_witness_logs"]["Insert"];
+      };
       
       await supabase.from('scroll_witness_logs').insert(logData);
       
@@ -54,10 +54,10 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
       const currentScore = sessionData?.flame_integrity_score ?? 100;
       const newScore = Math.max(0, currentScore - 25);
       
-      // Update flame integrity score with proper type assertion
-      const updateData = { 
+      // Update flame integrity score with proper typing
+      const updateData: Database["public"]["Tables"]["court_sessions"]["Update"] = { 
         flame_integrity_score: newScore 
-      } as Database["public"]["Tables"]["court_sessions"]["Update"];
+      };
       
       await supabase
         .from('court_sessions')
