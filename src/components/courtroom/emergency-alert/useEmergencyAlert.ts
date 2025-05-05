@@ -1,83 +1,85 @@
 
-import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/AuthContext';
-import { EmergencyAlertInsert, ScrollWitnessLogInsert, CourtSessionUpdate } from '@/types/supabaseHelpers';
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { EmergencyAlertInsert } from "@/types/supabaseHelpers";
 
-export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
-  const [message, setMessage] = useState('');
+export function useEmergencyAlert(sessionId: string, userId: string) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
+  const [hasActiveAlert, setHasActiveAlert] = useState(false);
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
+  // Function to submit a new emergency alert
+  const submitAlert = async (message: string) => {
+    if (!message.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a message for the emergency alert",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
     
     try {
-      setIsSubmitting(true);
-      
       // Create properly typed alert data
       const alertData: EmergencyAlertInsert = {
         session_id: sessionId,
-        user_id: user?.id,
+        user_id: userId,
         message: message.trim(),
         timestamp: new Date().toISOString(),
         resolved: false
       };
       
-      const { error: alertError } = await supabase
+      const { error } = await supabase
         .from('emergency_alerts')
-        .insert(alertData);
+        .insert([alertData]); // Wrap the data in an array for insert
       
-      if (alertError) throw alertError;
+      if (error) throw error;
       
-      // Create properly typed log data
-      const logData: ScrollWitnessLogInsert = {
-        session_id: sessionId,
-        user_id: user?.id,
-        action: 'emergency_alert',
-        details: message.trim(),
-        timestamp: new Date().toISOString()
-      };
+      toast({
+        title: "Emergency Alert Sent",
+        description: "Your alert has been submitted to the court officials",
+      });
       
-      await supabase
-        .from('scroll_witness_logs')
-        .insert(logData);
-      
-      // Decrease flame integrity score by 25 points
-      const { data: sessionData } = await supabase
-        .from('court_sessions')
-        .select('flame_integrity_score')
-        .eq('id', sessionId)
-        .single();
-      
-      const currentScore = sessionData?.flame_integrity_score ?? 100;
-      const newScore = Math.max(0, currentScore - 25);
-      
-      const updateData: CourtSessionUpdate = {
-        flame_integrity_score: newScore
-      };
-      
-      await supabase
-        .from('court_sessions')
-        .update(updateData)
-        .eq('id', sessionId);
-      
-      // Close alert if callback provided
-      if (onClose) {
-        onClose();
-      }
-    } catch (error) {
-      console.error('Error creating emergency alert:', error);
+      setHasActiveAlert(true);
+    } catch (err) {
+      console.error("Error submitting emergency alert:", err);
+      toast({
+        title: "Error",
+        description: "Failed to submit emergency alert",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
   
+  // Function to check if the user has any active (unresolved) alerts
+  const checkActiveAlerts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('emergency_alerts')
+        .select('*')
+        .eq('session_id', sessionId)
+        .eq('user_id', userId)
+        .eq('resolved', false)
+        .limit(1);
+      
+      if (error) throw error;
+      
+      setHasActiveAlert(data && data.length > 0);
+      return data && data.length > 0;
+    } catch (err) {
+      console.error("Error checking active alerts:", err);
+      return false;
+    }
+  };
+  
   return {
-    message,
-    setMessage,
     isSubmitting,
-    handleSubmit
+    hasActiveAlert,
+    submitAlert,
+    checkActiveAlerts
   };
 }
