@@ -5,15 +5,20 @@ import { AlertCircle } from "lucide-react";
 import { EmergencyAlertForm } from "./EmergencyAlertForm";
 import { useEmergencyAlert } from "./useEmergencyAlert";
 import { EmergencyAlertProps } from "./types";
+import { useAuth } from "@/contexts/AuthContext";
 
-export function EmergencyAlert({ sessionId, userId }: EmergencyAlertProps) {
+export function EmergencyAlert({ sessionId }: EmergencyAlertProps) {
   const [showForm, setShowForm] = useState(false);
+  const { user } = useAuth();
+  const userId = user?.id || '';
   const { isSubmitting, hasActiveAlert, submitAlert, checkActiveAlerts } = useEmergencyAlert(sessionId, userId);
   
   // Check if the user already has an active alert when the component mounts
   useEffect(() => {
-    checkActiveAlerts();
-  }, []);
+    if (userId) {
+      checkActiveAlerts();
+    }
+  }, [userId]);
   
   const handleSubmit = async (message: string) => {
     await submitAlert(message);
@@ -43,6 +48,7 @@ export function EmergencyAlert({ sessionId, userId }: EmergencyAlertProps) {
       size="sm"
       className="w-full"
       onClick={() => setShowForm(true)}
+      disabled={!userId}
     >
       <AlertCircle className="h-4 w-4 mr-2" />
       Emergency Alert
