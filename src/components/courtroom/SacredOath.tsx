@@ -30,11 +30,11 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
     
     setSubmitting(true);
     try {
-      // Use proper typing for the update data with type assertion
-      const updateData = {
+      // Create properly typed update data
+      const updateData: Database["public"]["Tables"]["court_session_participants"]["Update"] = {
         oath_taken: true,
         oath_timestamp: new Date().toISOString()
-      } as Database["public"]["Tables"]["court_session_participants"]["Update"];
+      };
       
       const { error } = await supabase
         .from('court_session_participants')
@@ -44,14 +44,14 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
         
       if (error) throw error;
       
-      // Log the oath taking with proper typing using type assertion
-      const logData = {
+      // Create properly typed log data
+      const logData: Database["public"]["Tables"]["scroll_witness_logs"]["Insert"] = {
         session_id: sessionId,
         user_id: userId,
         action: 'oath_taken',
         details: 'Sacred oath taken for court participation',
         timestamp: new Date().toISOString()
-      } as Database["public"]["Tables"]["scroll_witness_logs"]["Insert"];
+      };
       
       await supabase
         .from('scroll_witness_logs')

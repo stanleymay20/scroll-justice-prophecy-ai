@@ -31,28 +31,28 @@ export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel,
     try {
       // Record the oath taking in user's profile or session participants
       if (sessionId) {
-        // Use proper typing for participant data with type assertion
-        const participantData = {
+        // Create properly typed participant data
+        const participantData: Database["public"]["Tables"]["court_session_participants"]["Insert"] = {
           session_id: sessionId,
           user_id: userId,
           oath_taken: true,
           oath_timestamp: new Date().toISOString(),
           role: 'witness'
-        } as Database["public"]["Tables"]["court_session_participants"]["Insert"];
+        };
 
         await supabase
           .from('court_session_participants')
           .upsert(participantData);
       }
         
-      // Log the oath with proper typing using type assertion
-      const logData = {
+      // Create properly typed log data
+      const logData: Database["public"]["Tables"]["scroll_witness_logs"]["Insert"] = {
         user_id: userId,
         session_id: sessionId,
         action: 'oath_taken',
         details: 'Sacred oath taken for court participation',
         timestamp: new Date().toISOString()
-      } as Database["public"]["Tables"]["scroll_witness_logs"]["Insert"];
+      };
       
       await supabase
         .from('scroll_witness_logs')

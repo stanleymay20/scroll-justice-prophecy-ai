@@ -18,7 +18,7 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
     try {
       setIsSubmitting(true);
       
-      // Create the emergency alert with proper typing
+      // Create properly typed alert data
       const alertData: Database["public"]["Tables"]["emergency_alerts"]["Insert"] = {
         session_id: sessionId,
         user_id: user?.id,
@@ -33,7 +33,7 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
       
       if (alertError) throw alertError;
       
-      // Log the action in witness logs with proper typing
+      // Create properly typed log data
       const logData: Database["public"]["Tables"]["scroll_witness_logs"]["Insert"] = {
         session_id: sessionId,
         user_id: user?.id,
@@ -54,7 +54,7 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
       const currentScore = sessionData?.flame_integrity_score ?? 100;
       const newScore = Math.max(0, currentScore - 25);
       
-      // Update flame integrity score with proper typing
+      // Create properly typed update data
       const updateData: Database["public"]["Tables"]["court_sessions"]["Update"] = { 
         flame_integrity_score: newScore 
       };

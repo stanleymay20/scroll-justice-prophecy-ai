@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -106,13 +107,13 @@ export function CommunityForum() {
 
     setSubmitting(true);
     try {
-      // Create a properly typed post data object with type assertion
-      const postData = {
+      // Create properly typed post data
+      const postData: Database["public"]["Tables"]["posts"]["Insert"] = {
         user_id: user.id,
         title: newPostTitle,
         content: newPostContent,
         category: newPostCategory
-      } as Database["public"]["Tables"]["posts"]["Insert"];
+      };
 
       const { error } = await supabase
         .from('posts')
@@ -158,10 +159,10 @@ export function CommunityForum() {
     }
 
     try {
-      // Create properly typed update data with type assertion
-      const likeData = { 
+      // Create properly typed update data
+      const likeData: Database["public"]["Tables"]["posts"]["Update"] = { 
         likes: currentLikes + 1 
-      } as Database["public"]["Tables"]["posts"]["Update"];
+      };
       
       const { error } = await supabase
         .from('posts')
