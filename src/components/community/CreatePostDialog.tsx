@@ -48,7 +48,7 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
 
     setSubmitting(true);
     try {
-      // Create properly typed post data with correct type
+      // Create properly typed post data
       const postData: PostInsert = {
         user_id: user.id,
         title: newPostTitle,
@@ -58,7 +58,7 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
 
       const { error } = await supabase
         .from('posts')
-        .insert(postData);
+        .insert([postData]); // Use an array with the post data
 
       if (error) {
         console.error("Supabase error creating post:", error);
