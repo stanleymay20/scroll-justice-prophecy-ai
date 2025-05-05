@@ -29,6 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/language";
+import { Database } from "@/integrations/supabase/types";
 
 export function CommunityForum() {
   const { user } = useAuth();
@@ -106,17 +107,17 @@ export function CommunityForum() {
 
     setSubmitting(true);
     try {
+      // Use type assertion to match the expected Supabase table type
+      const postData = {
+        user_id: user.id,
+        title: newPostTitle,
+        content: newPostContent,
+        category: newPostCategory
+      } as Database["public"]["Tables"]["posts"]["Insert"];
+
       const { error } = await supabase
         .from('posts')
-        .insert({
-          user_id: user.id,
-          title: newPostTitle,
-          content: newPostContent,
-          category: newPostCategory,
-          // Don't need to set these as they have defaults in the DB
-          // likes: 0,
-          // comments_count: 0
-        });
+        .insert(postData);
 
       if (error) {
         console.error("Supabase error creating post:", error);
@@ -158,11 +159,12 @@ export function CommunityForum() {
     }
 
     try {
-      // Cast postId to any to bypass type checking temporarily 
-      // This is a workaround until we properly establish UUID types
+      // Use type assertion to match the expected Supabase update type
+      const likeData = { likes: currentLikes + 1 } as Database["public"]["Tables"]["posts"]["Update"];
+      
       const { error } = await supabase
         .from('posts')
-        .update({ likes: currentLikes + 1 })
+        .update(likeData)
         .eq('id', postId as any);
 
       if (error) {

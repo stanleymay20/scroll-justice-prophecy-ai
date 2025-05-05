@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
@@ -6,6 +7,7 @@ import { ScrollText, Shield } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
+import { Database } from "@/integrations/supabase/types";
 
 interface SacredOathScreenProps {
   userId: string;
@@ -29,27 +31,33 @@ export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel,
     try {
       // Record the oath taking in user's profile or session participants
       if (sessionId) {
+        // Use type assertion to match the Supabase expected types
+        const participantData = {
+          session_id: sessionId,
+          user_id: userId,
+          oath_taken: true,
+          oath_timestamp: new Date().toISOString(),
+          role: 'witness' // Adding the required role field with a default value
+        } as Database["public"]["Tables"]["court_session_participants"]["Insert"];
+
         await supabase
           .from('court_session_participants')
-          .upsert({
-            session_id: sessionId,
-            user_id: userId,
-            oath_taken: true,
-            oath_timestamp: new Date().toISOString(),
-            role: 'witness' // Adding the required role field with a default value
-          });
+          .upsert(participantData);
       }
         
       // Log the oath in ScrollWitness logs
+      // Use type assertion to match the Supabase expected types
+      const logData = {
+        user_id: userId,
+        session_id: sessionId,
+        action: 'oath_taken',
+        details: 'Sacred oath taken for court participation',
+        timestamp: new Date().toISOString()
+      } as Database["public"]["Tables"]["scroll_witness_logs"]["Insert"];
+      
       await supabase
         .from('scroll_witness_logs')
-        .insert({
-          user_id: userId,
-          session_id: sessionId,
-          action: 'oath_taken',
-          details: 'Sacred oath taken for court participation',
-          timestamp: new Date().toISOString()
-        });
+        .insert(logData);
         
       // Store in localStorage to remember this user has taken the oath
       localStorage.setItem('scrollJustice-oath-taken', 'true');

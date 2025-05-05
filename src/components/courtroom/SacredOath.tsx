@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollText, Shield } from "lucide-react";
 import { OathStatus } from "@/types/courtroom";
 import { supabase } from "@/lib/supabase";
+import { Database } from "@/integrations/supabase/types";
 
 interface SacredOathProps {
   sessionId: string;
@@ -29,27 +30,32 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
     
     setSubmitting(true);
     try {
+      // Use type assertion to match the Supabase expected types
+      const updateData = {
+        oath_taken: true,
+        oath_timestamp: new Date().toISOString()
+      } as Database["public"]["Tables"]["court_session_participants"]["Update"];
+      
       const { error } = await supabase
         .from('court_session_participants')
-        .update({
-          oath_taken: true,
-          oath_timestamp: new Date().toISOString()
-        } as any)
+        .update(updateData)
         .eq('session_id', sessionId as any)
         .eq('user_id', userId as any);
         
       if (error) throw error;
       
       // Log the oath taking in the ScrollWitness logs
+      const logData = {
+        session_id: sessionId,
+        user_id: userId,
+        action: 'oath_taken',
+        details: 'Sacred oath taken for court participation',
+        timestamp: new Date().toISOString()
+      } as Database["public"]["Tables"]["scroll_witness_logs"]["Insert"];
+      
       await supabase
         .from('scroll_witness_logs')
-        .insert({
-          session_id: sessionId,
-          user_id: userId,
-          action: 'oath_taken',
-          details: 'Sacred oath taken for court participation',
-          timestamp: new Date().toISOString()
-        });
+        .insert(logData);
         
       onOathComplete();
     } catch (error) {

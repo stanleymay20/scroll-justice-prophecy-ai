@@ -6,6 +6,7 @@ import { FileLock, Mic, MicOff, Video, VideoOff, FileText } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { encryptWithScrollSeal } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
+import { Database } from "@/integrations/supabase/types";
 
 interface SessionRecordingProps {
   sessionId: string;
@@ -91,16 +92,18 @@ export function SessionRecording({
         setRecordingTime(prev => prev + 1);
       }, 1000);
       
-      // Log recording start in ScrollWitness logs
+      // Log recording start in ScrollWitness logs with proper type assertion
+      const logData = {
+        session_id: sessionId,
+        user_id: userId,
+        action: `${type}_recording_started`,
+        details: `Started ${type} recording for court session`,
+        timestamp: new Date().toISOString()
+      } as Database["public"]["Tables"]["scroll_witness_logs"]["Insert"];
+      
       await supabase
         .from('scroll_witness_logs')
-        .insert({
-          session_id: sessionId,
-          user_id: userId,
-          action: `${type}_recording_started`,
-          details: `Started ${type} recording for court session`,
-          timestamp: new Date().toISOString()
-        });
+        .insert(logData);
     } catch (err) {
       console.error("Error starting recording:", err);
       toast({
@@ -161,32 +164,36 @@ export function SessionRecording({
             
           if (fileError) throw fileError;
           
-          // Create session recording record
+          // Create session recording record with proper type assertion
+          const recordingData = {
+            session_id: sessionId,
+            user_id: userId,
+            file_url: fileData?.path || filename,
+            type,
+            duration_seconds: recordingTime,
+            created_at: timestamp,
+            encrypted: true,
+            encryption_key: key
+          } as Database["public"]["Tables"]["session_recordings"]["Insert"];
+          
           const { error: recordError } = await supabase
             .from('session_recordings')
-            .insert({
-              session_id: sessionId,
-              user_id: userId,
-              file_url: fileData?.path || filename,
-              type,
-              duration_seconds: recordingTime,
-              created_at: timestamp,
-              encrypted: true,
-              encryption_key: key
-            });
+            .insert(recordingData);
             
           if (recordError) throw recordError;
           
-          // Log recording completion in ScrollWitness logs
+          // Log recording completion in ScrollWitness logs with proper type assertion
+          const logData = {
+            session_id: sessionId,
+            user_id: userId,
+            action: `${type}_recording_saved`,
+            details: `Saved encrypted ${type} recording (${formatTime(recordingTime)})`,
+            timestamp: new Date().toISOString()
+          } as Database["public"]["Tables"]["scroll_witness_logs"]["Insert"];
+          
           await supabase
             .from('scroll_witness_logs')
-            .insert({
-              session_id: sessionId,
-              user_id: userId,
-              action: `${type}_recording_saved`,
-              details: `Saved encrypted ${type} recording (${formatTime(recordingTime)})`,
-              timestamp: new Date().toISOString()
-            });
+            .insert(logData);
             
           toast({
             title: "Recording Saved",
