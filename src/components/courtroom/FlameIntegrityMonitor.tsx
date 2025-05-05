@@ -10,12 +10,14 @@ type FlameIntegrityLevel = "pure" | "stable" | "wavering" | "compromised" | "cri
 interface FlameIntegrityMonitorProps {
   userId?: string;
   petitionId?: string;
+  sessionId?: string;
   compact?: boolean;
 }
 
 export function FlameIntegrityMonitor({ 
   userId, 
-  petitionId, 
+  petitionId,
+  sessionId,
   compact = false 
 }: FlameIntegrityMonitorProps) {
   const [flameScore, setFlameScore] = useState(100);
@@ -41,6 +43,20 @@ export function FlameIntegrityMonitor({
           fetchFlameIntegrity();
         })
         .subscribe();
+    } else if (sessionId) {
+      subscription = supabase
+        .channel(`flame-integrity-${sessionId}`)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'court_sessions',
+          filter: `id=eq.${sessionId}`
+        }, (payload) => {
+          if (payload.new && typeof payload.new.flame_integrity_score === 'number') {
+            updateFlameData(payload.new.flame_integrity_score);
+          }
+        })
+        .subscribe();
     }
     
     // Poll every 30 seconds as a fallback
@@ -52,45 +68,57 @@ export function FlameIntegrityMonitor({
       }
       clearInterval(interval);
     };
-  }, [userId, petitionId]);
+  }, [userId, petitionId, sessionId]);
   
   const fetchFlameIntegrity = async () => {
     setIsLoading(true);
     let scoreValue = 100;
     
     try {
-      // Check for alerts
-      const alertQuery = supabase
-        .from('scroll_integrity_logs')
-        .select('*')
-        .eq('flame_alert', true);
-        
-      // Add filters if applicable
-      if (userId) {
-        alertQuery.eq('user_id', userId);
-      }
-      if (petitionId) {
-        alertQuery.eq('petition_id', petitionId);
-      }
-      
-      const { data: alertData, error: alertError } = await alertQuery;
-      
-      if (alertError) throw alertError;
-      
-      const alertCount = alertData?.length || 0;
-      setAlerts(alertCount);
-      
-      // Calculate aggregate impact
-      const { data: impactData, error: impactError } = await supabase
-        .rpc('calculate_integrity_score', {
-          user_id_param: userId || null,
-          petition_id_param: petitionId || null
-        });
-        
-      if (!impactError && impactData) {
-        scoreValue = Math.min(Math.max(impactData, 0), 100); // Clamp between 0 and 100
+      if (sessionId) {
+        // If monitoring a court session
+        const { data, error } = await supabase
+          .from('court_sessions')
+          .select('flame_integrity_score')
+          .eq('id', sessionId)
+          .single();
+          
+        if (!error && data && typeof data.flame_integrity_score === 'number') {
+          scoreValue = data.flame_integrity_score;
+        }
       } else {
-        console.warn("Could not retrieve integrity score, using default", impactError);
+        // Check for alerts
+        const alertQuery = supabase
+          .from('scroll_integrity_logs')
+          .select('*');
+          
+        // Add filters if applicable
+        if (userId) {
+          alertQuery.eq('user_id', userId);
+        }
+        if (petitionId) {
+          alertQuery.eq('petition_id', petitionId);
+        }
+        
+        const { data: alertData, error: alertError } = await alertQuery;
+        
+        if (alertError) throw alertError;
+        
+        const alertCount = alertData?.length || 0;
+        setAlerts(alertCount);
+        
+        // For petition monitoring, calculate the integrity score
+        if (petitionId) {
+          const { data: petitionData, error: petitionError } = await supabase
+            .from('scroll_petitions')
+            .select('scroll_integrity_score')
+            .eq('id', petitionId)
+            .single();
+            
+          if (!petitionError && petitionData) {
+            scoreValue = petitionData.scroll_integrity_score;
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching flame integrity:", error);

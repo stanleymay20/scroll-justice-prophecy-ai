@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,7 +49,7 @@ export const ContentAnalyzer = ({ initialContent = "", onAnalysisComplete }: Con
         action_type: "CONTENT_ANALYSIS",
         ai_model: "scroll-integrity-analyzer-1.0",
         input_summary: content.substring(0, 100) + (content.length > 100 ? "..." : ""),
-        output_summary: `Integrity Score: ${analysisResult.integrityScore}%`
+        output_summary: `Integrity Score: ${analysisResult.integrity_score}%`
       });
     } catch (err) {
       console.error("Error analyzing content:", err);
@@ -113,16 +112,16 @@ export const ContentAnalyzer = ({ initialContent = "", onAnalysisComplete }: Con
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-justice-light/70">{t("analyzer.score")}:</span>
-              <span className={getIntegrityColor(result.integrityScore)}>
-                {result.integrityScore}%
+              <span className={getIntegrityColor(result.integrity_score)}>
+                {result.integrity_score}%
               </span>
             </div>
             
-            {result.issues && result.issues.length > 0 ? (
+            {result.flagged_terms && result.flagged_terms.length > 0 ? (
               <div>
                 <p className="text-sm text-justice-light/70 mb-1">{t("analyzer.issues")}:</p>
                 <ul className="list-disc pl-5 space-y-1">
-                  {result.issues.map((issue: string, index: number) => (
+                  {result.flagged_terms.map((issue: string, index: number) => (
                     <li key={index} className="text-sm text-justice-light">
                       {issue}
                     </li>

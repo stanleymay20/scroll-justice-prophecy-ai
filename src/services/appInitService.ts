@@ -13,18 +13,18 @@ export async function applyRlsPolicies() {
 export async function initializeAiAuditLog() {
   console.log("Initializing AI audit log...");
   try {
-    // Check if the table exists
-    const { data, error } = await supabase
-      .from('ai_audit_logs')
-      .select('id')
-      .limit(1);
+    // This is just a check to see if the table exists
+    // We'll use the edge function to actually create it if needed
+    const { error } = await supabase.functions.invoke('create-ai-audit-table', {
+      body: {}
+    });
       
     if (error) {
-      console.warn("AI audit log table may not exist. This is expected on first run.");
-    } else {
-      console.log("AI audit log table exists, with data:", data);
+      console.warn("Error initializing AI audit log table:", error);
+      return false;
     }
     
+    console.log("AI audit log table initialization completed");
     return true;
   } catch (error) {
     console.error("Error initializing AI audit log:", error);
