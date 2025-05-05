@@ -1,7 +1,8 @@
 
+import { ReactNode } from "react";
 import { Mic, MicOff, Video, VideoOff, FileText } from "lucide-react";
 
-export function getRecordingIcon(type: "audio" | "video" | "transcript", isRecording: boolean) {
+export function getRecordingIcon(type: "audio" | "video" | "transcript", isRecording: boolean): ReactNode {
   if (type === "audio") {
     return isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />;
   } else if (type === "video") {
@@ -11,7 +12,7 @@ export function getRecordingIcon(type: "audio" | "video" | "transcript", isRecor
   }
 }
 
-export function getRecordingLabel(type: "audio" | "video" | "transcript", isRecording: boolean, formattedTime?: string) {
+export function getRecordingLabel(type: "audio" | "video" | "transcript", isRecording: boolean, formattedTime?: string): string {
   if (isRecording) {
     return `Stop ${type} recording${formattedTime ? ` (${formattedTime})` : ''}`;
   }
