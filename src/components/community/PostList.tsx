@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Post, PostCategory } from "@/types/community";
 import { formatDistanceToNow } from "date-fns";
 import { Heart, MessageSquare, Clock } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/language";
 import { Database } from "@/integrations/supabase/types";

@@ -5,7 +5,7 @@ import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollText, Shield } from "lucide-react";
 import { OathStatus } from "@/types/courtroom";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 
 interface SacredOathProps {

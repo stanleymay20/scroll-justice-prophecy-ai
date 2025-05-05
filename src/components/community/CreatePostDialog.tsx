@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { PostCategory } from "@/types/community";
 import { useLanguage } from "@/contexts/language";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Send, X } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
@@ -92,7 +92,7 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" aria-label="Create new post">
           <Plus className="h-4 w-4" />
           <span>{t("community.newPost") || "New Post"}</span>
         </Button>
