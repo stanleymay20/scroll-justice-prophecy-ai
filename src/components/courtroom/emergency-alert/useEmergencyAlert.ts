@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { Database } from '@/integrations/supabase/types';
+import { EmergencyAlertInsert, ScrollWitnessLogInsert, CourtSessionUpdate } from '@/types/supabaseHelpers';
 
 export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
   const [message, setMessage] = useState('');
@@ -16,33 +16,33 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
     try {
       setIsSubmitting(true);
       
-      // Create properly typed alert data using 'satisfies' to ensure type compatibility
-      const alertData = {
+      // Create properly typed alert data
+      const alertData: EmergencyAlertInsert = {
         session_id: sessionId,
         user_id: user?.id,
         message: message.trim(),
         timestamp: new Date().toISOString(),
         resolved: false
-      } satisfies Database["public"]["Tables"]["emergency_alerts"]["Insert"];
+      };
       
       const { error: alertError } = await supabase
         .from('emergency_alerts')
-        .insert([alertData]);
+        .insert(alertData);
       
       if (alertError) throw alertError;
       
-      // Create properly typed log data using 'satisfies' to ensure type compatibility
-      const logData = {
+      // Create properly typed log data
+      const logData: ScrollWitnessLogInsert = {
         session_id: sessionId,
         user_id: user?.id,
         action: 'emergency_alert',
         details: message.trim(),
         timestamp: new Date().toISOString()
-      } satisfies Database["public"]["Tables"]["scroll_witness_logs"]["Insert"];
+      };
       
       await supabase
         .from('scroll_witness_logs')
-        .insert([logData]);
+        .insert(logData);
       
       // Decrease flame integrity score by 25 points
       const { data: sessionData } = await supabase
@@ -54,9 +54,9 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
       const currentScore = sessionData?.flame_integrity_score ?? 100;
       const newScore = Math.max(0, currentScore - 25);
       
-      const updateData = {
+      const updateData: CourtSessionUpdate = {
         flame_integrity_score: newScore
-      } satisfies Database["public"]["Tables"]["court_sessions"]["Update"];
+      };
       
       await supabase
         .from('court_sessions')

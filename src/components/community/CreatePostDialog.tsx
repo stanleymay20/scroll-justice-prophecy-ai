@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import { useLanguage } from "@/contexts/language";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Send, X } from "lucide-react";
-import { Database } from "@/integrations/supabase/types";
+import { PostInsert } from "@/types/supabaseHelpers";
 
 interface CreatePostDialogProps {
   onPostCreated: () => void;
@@ -48,24 +47,22 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
 
     setSubmitting(true);
     try {
-      // Create properly typed post data using 'satisfies' to ensure type compatibility
-      const postData = {
+      const postData: PostInsert = {
         user_id: user.id,
         title: newPostTitle.trim(),
         content: newPostContent.trim(),
         category: newPostCategory
-      } satisfies Database["public"]["Tables"]["posts"]["Insert"];
+      };
 
       const { error } = await supabase
         .from('posts')
-        .insert([postData]);
+        .insert(postData);
 
       if (error) {
         console.error("Supabase error creating post:", error);
         throw new Error(t("error.postCreate") || "Error creating post");
       }
 
-      // Clear form and close dialog
       setNewPostTitle("");
       setNewPostContent("");
       setIsDialogOpen(false);
@@ -75,7 +72,6 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
         description: t("success.postShared") || "Your post has been shared with the community.",
       });
       
-      // Refresh posts
       onPostCreated();
     } catch (err) {
       console.error("Error creating post:", err);

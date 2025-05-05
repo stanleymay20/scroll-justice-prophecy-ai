@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -7,7 +8,7 @@ import { Heart, MessageSquare, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/language";
-import { Database } from "@/integrations/supabase/types";
+import { PostUpdate } from "@/types/supabaseHelpers";
 
 interface PostListProps {
   posts: Post[];
@@ -44,9 +45,9 @@ export function PostList({
     }
 
     try {
-      const updateData = { 
+      const updateData: PostUpdate = { 
         likes: currentLikes + 1 
-      } satisfies Database["public"]["Tables"]["posts"]["Update"];
+      };
       
       const { error: updateError } = await supabase
         .from('posts')
