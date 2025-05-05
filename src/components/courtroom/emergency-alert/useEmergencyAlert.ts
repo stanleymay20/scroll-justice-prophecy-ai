@@ -27,7 +27,7 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
       
       const { error: alertError } = await supabase
         .from('emergency_alerts')
-        .insert([alertData]); // Wrap in array for Supabase
+        .insert(alertData);
       
       if (alertError) throw alertError;
       
@@ -40,7 +40,7 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
         timestamp: new Date().toISOString()
       };
       
-      await supabase.from('scroll_witness_logs').insert([logData]); // Wrap in array for Supabase
+      await supabase.from('scroll_witness_logs').insert(logData);
       
       // Decrease flame integrity score by 25 points
       const { data: sessionData } = await supabase

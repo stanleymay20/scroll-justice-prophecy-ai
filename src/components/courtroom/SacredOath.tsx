@@ -55,7 +55,7 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
       
       await supabase
         .from('scroll_witness_logs')
-        .insert([logData]); // Wrap in array for Supabase
+        .insert(logData);
         
       onOathComplete();
     } catch (error) {

@@ -58,7 +58,7 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
 
       const { error } = await supabase
         .from('posts')
-        .insert([postData]); // Need to wrap in array for Supabase
+        .insert(postData);
 
       if (error) {
         console.error("Supabase error creating post:", error);
