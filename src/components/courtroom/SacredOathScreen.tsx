@@ -5,7 +5,7 @@ import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollText, Shield } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 import { CourtSessionParticipantInsert, ScrollWitnessLogInsert } from "@/types/supabaseHelpers";
 

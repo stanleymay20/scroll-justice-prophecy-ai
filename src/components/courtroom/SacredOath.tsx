@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollText, Shield } from "lucide-react";
 import { OathStatus } from "@/types/courtroom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 import { CourtSessionParticipantUpdate, ScrollWitnessLogInsert } from "@/types/supabaseHelpers";
 
 interface SacredOathProps {
