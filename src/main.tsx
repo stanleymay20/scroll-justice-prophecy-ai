@@ -1,8 +1,8 @@
 
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import React, { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
 
 // Set up a global error handler to catch and log errors
 window.addEventListener('error', (event) => {
@@ -17,13 +17,13 @@ window.addEventListener('unhandledrejection', (event) => {
 // Set default language attribute on HTML element
 document.documentElement.setAttribute('lang', 'en');
 
-const rootElement = document.getElementById("root")
+const rootElement = document.getElementById("root");
 if (rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
       <App />
     </StrictMode>
-  )
+  );
 } else {
   console.error("Root element not found in the DOM");
 }

@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useScrollEffect } from "@/hooks/useScrollEffect";
 import { useAuth } from "@/contexts/AuthContext";
 import { BrandLogo } from "./nav/BrandLogo";
