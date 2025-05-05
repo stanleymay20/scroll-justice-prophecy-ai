@@ -18,7 +18,7 @@ export function EmergencyAlert({ sessionId }: EmergencyAlertProps) {
     if (userId) {
       checkActiveAlerts();
     }
-  }, [userId]);
+  }, [userId, checkActiveAlerts]);
   
   const handleSubmit = async (message: string) => {
     await submitAlert(message);

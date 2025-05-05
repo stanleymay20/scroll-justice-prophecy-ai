@@ -19,7 +19,9 @@ export const EmergencyAlertForm: React.FC<EmergencyAlertFormProps> = ({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    await onSubmit(message);
+    if (message.trim()) {
+      await onSubmit(message);
+    }
   };
 
   return (
