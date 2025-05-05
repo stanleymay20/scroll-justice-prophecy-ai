@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
@@ -42,7 +41,7 @@ export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel,
 
         await supabase
           .from('court_session_participants')
-          .upsert(participantData);
+          .upsert([participantData]);
       }
         
       // Create properly typed log data
@@ -56,7 +55,7 @@ export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel,
       
       await supabase
         .from('scroll_witness_logs')
-        .insert(logData);
+        .insert([logData]);
         
       // Store in localStorage to remember this user has taken the oath
       localStorage.setItem('scrollJustice-oath-taken', 'true');
