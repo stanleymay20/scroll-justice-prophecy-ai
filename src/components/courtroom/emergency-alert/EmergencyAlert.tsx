@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useEmergencyAlert } from './useEmergencyAlert';
 import { EmergencyAlertForm } from './EmergencyAlertForm';
-import { Bell, AlertCircle, Check } from 'lucide-react';
+import { Bell, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { EmergencyAlertProps } from './types';

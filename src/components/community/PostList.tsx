@@ -51,7 +51,7 @@ export function PostList({
       
       const { error: updateError } = await supabase
         .from('posts')
-        .update([updateData])
+        .update(updateData)
         .eq('id', postId);
 
       if (updateError) {
