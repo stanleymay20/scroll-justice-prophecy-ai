@@ -29,6 +29,7 @@ const App = () => {
   // Add console logging to help with debugging
   useEffect(() => {
     console.log("info: App component mounted");
+    console.log("Current URL:", window.location.href);
     
     // Set up window size logger
     const cleanupSizeLogger = setupWindowSizeLogger();

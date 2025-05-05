@@ -17,6 +17,9 @@ window.addEventListener('unhandledrejection', (event) => {
 // Set default language attribute on HTML element
 document.documentElement.setAttribute('lang', 'en');
 
+// Log the current domain for debugging
+console.log('Current domain:', window.location.hostname);
+
 const rootElement = document.getElementById("root");
 if (rootElement) {
   createRoot(rootElement).render(
