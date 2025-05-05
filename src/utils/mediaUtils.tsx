@@ -1,5 +1,5 @@
 
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { Mic, MicOff, Video, VideoOff, FileText } from "lucide-react";
 
 export function getRecordingIcon(type: "audio" | "video" | "transcript", isRecording: boolean): ReactNode {
