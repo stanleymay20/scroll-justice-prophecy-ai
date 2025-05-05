@@ -2,7 +2,7 @@
 import { Database } from "@/integrations/supabase/types";
 
 // Type aliases for convenience when working with Supabase tables
-// These are type-safe wrappers around the auto-generated Database types
+// These are direct aliases to the auto-generated Database types
 
 // Posts
 export type PostInsert = Database["public"]["Tables"]["posts"]["Insert"];
