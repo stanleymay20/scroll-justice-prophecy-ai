@@ -48,7 +48,7 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
       const { data: sessionData } = await supabase
         .from('court_sessions')
         .select('flame_integrity_score')
-        .eq('id', sessionId as any)
+        .eq('id', sessionId)
         .single();
       
       const currentScore = sessionData?.flame_integrity_score ?? 100;
@@ -62,7 +62,7 @@ export function useEmergencyAlert(sessionId: string, onClose?: () => void) {
       await supabase
         .from('court_sessions')
         .update(updateData)
-        .eq('id', sessionId as any);
+        .eq('id', sessionId);
       
       // Close alert if callback provided
       if (onClose) {

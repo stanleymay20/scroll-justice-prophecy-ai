@@ -39,12 +39,12 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
       const { error } = await supabase
         .from('court_session_participants')
         .update(updateData)
-        .eq('session_id', sessionId as any)
-        .eq('user_id', userId as any);
+        .eq('session_id', sessionId)
+        .eq('user_id', userId);
         
       if (error) throw error;
       
-      // Log the oath taking in the ScrollWitness logs
+      // Log the oath taking in the ScrollWitness logs with proper type assertion
       const logData = {
         session_id: sessionId,
         user_id: userId,

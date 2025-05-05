@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -107,7 +106,7 @@ export function CommunityForum() {
 
     setSubmitting(true);
     try {
-      // Use type assertion to match the expected Supabase table type
+      // Create the post data object with explicit type assertion
       const postData = {
         user_id: user.id,
         title: newPostTitle,
@@ -159,13 +158,15 @@ export function CommunityForum() {
     }
 
     try {
-      // Use type assertion to match the expected Supabase update type
-      const likeData = { likes: currentLikes + 1 } as Database["public"]["Tables"]["posts"]["Update"];
+      // Update the post with proper type assertion
+      const likeData = { 
+        likes: currentLikes + 1 
+      } as Database["public"]["Tables"]["posts"]["Update"];
       
       const { error } = await supabase
         .from('posts')
         .update(likeData)
-        .eq('id', postId as any);
+        .eq('id', postId);
 
       if (error) {
         console.error("Supabase error liking post:", error);

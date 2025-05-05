@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
@@ -45,8 +44,7 @@ export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel,
           .upsert(participantData);
       }
         
-      // Log the oath in ScrollWitness logs
-      // Use type assertion to match the Supabase expected types
+      // Log the oath in ScrollWitness logs with proper type assertion
       const logData = {
         user_id: userId,
         session_id: sessionId,
