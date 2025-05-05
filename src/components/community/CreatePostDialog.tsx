@@ -1,24 +1,11 @@
+
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { PostCategory } from "@/types/community";
 import { useLanguage } from "@/contexts/language";
@@ -61,31 +48,34 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
 
     setSubmitting(true);
     try {
+      // Create properly typed post data
       const postData: PostInsert = {
         user_id: user.id,
-        title: newPostTitle.trim(),
-        content: newPostContent.trim(),
-        category: newPostCategory,
+        title: newPostTitle,
+        content: newPostContent,
+        category: newPostCategory
       };
 
       const { error } = await supabase
-        .from("posts")
-        .insert([postData]); // ✅ fix: wrap object in array
+        .from('posts')
+        .insert([postData]); // Wrap in array for Supabase insert
 
       if (error) {
         console.error("Supabase error creating post:", error);
         throw new Error(t("error.postCreate") || "Error creating post");
       }
 
+      // Clear form and close dialog
       setNewPostTitle("");
       setNewPostContent("");
       setIsDialogOpen(false);
-
+      
       toast({
         title: t("success.postCreated") || "Post Created",
         description: t("success.postShared") || "Your post has been shared with the community.",
       });
-
+      
+      // Refresh posts
       onPostCreated();
     } catch (err) {
       console.error("Error creating post:", err);
@@ -111,8 +101,7 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
         <DialogHeader>
           <DialogTitle>{t("community.createPost") || "Create New Post"}</DialogTitle>
           <DialogDescription>
-            {t("community.createDescription") ||
-              "Share your thoughts, questions, or testimony with the ScrollJustice community."}
+            {t("community.createDescription") || "Share your thoughts, questions, or testimony with the ScrollJustice community."}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -121,31 +110,19 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
               {t("community.category") || "Category"}
             </Label>
             <div className="col-span-3">
-              <Select
+              <Select 
                 value={newPostCategory}
                 onValueChange={(value) => setNewPostCategory(value as PostCategory)}
               >
                 <SelectTrigger>
-                  <SelectValue
-                    placeholder={t("community.selectCategory") || "Select a category"}
-                  />
+                  <SelectValue placeholder={t("community.selectCategory") || "Select a category"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="testimony">
-                    {t("community.categories.testimony") || "Testimony"}
-                  </SelectItem>
-                  <SelectItem value="prayer_request">
-                    {t("community.categories.prayerRequest") || "Prayer Request"}
-                  </SelectItem>
-                  <SelectItem value="legal_question">
-                    {t("community.categories.legalQuestion") || "Legal Question"}
-                  </SelectItem>
-                  <SelectItem value="righteous_insight">
-                    {t("community.categories.righteousInsight") || "Righteous Insight"}
-                  </SelectItem>
-                  <SelectItem value="announcement">
-                    {t("community.categories.announcement") || "Announcement"}
-                  </SelectItem>
+                  <SelectItem value="testimony">{t("community.categories.testimony") || "Testimony"}</SelectItem>
+                  <SelectItem value="prayer_request">{t("community.categories.prayerRequest") || "Prayer Request"}</SelectItem>
+                  <SelectItem value="legal_question">{t("community.categories.legalQuestion") || "Legal Question"}</SelectItem>
+                  <SelectItem value="righteous_insight">{t("community.categories.righteousInsight") || "Righteous Insight"}</SelectItem>
+                  <SelectItem value="announcement">{t("community.categories.announcement") || "Announcement"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -172,30 +149,21 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
               onChange={(e) => setNewPostContent(e.target.value)}
               className="col-span-3"
               rows={5}
-              placeholder={
-                t("community.contentPlaceholder") ||
-                "Share your thoughts, questions, or testimony..."
-              }
+              placeholder={t("community.contentPlaceholder") || "Share your thoughts, questions, or testimony..."}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setIsDialogOpen(false)}
-            className="flex items-center"
-          >
+          <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="flex items-center">
             <X className="h-4 w-4 mr-2" /> {t("button.cancel") || "Cancel"}
           </Button>
-          <Button
-            onClick={handleCreatePost}
+          <Button 
+            onClick={handleCreatePost} 
             disabled={submitting || !newPostTitle.trim() || !newPostContent.trim()}
             className="flex items-center"
           >
-            <Send className="h-4 w-4 mr-2" />
-            {submitting
-              ? t("community.posting") || "Posting..."
-              : t("button.post") || "Post"}
+            <Send className="h-4 w-4 mr-2" /> 
+            {submitting ? (t("community.posting") || "Posting...") : (t("button.post") || "Post")}
           </Button>
         </DialogFooter>
       </DialogContent>
