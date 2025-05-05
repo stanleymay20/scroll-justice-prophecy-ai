@@ -31,7 +31,7 @@ export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel,
     try {
       // Record the oath taking in user's profile or session participants
       if (sessionId) {
-        // Create properly typed participant data with correct type assertion
+        // Create properly typed participant data
         const participantData: CourtSessionParticipantInsert = {
           session_id: sessionId,
           user_id: userId,
@@ -45,7 +45,7 @@ export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel,
           .upsert(participantData);
       }
         
-      // Create properly typed log data with correct type assertion
+      // Create properly typed log data
       const logData: ScrollWitnessLogInsert = {
         user_id: userId,
         session_id: sessionId,

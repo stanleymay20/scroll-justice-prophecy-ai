@@ -30,7 +30,7 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
     
     setSubmitting(true);
     try {
-      // Create properly typed update data with correct type assertion
+      // Create properly typed update data
       const updateData: CourtSessionParticipantUpdate = {
         oath_taken: true,
         oath_timestamp: new Date().toISOString()
@@ -44,7 +44,7 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
         
       if (error) throw error;
       
-      // Create properly typed log data with correct type assertion
+      // Create properly typed log data
       const logData: ScrollWitnessLogInsert = {
         session_id: sessionId,
         user_id: userId,

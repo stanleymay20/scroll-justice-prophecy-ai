@@ -45,7 +45,7 @@ export function PostList({
     }
 
     try {
-      // Create properly typed update data with correct type assertion
+      // Create properly typed update data
       const likeData: PostUpdate = { 
         likes: currentLikes + 1 
       };

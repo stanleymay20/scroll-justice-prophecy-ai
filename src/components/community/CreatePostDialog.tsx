@@ -48,7 +48,7 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
 
     setSubmitting(true);
     try {
-      // Create properly typed post data with correct type assertion
+      // Create properly typed post data with correct type
       const postData: PostInsert = {
         user_id: user.id,
         title: newPostTitle,
