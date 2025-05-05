@@ -12,7 +12,7 @@ import { useLanguage } from "@/contexts/language";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Send, X } from "lucide-react";
-import { Database } from "@/integrations/supabase/types";
+import { PostInsert } from "@/types/supabaseHelpers";
 
 interface CreatePostDialogProps {
   onPostCreated: () => void;
@@ -48,13 +48,13 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
 
     setSubmitting(true);
     try {
-      // Create properly typed post data with type assertion
-      const postData = {
+      // Create properly typed post data with correct type assertion
+      const postData: PostInsert = {
         user_id: user.id,
         title: newPostTitle,
         content: newPostContent,
         category: newPostCategory
-      } as Database["public"]["Tables"]["posts"]["Insert"];
+      };
 
       const { error } = await supabase
         .from('posts')

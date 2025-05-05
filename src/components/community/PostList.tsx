@@ -8,7 +8,7 @@ import { Heart, MessageSquare, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/language";
-import { Database } from "@/integrations/supabase/types";
+import { PostUpdate } from "@/types/supabaseHelpers";
 
 interface PostListProps {
   posts: Post[];
@@ -45,10 +45,10 @@ export function PostList({
     }
 
     try {
-      // Create properly typed update data with type assertion
-      const likeData = { 
+      // Create properly typed update data with correct type assertion
+      const likeData: PostUpdate = { 
         likes: currentLikes + 1 
-      } as Database["public"]["Tables"]["posts"]["Update"];
+      };
       
       const { error: updateError } = await supabase
         .from('posts')
