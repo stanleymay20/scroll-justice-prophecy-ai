@@ -1,57 +1,83 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
-import { EmergencyAlertForm } from "./EmergencyAlertForm";
-import { useEmergencyAlert } from "./useEmergencyAlert";
-import { EmergencyAlertProps } from "./types";
-import { useAuth } from "@/contexts/AuthContext";
+import { useEmergencyAlert } from './useEmergencyAlert';
+import { EmergencyAlertForm } from './EmergencyAlertForm';
+import { Bell, AlertCircle, Check } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
+import { EmergencyAlertProps } from './types';
 
 export function EmergencyAlert({ sessionId }: EmergencyAlertProps) {
-  const [showForm, setShowForm] = useState(false);
   const { user } = useAuth();
-  const userId = user?.id || '';
-  const { isSubmitting, hasActiveAlert, submitAlert, checkActiveAlerts } = useEmergencyAlert(sessionId, userId);
+  const [showForm, setShowForm] = useState(false);
   
-  // Check if the user already has an active alert when the component mounts
+  // Make sure we have a userId from the authenticated user
+  const userId = user?.id || '';
+  
+  const {
+    isSubmitting,
+    hasActiveAlert,
+    submitAlert,
+    checkActiveAlerts
+  } = useEmergencyAlert(sessionId, userId);
+  
   useEffect(() => {
     if (userId) {
       checkActiveAlerts();
     }
-  }, [userId, checkActiveAlerts]);
+  }, [sessionId, userId]);
   
-  const handleSubmit = async (message: string) => {
-    await submitAlert(message);
+  const handleOpenEmergencyForm = () => {
+    if (!userId) {
+      toast({
+        title: "Authentication Required",
+        description: "You must be signed in to send emergency alerts",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowForm(true);
+  };
+  
+  const handleCloseForm = () => {
     setShowForm(false);
   };
   
-  if (hasActiveAlert) {
-    return (
-      <div className="p-2 bg-red-600/20 border border-red-500 rounded-md flex items-center justify-center">
-        <AlertCircle className="text-red-500 mr-2 h-5 w-5" />
-        <span className="text-red-100 text-sm">Emergency alert has been sent</span>
-      </div>
-    );
-  }
-  
-  if (showForm) {
-    return <EmergencyAlertForm 
-      onSubmit={handleSubmit}
-      onCancel={() => setShowForm(false)}
-      isSubmitting={isSubmitting}
-    />;
-  }
+  const handleSubmitAlert = (message: string) => {
+    submitAlert(message);
+    setShowForm(false);
+  };
   
   return (
-    <Button 
-      variant="destructive" 
-      size="sm"
-      className="w-full"
-      onClick={() => setShowForm(true)}
-      disabled={!userId}
-    >
-      <AlertCircle className="h-4 w-4 mr-2" />
-      Emergency Alert
-    </Button>
+    <div className="relative">
+      {!showForm ? (
+        <Button
+          variant={hasActiveAlert ? "destructive" : "outline"}
+          size="sm"
+          className={`flex items-center ${hasActiveAlert ? 'animate-pulse' : ''}`}
+          onClick={handleOpenEmergencyForm}
+          disabled={!userId}
+        >
+          {hasActiveAlert ? (
+            <>
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Alert Active
+            </>
+          ) : (
+            <>
+              <Bell className="h-4 w-4 mr-2" />
+              Emergency Alert
+            </>
+          )}
+        </Button>
+      ) : (
+        <EmergencyAlertForm 
+          onSubmit={handleSubmitAlert}
+          onCancel={handleCloseForm}
+          isSubmitting={isSubmitting}
+        />
+      )}
+    </div>
   );
 }

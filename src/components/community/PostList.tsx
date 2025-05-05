@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -50,7 +51,7 @@ export function PostList({
       
       const { error: updateError } = await supabase
         .from('posts')
-        .update(updateData)
+        .update([updateData])
         .eq('id', postId);
 
       if (updateError) {

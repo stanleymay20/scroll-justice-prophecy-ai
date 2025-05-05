@@ -1,61 +1,64 @@
 
-import React, { useState, FormEvent } from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertTriangle, X, Send } from 'lucide-react';
 
 interface EmergencyAlertFormProps {
-  onSubmit: (message: string) => Promise<void>;
+  onSubmit: (message: string) => void;
   onCancel: () => void;
   isSubmitting: boolean;
 }
 
-export const EmergencyAlertForm: React.FC<EmergencyAlertFormProps> = ({
-  onSubmit,
-  onCancel,
-  isSubmitting
-}) => {
+export function EmergencyAlertForm({ onSubmit, onCancel, isSubmitting }: EmergencyAlertFormProps) {
   const [message, setMessage] = useState('');
-
-  const handleSubmit = async (e: FormEvent) => {
+  
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim()) {
-      await onSubmit(message);
+      onSubmit(message);
     }
   };
-
+  
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="flex items-center text-red-600 mb-2">
-        <AlertTriangle className="h-5 w-5 mr-2" />
+    <form onSubmit={handleSubmit} className="bg-black/30 border border-red-500/50 p-3 rounded-md">
+      <div className="flex items-center gap-2 mb-3 text-red-400">
+        <AlertTriangle className="h-5 w-5" />
         <h3 className="font-medium">Emergency Alert</h3>
       </div>
       
       <Textarea
-        placeholder="Describe the emergency situation..."
+        placeholder="Describe your emergency situation..."
+        className="mb-3"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        className="min-h-[100px] bg-white border-red-200"
-        required
+        rows={3}
       />
       
       <div className="flex justify-between">
-        <Button 
+        <Button
           type="button"
-          variant="outline"
+          variant="ghost"
+          size="sm"
           onClick={onCancel}
+          disabled={isSubmitting}
         >
-          Cancel
+          <X className="h-4 w-4 mr-1" /> Cancel
         </Button>
-        <Button 
+        
+        <Button
           type="submit"
           variant="destructive"
+          size="sm"
           disabled={isSubmitting || !message.trim()}
-          className="bg-red-600 hover:bg-red-700"
         >
-          {isSubmitting ? 'Submitting...' : 'Send Emergency Alert'}
+          {isSubmitting ? 'Sending...' : (
+            <>
+              <Send className="h-4 w-4 mr-1" /> Send Alert
+            </>
+          )}
         </Button>
       </div>
     </form>
   );
-};
+}

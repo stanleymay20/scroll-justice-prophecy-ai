@@ -34,7 +34,7 @@ export function useEmergencyAlert(sessionId: string, userId: string) {
       // Note: Insert using the correct type and syntax
       const { error } = await supabase
         .from('emergency_alerts')
-        .insert(alertData);
+        .insert([alertData]);
       
       if (error) throw error;
       
