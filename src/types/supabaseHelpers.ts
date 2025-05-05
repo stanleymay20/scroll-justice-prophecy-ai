@@ -1,5 +1,4 @@
 
-
 import { Database } from "@/integrations/supabase/types";
 
 // Type helpers for Supabase table operations
@@ -16,4 +15,3 @@ export type EmergencyAlertUpdate = Database["public"]["Tables"]["emergency_alert
 
 export type SessionRecordingInsert = Database["public"]["Tables"]["session_recordings"]["Insert"];
 export type SessionRecordingUpdate = Database["public"]["Tables"]["session_recordings"]["Update"];
-
