@@ -42,7 +42,7 @@ export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel,
 
         await supabase
           .from('court_session_participants')
-          .upsert(participantData);
+          .upsert([participantData]); // Wrap in array for Supabase
       }
         
       // Create properly typed log data
@@ -56,7 +56,7 @@ export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel,
       
       await supabase
         .from('scroll_witness_logs')
-        .insert(logData);
+        .insert([logData]); // Wrap in array for Supabase
         
       // Store in localStorage to remember this user has taken the oath
       localStorage.setItem('scrollJustice-oath-taken', 'true');
