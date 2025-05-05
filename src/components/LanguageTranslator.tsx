@@ -1,5 +1,4 @@
 
-import React, { useState } from "react";
 import { useLanguage } from "@/contexts/language";
 import { 
   Dialog, 
@@ -17,6 +16,7 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
+import { useState } from "react";
 import { getLanguageDisplayName } from "@/utils/languageUtils";
 import { LanguageCode } from "@/contexts/language";
 import { Globe, ExternalLink } from "lucide-react";

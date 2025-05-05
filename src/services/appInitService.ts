@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { logDomainConfiguration, SUPPORTED_DOMAINS, DEFAULT_DOMAIN } from '@/utils/domainUtils';
 
 // Initialize the app services
 export async function applyRlsPolicies() {
@@ -14,18 +13,18 @@ export async function applyRlsPolicies() {
 export async function initializeAiAuditLog() {
   console.log("Initializing AI audit log...");
   try {
-    // This is just a check to see if the table exists
-    // We'll use the edge function to actually create it if needed
-    const { error } = await supabase.functions.invoke('create-ai-audit-table', {
-      body: {}
-    });
+    // Check if the table exists
+    const { data, error } = await supabase
+      .from('ai_audit_logs')
+      .select('id')
+      .limit(1);
       
     if (error) {
-      console.warn("Error initializing AI audit log table:", error);
-      return false;
+      console.warn("AI audit log table may not exist. This is expected on first run.");
+    } else {
+      console.log("AI audit log table exists, with data:", data);
     }
     
-    console.log("AI audit log table initialization completed");
     return true;
   } catch (error) {
     console.error("Error initializing AI audit log:", error);
@@ -36,18 +35,6 @@ export async function initializeAiAuditLog() {
 // Set up window size logger for debugging
 export function setupWindowSizeLogger() {
   console.log(`Window size: ${window.innerWidth}x${window.innerHeight}`);
-  console.log(`Document URL: ${document.URL}`);
-  console.log(`Document domain: ${document.domain}`);
-  console.log(`Document location: ${document.location.href}`);
-  
-  // Log domain configuration
-  logDomainConfiguration();
-  
-  // Domain configuration check
-  console.log("Domain configuration check:");
-  console.log(`- Using ${DEFAULT_DOMAIN} as primary domain: ${document.domain.includes(DEFAULT_DOMAIN)}`);
-  console.log(`- Auth site URL: https://${DEFAULT_DOMAIN}`);
-  console.log(`- Auth redirect URLs include current domain: ${SUPPORTED_DOMAINS.some(domain => document.domain.includes(domain))}`);
   
   // Set up event listener for window resize
   const resizeListener = () => {

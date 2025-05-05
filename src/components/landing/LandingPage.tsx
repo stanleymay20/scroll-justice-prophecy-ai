@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Hero } from "./Hero";
 import { Features } from "./Features";
 import { CTASection } from "./CTASection";

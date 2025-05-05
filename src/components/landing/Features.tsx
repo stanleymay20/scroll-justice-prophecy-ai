@@ -1,5 +1,4 @@
 
-import React from "react";
 import { ScrollText, Shield, Scale, Gavel } from "lucide-react";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { useLanguage } from "@/contexts/language";

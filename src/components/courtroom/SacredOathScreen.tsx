@@ -1,13 +1,11 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollText, Shield } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
-import { CourtSessionParticipantInsert, ScrollWitnessLogInsert } from "@/types/supabaseHelpers";
 
 interface SacredOathScreenProps {
   userId: string;
@@ -31,32 +29,27 @@ export function SacredOathScreen({ userId, onComplete, onOathAccepted, onCancel,
     try {
       // Record the oath taking in user's profile or session participants
       if (sessionId) {
-        // Create properly typed participant data
-        const participantData: CourtSessionParticipantInsert = {
-          session_id: sessionId,
-          user_id: userId,
-          oath_taken: true,
-          oath_timestamp: new Date().toISOString(),
-          role: 'witness'
-        };
-
         await supabase
           .from('court_session_participants')
-          .insert(participantData);
+          .upsert({
+            session_id: sessionId,
+            user_id: userId,
+            oath_taken: true,
+            oath_timestamp: new Date().toISOString(),
+            role: 'witness' // Adding the required role field with a default value
+          });
       }
         
-      // Create properly typed log data
-      const logData: ScrollWitnessLogInsert = {
-        user_id: userId,
-        session_id: sessionId,
-        action: 'oath_taken',
-        details: 'Sacred oath taken for court participation',
-        timestamp: new Date().toISOString()
-      };
-      
+      // Log the oath in ScrollWitness logs
       await supabase
         .from('scroll_witness_logs')
-        .insert(logData);
+        .insert({
+          user_id: userId,
+          session_id: sessionId,
+          action: 'oath_taken',
+          details: 'Sacred oath taken for court participation',
+          timestamp: new Date().toISOString()
+        });
         
       // Store in localStorage to remember this user has taken the oath
       localStorage.setItem('scrollJustice-oath-taken', 'true');

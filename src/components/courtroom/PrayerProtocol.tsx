@@ -1,162 +1,129 @@
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Flame, Clock } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
-import { toast } from '@/hooks/use-toast';
-import type { CourtSession } from '@/types/database';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/advanced-ui/GlassCard";
+import { Flame } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface PrayerProtocolProps {
   sessionId: string;
-  onComplete?: () => void;
+  onPrayerComplete: () => void;
+  isPrayerCompleted: boolean;
 }
 
-export const PrayerProtocol: React.FC<PrayerProtocolProps> = ({ 
-  sessionId,
-  onComplete
-}) => {
-  const [isPraying, setIsPraying] = useState(false);
-  const [prayerComplete, setPrayerComplete] = useState(false);
-  const [timeElapsed, setTimeElapsed] = useState(0);
-  const { user } = useAuth();
-
-  const startPrayer = () => {
-    setIsPraying(true);
+export function PrayerProtocol({ sessionId, onPrayerComplete, isPrayerCompleted }: PrayerProtocolProps) {
+  const [praying, setPraying] = useState(false);
+  const [prayerTime, setPrayerTime] = useState(5); // seconds for prayer
+  const [countdown, setCountdown] = useState<number | null>(null);
+  
+  const prayerText = `We commit this court to the Righteous Judge of all.
+  May truth be spoken, justice be served, and mercy be granted.
+  May all who participate do so with integrity, wisdom, and humility.
+  We acknowledge that true justice flows from above, and we seek it now.
+  Amen.`;
+  
+  const handleStartPrayer = () => {
+    setPraying(true);
+    setCountdown(prayerTime);
     
-    // Start timer - minimum 10 seconds of prayer
     const timer = setInterval(() => {
-      setTimeElapsed(prev => prev + 1);
-    }, 1000);
-    
-    // Auto-complete after 30 seconds max
-    setTimeout(() => {
-      clearInterval(timer);
-      if (isPraying) completePrayer();
-    }, 30000);
-  };
-
-  const completePrayer = async () => {
-    if (timeElapsed < 10) {
-      toast({
-        title: "Prayer too brief",
-        description: "Please engage in prayer for at least 10 seconds.",
-        variant: "destructive"
+      setCountdown(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          handlePrayerComplete();
+          return null;
+        }
+        return prev - 1;
       });
-      return;
-    }
-    
+    }, 1000);
+  };
+  
+  const handlePrayerComplete = async () => {
     try {
-      // Update session record
-      const updateData: Partial<CourtSession> = {
-        prayer_completed: true,
-        prayer_timestamp: new Date().toISOString()
-      };
-      
+      // Update court session to mark prayer as completed
       const { error } = await supabase
         .from('court_sessions')
-        .update(updateData as any)
-        .eq('id', sessionId as any);
+        .update({
+          prayer_completed: true,
+          prayer_timestamp: new Date().toISOString()
+        })
+        .eq('id', sessionId);
         
       if (error) throw error;
       
-      // Log prayer completion
+      // Log the prayer completion in ScrollWitness logs
       await supabase
         .from('scroll_witness_logs')
         .insert({
           session_id: sessionId,
-          user_id: user?.id,
           action: 'prayer_completed',
-          details: `Prayer completed after ${timeElapsed} seconds`,
+          details: 'Sacred prayer protocol completed before court session',
           timestamp: new Date().toISOString()
-        } as any);
-      
-      // Update local state
-      setIsPraying(false);
-      setPrayerComplete(true);
-      
-      // Notify parent component
-      if (onComplete) onComplete();
-      
-      // Show toast
-      toast({
-        title: "Prayer Protocol Complete",
-        description: "The Flame has been honored. You may proceed.",
-      });
-      
-    } catch (error: any) {
-      toast({
-        title: "Prayer Error",
-        description: error.message || "Failed to record prayer completion",
-        variant: "destructive"
-      });
-      setIsPraying(false);
+        });
+        
+      setPraying(false);
+      onPrayerComplete();
+    } catch (error) {
+      console.error("Error completing prayer protocol:", error);
+      setPraying(false);
     }
   };
   
-  const formatTime = (seconds: number): string => {
-    return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-  };
-
-  if (prayerComplete) {
+  if (isPrayerCompleted) {
     return (
-      <Card className="p-4 bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
-        <div className="flex items-center space-x-3 text-amber-600">
-          <Flame className="h-6 w-6" />
-          <div>
-            <h3 className="font-medium">Prayer Protocol Complete</h3>
-            <p className="text-sm text-amber-700">The Flame has been honored</p>
-          </div>
-        </div>
-      </Card>
+      <div className="flex items-center justify-center space-x-2 text-justice-primary">
+        <Flame className="h-5 w-5" />
+        <span>Sacred Prayer Completed</span>
+      </div>
     );
   }
-
+  
   return (
-    <Card className="p-4 bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
-      <div className="space-y-4">
-        <div className="flex items-center space-x-3 text-amber-600">
-          <Flame className="h-6 w-6" />
-          <div>
-            <h3 className="font-medium">Prayer Protocol Required</h3>
-            <p className="text-sm text-amber-700">Honor the Flame before proceeding</p>
+    <GlassCard className="w-full max-w-2xl mx-auto p-6" intensity="medium" glow>
+      <div className="text-center mb-6">
+        <div className="flex justify-center mb-4">
+          <div className="relative">
+            <Flame className="h-12 w-12 text-justice-primary" />
+            {praying && (
+              <div className="absolute -top-2 -right-2 bg-white text-black h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold">
+                {countdown}
+              </div>
+            )}
           </div>
         </div>
-        
-        {isPraying ? (
-          <div className="space-y-3">
-            <div className="flex items-center justify-center p-4 bg-amber-100 rounded-md">
-              <div className="text-center">
-                <Flame className="h-12 w-12 mx-auto text-amber-500 animate-pulse" />
-                <div className="mt-2 flex items-center justify-center text-amber-700">
-                  <Clock className="h-4 w-4 mr-1" />
-                  <span className="font-mono">{formatTime(timeElapsed)}</span>
-                </div>
+        <h2 className="text-2xl font-bold text-white">Sacred Prayer Protocol</h2>
+        <p className="text-justice-light/80 mt-2">
+          Before opening this sacred court, we must complete the prayer protocol.
+        </p>
+      </div>
+      
+      <div className="bg-black/30 border border-justice-tertiary/30 rounded-lg p-6 mb-6">
+        <p className="text-white font-serif text-center italic whitespace-pre-line">
+          {prayerText}
+        </p>
+      </div>
+      
+      <div className="space-y-4">
+        {praying ? (
+          <div className="text-center">
+            <p className="text-justice-light mb-4">Prayer in progress...</p>
+            <div className="flex justify-center">
+              <div className="voice-wave h-12">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="h-8" style={{ animationDelay: `${i * 0.1}s` }}></span>
+                ))}
               </div>
             </div>
-            
-            <Button 
-              onClick={completePrayer}
-              className="w-full bg-amber-500 hover:bg-amber-600 text-white"
-              disabled={timeElapsed < 10}
-            >
-              Complete Prayer {timeElapsed < 10 ? `(${10 - timeElapsed}s remaining)` : ''}
-            </Button>
           </div>
         ) : (
           <Button 
-            onClick={startPrayer}
-            className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+            className="w-full bg-gradient-to-r from-justice-primary to-justice-secondary"
+            onClick={handleStartPrayer}
           >
-            Begin Prayer Protocol
+            Begin Sacred Prayer
           </Button>
         )}
-        
-        <p className="text-xs text-amber-600 text-center">
-          Minimum prayer duration: 10 seconds
-        </p>
       </div>
-    </Card>
+    </GlassCard>
   );
-};
+}

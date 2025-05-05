@@ -5,8 +5,7 @@ import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollText, Shield } from "lucide-react";
 import { OathStatus } from "@/types/courtroom";
-import { supabase } from '@/integrations/supabase/client';
-import { CourtSessionParticipantUpdate, ScrollWitnessLogInsert } from "@/types/supabaseHelpers";
+import { supabase } from "@/lib/supabase";
 
 interface SacredOathProps {
   sessionId: string;
@@ -30,32 +29,27 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
     
     setSubmitting(true);
     try {
-      // Create properly typed update data
-      const updateData: CourtSessionParticipantUpdate = {
-        oath_taken: true,
-        oath_timestamp: new Date().toISOString()
-      };
-      
       const { error } = await supabase
         .from('court_session_participants')
-        .update(updateData)
+        .update({
+          oath_taken: true,
+          oath_timestamp: new Date().toISOString()
+        })
         .eq('session_id', sessionId)
         .eq('user_id', userId);
         
       if (error) throw error;
       
-      // Create properly typed log data
-      const logData: ScrollWitnessLogInsert = {
-        session_id: sessionId,
-        user_id: userId,
-        action: 'oath_taken',
-        details: 'Sacred oath taken for court participation',
-        timestamp: new Date().toISOString()
-      };
-      
+      // Log the oath taking in the ScrollWitness logs
       await supabase
         .from('scroll_witness_logs')
-        .insert(logData);
+        .insert({
+          session_id: sessionId,
+          user_id: userId,
+          action: 'oath_taken',
+          details: 'Sacred oath taken for court participation',
+          timestamp: new Date().toISOString()
+        });
         
       onOathComplete();
     } catch (error) {

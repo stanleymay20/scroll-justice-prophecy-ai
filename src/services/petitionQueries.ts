@@ -221,26 +221,27 @@ export async function assignJudge(petitionId: string, judgeId: string): Promise<
 // Log an integrity action - Making this function exportable
 export async function logIntegrityAction(
   actionType: string,
-  impactLevel: number,
+  integrityImpact: number,
   description: string,
   petitionId?: string
-): Promise<boolean> {
+): Promise<void> {
   try {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id;
+    const { data: { user } } = await supabase.auth.getUser();
     
-    const { error } = await supabase.from('scroll_integrity_logs').insert({
-      user_id: userId || null,
-      petition_id: petitionId || null,
+    const logEntry = {
       action_type: actionType,
-      description: description,
-      integrity_impact: impactLevel
-    });
+      integrity_impact: integrityImpact,
+      description,
+      petition_id: petitionId,
+      user_id: user?.id,
+    };
     
-    if (error) throw error;
-    return true;
+    const { error } = await supabase
+      .from('scroll_integrity_logs')
+      .insert(logEntry);
+      
+    if (error) console.error('Error logging integrity action:', error);
   } catch (error) {
     console.error('Error logging integrity action:', error);
-    return false;
   }
 }

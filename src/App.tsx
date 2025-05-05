@@ -1,9 +1,9 @@
 
-import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/language";
 import { MetaTags } from "@/components/MetaTags";
@@ -14,7 +14,6 @@ import {
   setupWindowSizeLogger 
 } from "@/services/appInitService";
 import { ensureEvidenceBucketExists } from "@/services/evidenceService";
-import { logDomainConfiguration, DEFAULT_DOMAIN } from '@/utils/domainUtils';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -30,12 +29,6 @@ const App = () => {
   // Add console logging to help with debugging
   useEffect(() => {
     console.log("info: App component mounted");
-    console.log("Current URL:", window.location.href);
-    console.log("Current hostname:", window.location.hostname);
-    console.log("Domain configured in Supabase:", `https://${DEFAULT_DOMAIN}`);
-    
-    // Log domain configuration
-    logDomainConfiguration();
     
     // Set up window size logger
     const cleanupSizeLogger = setupWindowSizeLogger();
