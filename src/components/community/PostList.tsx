@@ -7,7 +7,7 @@ import { Heart, MessageSquare, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/language";
-import { PostUpdate } from "@/types/supabaseHelpers";
+import { Database } from "@/integrations/supabase/types";
 
 interface PostListProps {
   posts: Post[];
@@ -44,13 +44,13 @@ export function PostList({
     }
 
     try {
-      const likeData: PostUpdate = { 
+      const updateData = { 
         likes: currentLikes + 1 
-      };
+      } satisfies Database["public"]["Tables"]["posts"]["Update"];
       
       const { error: updateError } = await supabase
         .from('posts')
-        .update(likeData)
+        .update(updateData)
         .eq('id', postId);
 
       if (updateError) {

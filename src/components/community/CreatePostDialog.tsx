@@ -12,7 +12,7 @@ import { useLanguage } from "@/contexts/language";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Send, X } from "lucide-react";
-import { PostInsert } from "@/types/supabaseHelpers";
+import { Database } from "@/integrations/supabase/types";
 
 interface CreatePostDialogProps {
   onPostCreated: () => void;
@@ -48,17 +48,17 @@ export function CreatePostDialog({ onPostCreated }: CreatePostDialogProps) {
 
     setSubmitting(true);
     try {
-      // Create properly typed post data
-      const postData: PostInsert = {
+      // Create properly typed post data using 'satisfies' to ensure type compatibility
+      const postData = {
         user_id: user.id,
-        title: newPostTitle,
-        content: newPostContent,
+        title: newPostTitle.trim(),
+        content: newPostContent.trim(),
         category: newPostCategory
-      };
+      } satisfies Database["public"]["Tables"]["posts"]["Insert"];
 
       const { error } = await supabase
         .from('posts')
-        .insert([postData]); // Wrap in array for Supabase insert
+        .insert([postData]);
 
       if (error) {
         console.error("Supabase error creating post:", error);
