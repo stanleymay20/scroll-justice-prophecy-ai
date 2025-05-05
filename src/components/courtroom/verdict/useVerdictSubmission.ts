@@ -49,12 +49,12 @@ export const useVerdictSubmission = ({
       // Log the verdict in scroll_integrity_logs
       await supabase
         .from('scroll_integrity_logs')
-        .insert({
+        .insert([{
           action_type: approved ? 'VERDICT_APPROVED' : 'VERDICT_REJECTED',
           integrity_impact: approved ? 10 : -5,
           description: `Verdict delivered: ${verdictText}`,
           petition_id: petitionId,
-        });
+        }]);
       
       toast({
         title: t(`verdict.${approved ? 'approved' : 'rejected'}`),
