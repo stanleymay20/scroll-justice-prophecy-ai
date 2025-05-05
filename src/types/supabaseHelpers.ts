@@ -9,3 +9,9 @@ export type CourtSessionParticipantInsert = Database["public"]["Tables"]["court_
 export type CourtSessionParticipantUpdate = Database["public"]["Tables"]["court_session_participants"]["Update"];
 
 export type ScrollWitnessLogInsert = Database["public"]["Tables"]["scroll_witness_logs"]["Insert"];
+
+export type EmergencyAlertInsert = Database["public"]["Tables"]["emergency_alerts"]["Insert"];
+export type EmergencyAlertUpdate = Database["public"]["Tables"]["emergency_alerts"]["Update"];
+
+export type SessionRecordingInsert = Database["public"]["Tables"]["session_recordings"]["Insert"];
+export type SessionRecordingUpdate = Database["public"]["Tables"]["session_recordings"]["Update"];
