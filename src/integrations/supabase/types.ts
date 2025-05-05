@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_audit_logs: {
+        Row: {
+          action_type: string
+          ai_model: string
+          created_at: string
+          id: string
+          input_summary: string | null
+          output_summary: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          ai_model: string
+          created_at?: string
+          id?: string
+          input_summary?: string | null
+          output_summary?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          ai_model?: string
+          created_at?: string
+          id?: string
+          input_summary?: string | null
+          output_summary?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       court_session_participants: {
         Row: {
           id: string
@@ -611,7 +641,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_table_exists: {
+        Args: { table_name: string }
+        Returns: boolean
+      }
+      create_ai_audit_logs_table: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       post_category:

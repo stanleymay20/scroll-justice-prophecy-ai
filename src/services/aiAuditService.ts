@@ -50,7 +50,6 @@ export async function logAIInteraction(interaction: AIInteractionLog): Promise<b
 
 /**
  * Fetch AI interaction logs for the current user or a specific user
- * This is a mock implementation until the ai_audit_logs table is created
  */
 export async function fetchAIInteractionLogs(
   userId?: string, 
@@ -69,29 +68,17 @@ export async function fetchAIInteractionLogs(
       throw new Error('No user ID available for fetching AI logs');
     }
     
-    // Since the ai_audit_logs table may not exist yet, we return mock data
-    // In a production app, this would query the actual table
-    console.log('Fetching AI logs for user:', targetUserId);
+    // Call the edge function to get user's AI logs
+    const { data, error } = await supabase.functions.invoke('get-user-ai-logs', {
+      body: { userId: targetUserId, limit, offset }
+    });
     
-    // Return mock data for now
-    const mockLogs: AIInteractionLog[] = [
-      {
-        action_type: 'CONTENT_ANALYSIS',
-        ai_model: 'scroll-integrity-analyzer-1.0',
-        input_summary: 'Sample petition text...',
-        output_summary: 'Integrity Score: 85%',
-        created_at: new Date().toISOString()
-      },
-      {
-        action_type: 'VERDICT_SUGGESTION',
-        ai_model: 'scroll-verdict-suggestion-1.0',
-        input_summary: 'Sample case description...',
-        output_summary: 'Suggested verdict: The petitioner\'s request should be...',
-        created_at: new Date(Date.now() - 86400000).toISOString() // 1 day ago
-      }
-    ];
+    if (error) {
+      console.error('Error fetching AI interaction logs:', error);
+      return [];
+    }
     
-    return mockLogs;
+    return data || [];
   } catch (error) {
     console.error('Error fetching AI interaction logs:', error);
     return [];

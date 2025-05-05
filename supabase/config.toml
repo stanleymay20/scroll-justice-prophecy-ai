@@ -78,3 +78,21 @@ verify_jwt = true
 
 [functions.fix-post-queries]
 verify_jwt = true
+
+[functions.log-ai-interaction]
+verify_jwt = false
+
+[functions.get-user-ai-logs]
+verify_jwt = true
+
+[functions.create-ai-audit-table]
+verify_jwt = false
+
+[functions.analyze-content]
+verify_jwt = false
+
+[functions.get-ai-verdict]
+verify_jwt = true
+
+[functions.transcribe-audio]
+verify_jwt = true

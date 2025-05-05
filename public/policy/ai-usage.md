@@ -1,95 +1,82 @@
 
-# ScrollJustice.AI - Artificial Intelligence Usage Policy
+# AI Usage Policy
 
 ## Introduction
 
-ScrollJustice.AI employs artificial intelligence technologies to assist in various aspects of our platform. This policy document outlines how AI is used within our system, what safeguards are in place, and your rights regarding AI-assisted processing.
+ScrollJustice utilizes artificial intelligence (AI) technologies to enhance the platform's functionality and user experience. This document outlines how AI is used within our platform, what data is processed, and how we ensure transparency, security, and user control over AI features.
 
-## AI Features and Usage
+## AI Technologies Used
 
-### Translation Services
-- AI models assist in translating content across multiple languages
-- Human oversight ensures translation quality and cultural relevance
-- No personally identifiable information is stored by the translation models
+### Speech-to-Text (Whisper)
+- **Purpose**: Transcription of audio testimonies and verdicts
+- **Data Usage**: Audio files are processed to generate text transcriptions
+- **User Control**: Users must explicitly consent before any audio is processed
 
-### Transcription Services
-- AI-powered speech-to-text for courtroom proceedings
-- Transcripts are always subject to human review
-- Users can request corrections to any AI-generated transcript
-
-### Case Simulations
-- AI models provide educational simulations of legal proceedings
-- Simulations are clearly labeled as non-binding and for educational purposes only
-- Suggestions are based on historical precedent but require human judgment
+### Text Analysis (Content Integrity Analysis)
+- **Purpose**: Assessing the integrity and compliance of petitions
+- **Data Usage**: Analyzes text content to provide suggestions and integrity scoring
+- **User Control**: Users can opt out of content analysis at any time
 
 ### Verdict Assistance
-- AI may suggest potential verdict language based on precedent
-- **ALL verdicts require human review and approval**
-- Judges maintain full authority and responsibility for final decisions
-- AI suggestions are clearly labeled as such
+- **Purpose**: Provides judges with optional AI-suggested verdicts based on petition contents
+- **Data Usage**: Analyzes petition text to suggest possible verdicts
+- **User Control**: Judges can enable or disable AI suggestions
 
-## Human Oversight and Intervention
+### Simulation Training
+- **Purpose**: Provides training scenarios for judges to practice
+- **Data Usage**: Generates hypothetical case scenarios
+- **User Control**: Users explicitly choose to enter training mode
 
-At ScrollJustice.AI, we adhere to a "human-in-the-loop" philosophy:
+## Data Processing
 
-1. No AI system in our platform makes final decisions without human review
-2. All AI suggestions are clearly labeled as AI-generated
-3. Human judges and administrators can override AI suggestions at any time
-4. Our staff regularly audits AI outputs for fairness, accuracy, and bias
+### What We Process
+- Petition text and descriptions
+- Audio recordings when submitted for transcription
+- User interactions with AI-powered features
 
-## Your Rights Regarding AI
+### How Processing Works
+1. Content is analyzed using AI models
+2. Results are presented to the user
+3. An audit log entry is created for transparency
 
-### Transparency
-- You will always be informed when interacting with AI-assisted features
-- AI components are clearly labeled in the user interface
-- You can access your personal AI interaction logs from your account settings
+### Storage and Retention
+- AI analysis results are stored in your account for your reference
+- Raw data sent to AI providers is not retained beyond the processing period
+- Audio files are processed in memory and not stored by our AI providers
 
-### Consent and Opt-Out
-- You may opt-out of AI processing for certain features
-- Consent toggles are available for AI-assisted drafting and review
-- Opting out may limit some platform functionality
+## User Control and Transparency
 
-### Data Usage
-- AI training is conducted on anonymized data only
-- Personal information is not used to train AI models without explicit consent
-- You can request deletion of your data from AI training datasets
+### Consent Requirements
+- AI features are opt-in by default
+- Clear toggle controls are provided for all AI functionality
+- Users can withdraw consent at any time
 
-## Scroll Governance Protocol for AI
+### Audit Logs
+- All AI interactions are logged in your account
+- Logs include the type of interaction, timestamp, and summary of inputs and outputs
+- You can access your AI interaction history in your account settings
 
-ScrollJustice.AI follows these sacred principles for ethical AI use:
+### Human Oversight
+- All AI-suggested verdicts are reviewed by human judges
+- No automated decisions are made without human review
+- The platform always clearly indicates when content is AI-generated
 
-1. **Truth Above Algorithms**: Human wisdom and truth-seeking take precedence over algorithmic efficiency
-2. **Transparency of Process**: All AI processes must be explainable and transparent
-3. **Human Authority**: Final authority resides with human judges and administrators
-4. **Equal Access to Justice**: AI must enhance, never hinder, access to justice for all
-5. **Continuous Improvement**: Our AI systems are regularly evaluated and improved for fairness
+## Privacy and Security
 
-## Legal Compliance
+### Data Protection
+- All data transmitted to AI services is encrypted
+- We use industry-standard security practices to protect your data
+- Personal identifiable information is never shared with AI providers
 
-Our AI systems are designed to comply with relevant regulations including:
-- EU AI Act (2024)
-- US FTC Algorithmic Accountability Act
-- Canada AIDA
-- Kenya Data Protection & CAK AI Framework
-- African Union Model AI Policy
-- OpenAI Use Policies
+### Third-Party AI Providers
+- We utilize OpenAI for certain AI functionality
+- These providers are contractually obligated to protect your data
+- We regularly audit our AI providers' security and privacy practices
 
-## Audit and Accountability
+## Policy Updates
 
-ScrollJustice.AI maintains comprehensive logs of all AI interactions, including:
-- Type of AI interaction
-- Models used
-- Human review status
-- Final outcome
+This AI usage policy may be updated periodically to reflect changes in our AI implementation, legal requirements, or best practices. Users will be notified of significant changes to this policy.
 
-These logs are available to regulatory authorities as required by law and to users for their own interactions.
+Last updated: May 5, 2025
 
-## Contact Information
-
-For questions regarding our AI usage policy:
-- Email: ai-compliance@scrolljustice.ai
-- In-platform: Contact support through the Help Center
-
-## Last Updated
-
-This policy was last updated on May 3, 2025.
+For questions about our AI usage, please contact us at support@scrollcourt.xyz
