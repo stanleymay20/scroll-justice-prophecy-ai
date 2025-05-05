@@ -1,4 +1,5 @@
 
+
 export type PostCategory = 'testimony' | 'prayer_request' | 'legal_question' | 'righteous_insight' | 'announcement';
 
 export interface Post {
@@ -29,3 +30,4 @@ export interface Comment {
     avatar_url?: string;
   };
 }
+
