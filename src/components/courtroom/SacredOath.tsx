@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
@@ -38,7 +37,7 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
       
       const { error } = await supabase
         .from('court_session_participants')
-        .update([updateData])
+        .update(updateData)
         .eq('session_id', sessionId)
         .eq('user_id', userId);
         
@@ -55,7 +54,7 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
       
       await supabase
         .from('scroll_witness_logs')
-        .insert([logData]);
+        .insert(logData);
         
       onOathComplete();
     } catch (error) {
