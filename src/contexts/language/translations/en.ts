@@ -1,59 +1,43 @@
 
-// English translations
-const en = {
-  "app": {
-    "title": "ScrollJustice.AI",
-    "tagline": "Sacred justice through digital scrolls"
-  },
-  "nav": {
-    "home": "Home",
-    "dashboard": "Dashboard",
-    "precedent": "Sacred Precedents",
-    "scroll-memory": "Scroll Memory",
-    "principles": "Principles",
-    "search": "Search",
-    "analytics": "Analytics",
-    "scroll-time": "Scroll Time",
-    "legal-systems": "Legal Systems",
-    "case-classification": "Case Classification",
-    "document-upload": "Document Upload",
-    "simulation-trial": "Simulation Trial",
-    "ai-training": "AI Training",
-    "profile": "Profile",
-    "signin": "Sign In",
-    "signup": "Sign Up",
-    "language": "Language"
-  },
-  "button": {
-    "register": "Register",
-    "login": "Login",
-    "submit": "Submit",
-    "cancel": "Cancel",
-    "save": "Save",
-    "delete": "Delete"
-  },
-  "language": {
-    "select": "Select Language",
-    "extended": "Extended Languages",
-    "sacred": "Sacred Languages"
-  },
-  "common": {
-    "dismiss": "Dismiss"
-  },
-  "ai": {
-    "disclosure": {
-      "banner": "This application uses AI technologies to assist in legal processes. All AI-generated content is subject to human review.",
-      "learnMore": "Learn more"
-    },
-    "consent": {
-      "judge": "Allow AI to assist with case drafting",
-      "petitioner": "Allow AI to analyze my petition",
-      "general": "Enable AI features",
-      "judgeTooltip": "AI will help draft initial responses but all decisions require human review",
-      "petitionerTooltip": "Your petition may be analyzed by AI to improve processing time",
-      "generalTooltip": "Enable AI-assisted features throughout the platform"
-    }
-  }
+import { BaseTranslation } from "../types";
+
+const en: BaseTranslation = {
+  // Common UI elements
+  "app.title": "ScrollCourt",
+  "app.tagline": "AI-powered justice for the digital age",
+  "app.loading": "Loading...",
+  
+  // Navigation
+  "nav.home": "Home",
+  "nav.precedent": "Precedent",
+  "nav.community": "Community",
+  "nav.signin": "Sign In",
+  "nav.dashboard": "Dashboard",
+  "nav.profile": "Profile",
+  "nav.settings": "Settings",
+  "nav.logout": "Logout",
+  
+  // Buttons
+  "button.submit": "Submit",
+  "button.cancel": "Cancel",
+  "button.register": "Register",
+  "button.learn_more": "Learn More",
+  
+  // Court related
+  "court.simulation": "Simulation Trial",
+  
+  // CTA Section
+  "landing.cta.title": "Ready to experience true digital justice?",
+  "landing.cta.description": "Join our growing community of truth seekers and help shape the future of digital governance.",
+  "landing.cta.viewPlans": "View Plans",
+  
+  // Pages
+  "pages.home": "Home",
+  "pages.dashboard": "Dashboard",
+  
+  // Custom keys for the app
+  "scroll.integrity": "Scroll Integrity",
+  "scroll.community": "Scroll Community",
 };
 
 export default en;

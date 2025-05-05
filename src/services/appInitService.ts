@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { logDomainConfiguration, SUPPORTED_DOMAINS, DEFAULT_DOMAIN } from '@/utils/domainUtils';
 
 // Initialize the app services
 export async function applyRlsPolicies() {
@@ -39,11 +40,14 @@ export function setupWindowSizeLogger() {
   console.log(`Document domain: ${document.domain}`);
   console.log(`Document location: ${document.location.href}`);
   
+  // Log domain configuration
+  logDomainConfiguration();
+  
   // Domain configuration check
   console.log("Domain configuration check:");
-  console.log(`- Using scrollcourt.xyz as primary domain: ${document.domain.includes('scrollcourt.xyz')}`);
-  console.log(`- Auth site URL: https://scrollcourt.xyz`);
-  console.log(`- Auth redirect URLs include current domain: ${['lovable.dev', 'scrolljustice.xyz', 'scrollcourt.xyz'].some(domain => document.domain.includes(domain))}`);
+  console.log(`- Using ${DEFAULT_DOMAIN} as primary domain: ${document.domain.includes(DEFAULT_DOMAIN)}`);
+  console.log(`- Auth site URL: https://${DEFAULT_DOMAIN}`);
+  console.log(`- Auth redirect URLs include current domain: ${SUPPORTED_DOMAINS.some(domain => document.domain.includes(domain))}`);
   
   // Set up event listener for window resize
   const resizeListener = () => {

@@ -1,10 +1,12 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { SubscriptionStatus, SubscriptionTier } from "@/types/subscription";
 import { mapTierToRole } from "@/lib/stripe";
+import { getAuthRedirectUrl } from "@/utils/domainUtils";
 
 type AuthContextType = {
   session: Session | null;
@@ -250,7 +252,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         email, 
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: getAuthRedirectUrl('/auth/callback')
         }
       });
       if (error) throw error;

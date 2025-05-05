@@ -14,6 +14,7 @@ import {
   setupWindowSizeLogger 
 } from "@/services/appInitService";
 import { ensureEvidenceBucketExists } from "@/services/evidenceService";
+import { logDomainConfiguration, DEFAULT_DOMAIN } from '@/utils/domainUtils';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -31,7 +32,10 @@ const App = () => {
     console.log("info: App component mounted");
     console.log("Current URL:", window.location.href);
     console.log("Current hostname:", window.location.hostname);
-    console.log("Domain configured in Supabase:", "https://scrollcourt.xyz");
+    console.log("Domain configured in Supabase:", `https://${DEFAULT_DOMAIN}`);
+    
+    // Log domain configuration
+    logDomainConfiguration();
     
     // Set up window size logger
     const cleanupSizeLogger = setupWindowSizeLogger();

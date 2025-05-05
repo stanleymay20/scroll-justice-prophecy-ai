@@ -1,26 +1,10 @@
 
-import { createClient } from '@supabase/supabase-js';
+// This file is now just importing from the centralized client
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { getCurrentSiteUrl } from '@/utils/domainUtils';
 
-// Use the environment variables with the provided values
-const supabaseUrl = 'https://rgstpbaljoamkhjhomzp.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJnc3RwYmFsam9hbWtoamhvbXpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NjYxMzMsImV4cCI6MjA2MTM0MjEzM30.DLpKUaIo0REcRQzCAYV1bxW2bqqIdHNcsgBYf9SNRuE';
-const siteUrl = 'https://lovable.dev/projects/f7d71f55-ae04-491e-87d0-df4a10e1f669/preview';
-
-// Initialize Supabase client with the provided credentials and explicit auth config
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce',
-    storage: localStorage
-  }
-});
-
-// Export helper to check if Supabase is properly configured
-export const isSupabaseConfigured = () => {
-  return !!supabaseUrl && !!supabaseAnonKey;
-};
+// Re-export the supabase client and helper functions
+export { supabase, isSupabaseConfigured };
 
 // Helper to encrypt data using ScrollSeal
 export const encryptWithScrollSeal = async (data: string): Promise<{ encryptedData: string; key: string }> => {
