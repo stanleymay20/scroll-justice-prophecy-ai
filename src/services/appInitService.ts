@@ -35,6 +35,9 @@ export async function initializeAiAuditLog() {
 // Set up window size logger for debugging
 export function setupWindowSizeLogger() {
   console.log(`Window size: ${window.innerWidth}x${window.innerHeight}`);
+  console.log(`Document URL: ${document.URL}`);
+  console.log(`Document domain: ${document.domain}`);
+  console.log(`Document location: ${document.location.href}`);
   
   // Set up event listener for window resize
   const resizeListener = () => {
