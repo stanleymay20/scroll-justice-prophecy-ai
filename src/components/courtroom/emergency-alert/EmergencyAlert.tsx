@@ -1,50 +1,51 @@
 
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { EmergencyAlertForm } from './EmergencyAlertForm';
-import { useEmergencyAlert } from './useEmergencyAlert';
-import type { EmergencyAlertProps } from './types';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { AlertCircle } from "lucide-react";
+import { EmergencyAlertForm } from "./EmergencyAlertForm";
+import { useEmergencyAlert } from "./useEmergencyAlert";
+import { EmergencyAlertProps } from "./types";
 
-export const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ 
-  sessionId, 
-  onClose 
-}) => {
-  const [message, setMessage] = useState('');
-  const {
-    isSubmitting,
-    submitAlert
-  } = useEmergencyAlert(sessionId, ''); // We'll need to get the userId from auth context in a real app
+export function EmergencyAlert({ sessionId, userId }: EmergencyAlertProps) {
+  const [showForm, setShowForm] = useState(false);
+  const { isSubmitting, hasActiveAlert, submitAlert, checkActiveAlerts } = useEmergencyAlert(sessionId, userId);
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Check if the user already has an active alert when the component mounts
+  useEffect(() => {
+    checkActiveAlerts();
+  }, []);
+  
+  const handleSubmit = async (message: string) => {
     await submitAlert(message);
-    setMessage('');
+    setShowForm(false);
   };
   
-  return (
-    <Card className="bg-red-50 border-red-300 p-4">
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex-1" />
-        {onClose && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0" 
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+  if (hasActiveAlert) {
+    return (
+      <div className="p-2 bg-red-600/20 border border-red-500 rounded-md flex items-center justify-center">
+        <AlertCircle className="text-red-500 mr-2 h-5 w-5" />
+        <span className="text-red-100 text-sm">Emergency alert has been sent</span>
       </div>
-      
-      <EmergencyAlertForm
-        message={message}
-        onMessageChange={setMessage}
-        isSubmitting={isSubmitting}
-        onSubmit={handleSubmit}
-      />
-    </Card>
+    );
+  }
+  
+  if (showForm) {
+    return <EmergencyAlertForm 
+      onSubmit={handleSubmit}
+      onCancel={() => setShowForm(false)}
+      isSubmitting={isSubmitting}
+    />;
+  }
+  
+  return (
+    <Button 
+      variant="destructive" 
+      size="sm"
+      className="w-full"
+      onClick={() => setShowForm(true)}
+    >
+      <AlertCircle className="h-4 w-4 mr-2" />
+      Emergency Alert
+    </Button>
   );
-};
+}
