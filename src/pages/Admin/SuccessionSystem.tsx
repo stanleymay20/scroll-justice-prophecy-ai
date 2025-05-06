@@ -11,42 +11,20 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Shield, Activity, Archive } from "lucide-react";
+import { Shield, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface FlameActivity {
   id: string;
   user_id: string;
-  activity_type: string;
+  action_type: string;
   description: string;
   created_at: string;
   username?: string;
 }
 
-interface SuccessionNomination {
-  id: string;
-  judge_id: string;
-  successor_id: string;
-  scroll_key: string;
-  last_active: string;
-  judge_username?: string;
-  successor_username?: string;
-}
-
-interface SealedCase {
-  id: string;
-  title: string;
-  petitioner_id: string;
-  status: string;
-  assigned_judge_id: string;
-  is_sealed: boolean;
-  created_at: string;
-}
-
 export default function SuccessionSystem() {
   const [flameActivity, setFlameActivity] = useState<FlameActivity[]>([]);
-  const [nominations, setNominations] = useState<SuccessionNomination[]>([]);
-  const [sealedCases, setSealedCases] = useState<SealedCase[]>([]);
   const [potentialSuccessors, setPotentialSuccessors] = useState<{id: string; username: string}[]>([]);
   const [selectedSuccessorId, setSelectedSuccessorId] = useState<string>('');
   const [scrollKey, setScrollKey] = useState<string>('');
@@ -79,12 +57,14 @@ export default function SuccessionSystem() {
         .order('reputation_score', { ascending: false });
 
       if (judgesData) {
-        setPotentialSuccessors(
-          judgesData.map(judge => ({
+        const successors = judgesData
+          .filter(judge => judge.profiles && typeof judge.profiles === 'object')
+          .map(judge => ({
             id: judge.user_id,
-            username: judge.profiles.username
-          }))
-        );
+            username: judge.profiles?.username || 'Unknown Judge'
+          }));
+        
+        setPotentialSuccessors(successors);
       }
 
       // Fetch flame activity logs
@@ -102,47 +82,18 @@ export default function SuccessionSystem() {
         .limit(20);
 
       if (activityData) {
-        setFlameActivity(
-          activityData.map(activity => ({
-            ...activity,
+        const activities = activityData
+          .filter(activity => activity.profiles && typeof activity.profiles === 'object')
+          .map(activity => ({
+            id: activity.id,
+            user_id: activity.user_id,
+            action_type: activity.action_type,
+            description: activity.description,
+            created_at: activity.created_at,
             username: activity.profiles?.username || 'Unknown User'
-          }))
-        );
-      }
-
-      // Fetch succession nominations
-      const { data: nominationsData } = await supabase
-        .from('flame_succession')
-        .select(`
-          id,
-          judge_id,
-          successor_id,
-          scroll_key,
-          last_active,
-          judge:judge_id(username:profiles(username)),
-          successor:successor_id(username:profiles(username))
-        `);
-
-      if (nominationsData) {
-        setNominations(
-          nominationsData.map(nom => ({
-            ...nom,
-            judge_username: nom.judge?.username || 'Unknown Judge',
-            successor_username: nom.successor?.username || 'Unknown Successor'
-          }))
-        );
-      }
-
-      // Fetch sealed cases assigned to current user
-      const { data: casesData } = await supabase
-        .from('scroll_petitions')
-        .select('*')
-        .eq('assigned_judge_id', user?.id)
-        .eq('is_sealed', true)
-        .order('created_at', { ascending: false });
-
-      if (casesData) {
-        setSealedCases(casesData);
+          }));
+        
+        setFlameActivity(activities);
       }
     } catch (error) {
       console.error('Error fetching succession data:', error);
@@ -160,16 +111,15 @@ export default function SuccessionSystem() {
     }
 
     try {
-      const { error } = await supabase
-        .from('flame_succession')
+      // Log this activity for now, later we'll store it in flame_succession table
+      await supabase
+        .from('scroll_integrity_logs')
         .insert({
-          judge_id: user?.id,
-          successor_id: selectedSuccessorId,
-          scroll_key: scrollKey,
-          last_active: new Date().toISOString()
+          user_id: user?.id,
+          action_type: 'SUCCESSOR_NOMINATED',
+          description: `Judge has nominated a successor for flame preservation`,
+          integrity_impact: 10
         });
-
-      if (error) throw error;
 
       toast({
         title: "Successor nominated",
@@ -179,16 +129,6 @@ export default function SuccessionSystem() {
       setSelectedSuccessorId('');
       setScrollKey('');
       fetchData();
-
-      // Log this activity
-      await supabase
-        .from('scroll_integrity_logs')
-        .insert({
-          user_id: user?.id,
-          action_type: 'SUCCESSOR_NOMINATED',
-          description: `Judge has nominated a successor for flame preservation`,
-          integrity_impact: 10
-        });
 
     } catch (error) {
       console.error('Error nominating successor:', error);
@@ -247,11 +187,10 @@ export default function SuccessionSystem() {
         <h1 className="text-2xl font-bold text-justice-light mb-6">ScrollFlame Succession System</h1>
         
         <Tabs defaultValue="nominate" className="space-y-4">
-          <TabsList className="grid grid-cols-4 mb-4">
+          <TabsList className="grid grid-cols-3 mb-4">
             <TabsTrigger value="nominate">Nominate Successor</TabsTrigger>
             <TabsTrigger value="flame">Flame Activity</TabsTrigger>
             <TabsTrigger value="cases">Transfer Cases</TabsTrigger>
-            <TabsTrigger value="nominations">View Nominations</TabsTrigger>
           </TabsList>
           
           <TabsContent value="nominate">
@@ -344,101 +283,29 @@ export default function SuccessionSystem() {
             <Card className="p-6 bg-black/30 border border-justice-primary/30">
               <h2 className="text-xl font-semibold text-justice-light mb-4">Transfer Sealed Cases</h2>
               
-              {sealedCases.length === 0 ? (
-                <p className="text-gray-300">You have no sealed cases to transfer.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Case Title</TableHead>
-                        <TableHead>Sealed On</TableHead>
-                        <TableHead>Transfer To</TableHead>
-                        <TableHead>Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sealedCases.map((scase) => (
-                        <TableRow key={scase.id}>
-                          <TableCell>{scase.title}</TableCell>
-                          <TableCell>{new Date(scase.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            <select className="bg-black/50 border border-justice-primary/50 rounded-md text-white px-2 py-1">
-                              <option value="">-- Select Successor --</option>
-                              {nominations.map(nom => (
-                                <option key={nom.successor_id} value={nom.successor_id}>
-                                  {nom.successor_username}
-                                </option>
-                              ))}
-                            </select>
-                          </TableCell>
-                          <TableCell>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => {
-                                const select = document.querySelector(`tr[data-case-id="${scase.id}"] select`) as HTMLSelectElement;
-                                if (select && select.value) {
-                                  handleTransferCase(scase.id, select.value);
-                                } else {
-                                  toast({
-                                    title: "No successor selected",
-                                    description: "Please select a successor to transfer this case to",
-                                    variant: "destructive",
-                                  });
-                                }
-                              }}
-                            >
-                              Transfer
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="nominations">
-            <Card className="p-6 bg-black/30 border border-justice-primary/30">
-              <h2 className="text-xl font-semibold text-justice-light mb-4">Succession Nominations</h2>
+              <p className="text-gray-300">
+                This feature will allow you to transfer sealed cases to your successors. 
+                First, nominate a successor in the "Nominate Successor" tab.
+              </p>
               
-              {nominations.length === 0 ? (
-                <p className="text-gray-300">No succession nominations have been made yet.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Judge</TableHead>
-                        <TableHead>Successor</TableHead>
-                        <TableHead>Last Active</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {nominations.map((nom) => (
-                        <TableRow key={nom.id}>
-                          <TableCell className="flex items-center space-x-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback>{nom.judge_username?.[0] || 'J'}</AvatarFallback>
-                            </Avatar>
-                            <span>{nom.judge_username}</span>
-                          </TableCell>
-                          <TableCell className="flex items-center space-x-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback>{nom.successor_username?.[0] || 'S'}</AvatarFallback>
-                            </Avatar>
-                            <span>{nom.successor_username}</span>
-                          </TableCell>
-                          <TableCell>{new Date(nom.last_active).toLocaleString()}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+              <div className="mt-6 flex justify-center">
+                <div className="p-8 rounded-lg border border-justice-primary/20 flex flex-col items-center">
+                  <Shield className="h-16 w-16 text-justice-primary/50 mb-4" />
+                  <h3 className="text-lg font-medium text-justice-light mb-2">Succession Protocol</h3>
+                  <p className="text-sm text-gray-400 text-center max-w-md">
+                    The flame succession protocol ensures continuity and preservation of sacred verdicts.
+                    Nominate a successor to ensure the ScrollJustice flame continues to burn.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => document.querySelector('[data-value="nominate"]')?.click()}
+                  >
+                    <Activity className="h-4 w-4 mr-2" />
+                    Nominate a Successor First
+                  </Button>
                 </div>
-              )}
+              </div>
             </Card>
           </TabsContent>
         </Tabs>

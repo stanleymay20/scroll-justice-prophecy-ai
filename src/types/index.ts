@@ -1,4 +1,3 @@
-
 // FastTrackJusticeAI Types
 
 export type ScrollPhase = 'DAWN' | 'RISE' | 'ASCEND';
@@ -213,4 +212,18 @@ export interface DocumentProcessingMetrics {
   search_relevance: number;
   language_support: string[];
   ocr_accuracy: number;
+}
+
+// Add ScrollProfile type extension
+export interface ScrollProfile {
+  id: string;
+  username?: string;
+  avatar_url?: string;
+  bio?: string;
+  created_at?: string;
+  updated_at?: string;
+  scroll_gate?: string;
+  scroll_elements?: string[];
+  scroll_id?: string;
+  avatar_seed?: string;
 }

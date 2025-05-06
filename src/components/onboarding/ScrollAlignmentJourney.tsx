@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { logAIInteraction } from "@/services/aiAuditService";
+import { ScrollProfile } from "@/types";
 
 interface ScrollAlignmentJourneyProps {
   onComplete: () => void;
@@ -153,7 +153,7 @@ export function ScrollAlignmentJourney({ onComplete }: ScrollAlignmentJourneyPro
           scroll_elements: selectedElements,
           scroll_id: scrollId,
           avatar_seed: avatarSeed
-        })
+        } as Partial<ScrollProfile>)
         .eq('id', user.id);
 
       if (error) throw error;
@@ -423,7 +423,7 @@ export function ScrollAlignmentJourney({ onComplete }: ScrollAlignmentJourneyPro
               Your scroll identity is now established. You may now proceed with your sacred duties.
             </p>
             
-            <Badge className={getSelectedGate()?.color || ""} className="text-md px-3 py-1">
+            <Badge className={getSelectedGate()?.color || ""}>
               {scrollId}
             </Badge>
           </div>
@@ -476,15 +476,202 @@ export function ScrollAlignmentJourney({ onComplete }: ScrollAlignmentJourneyPro
           </TabsList>
           
           <TabsContent value="step-1">
-            {renderGateSelection()}
+            <div className="space-y-6">
+              <p className="text-gray-300">
+                The Scroll Gates represent the spiritual foundation of your approach to justice.
+                Select the gate that resonates with your spirit:
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {GATES.map((gate) => (
+                  <Card 
+                    key={gate.id}
+                    className={`cursor-pointer transition-all hover:border-justice-primary ${
+                      selectedGate === gate.id 
+                        ? 'border-justice-primary ring-2 ring-justice-primary/50' 
+                        : 'border-justice-primary/30 bg-black/30'
+                    }`}
+                    onClick={() => handleGateSelection(gate.id)}
+                  >
+                    <CardHeader className={`${gate.color} rounded-t-lg`}>
+                      <CardTitle className="text-center">{gate.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <p className="text-sm text-gray-300">{gate.description}</p>
+                    </CardContent>
+                    <CardFooter>
+                      <Badge variant="outline" className={`${gate.textColor} border-current`}>
+                        {gate.element} Element
+                      </Badge>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+              
+              <div className="flex justify-end mt-6">
+                <Button 
+                  onClick={() => setStep(2)}
+                  disabled={!selectedGate}
+                  className="bg-justice-tertiary hover:bg-justice-tertiary/80"
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
           </TabsContent>
           
           <TabsContent value="step-2">
-            {renderAvatarBuilder()}
+            <div className="space-y-6">
+              <p className="text-gray-300 mb-4">
+                Your ScrollAvatar represents you in the Scroll Court. Choose up to 3 elements that embody your spirit:
+              </p>
+              
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                    {AVATAR_ELEMENTS.map((element) => (
+                      <Button
+                        key={element.id}
+                        variant={selectedElements.includes(element.id) ? "default" : "outline"}
+                        className={selectedElements.includes(element.id) ? "bg-justice-tertiary" : ""}
+                        onClick={() => handleElementToggle(element.id)}
+                      >
+                        {element.name}
+                      </Button>
+                    ))}
+                  </div>
+                  
+                  <Button 
+                    variant="ghost" 
+                    onClick={regenerateAvatar} 
+                    className="w-full mb-4"
+                  >
+                    Regenerate Avatar
+                  </Button>
+                  
+                  <div className="text-center text-sm text-gray-400 mb-2">
+                    Selected: {selectedElements.length}/3 elements
+                  </div>
+                </div>
+                
+                <Separator orientation="vertical" className="hidden md:block h-auto" />
+                
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <div className="bg-black/40 rounded-full p-2 border border-justice-primary/30 mb-4">
+                    <Avatar className="h-40 w-40">
+                      <AvatarFallback className={getSelectedGate()?.color || ""}>
+                        {user?.email?.charAt(0).toUpperCase() || "S"}
+                      </AvatarFallback>
+                      <AvatarImage 
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${avatarSeed}&backgroundColor=${getSelectedGate()?.id || "gray"}`} 
+                      />
+                    </Avatar>
+                  </div>
+                  
+                  <Badge className={getSelectedGate()?.color || ""}>
+                    {getSelectedGate()?.name || "Selected Gate"}
+                  </Badge>
+                </div>
+              </div>
+              
+              <div className="flex justify-between mt-6">
+                <Button variant="outline" onClick={() => setStep(1)}>
+                  Back
+                </Button>
+                <Button 
+                  onClick={() => setStep(3)} 
+                  disabled={selectedElements.length === 0}
+                  className="bg-justice-tertiary hover:bg-justice-tertiary/80"
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
           </TabsContent>
           
           <TabsContent value="step-3">
-            {renderScrollIdConfirmation()}
+            <div className="space-y-6">
+              <p className="text-gray-300 mb-4">
+                Your Scroll ID uniquely identifies you within the Hall of Justice. This will be used for all verdicts and scrolls.
+              </p>
+              
+              <div className="flex flex-col md:flex-row gap-6 items-center">
+                <div className="flex-1">
+                  <Card className="bg-black/40 border border-justice-primary/30">
+                    <CardHeader>
+                      <CardTitle className="text-center text-justice-light">Your Scroll Identity</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex flex-col items-center">
+                        <Avatar className="h-20 w-20 mb-2">
+                          <AvatarFallback className={getSelectedGate()?.color || ""}>
+                            {user?.email?.charAt(0).toUpperCase() || "S"}
+                          </AvatarFallback>
+                          <AvatarImage 
+                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${avatarSeed}&backgroundColor=${getSelectedGate()?.id || "gray"}`} 
+                          />
+                        </Avatar>
+                        
+                        <div className="text-center mt-2">
+                          <div className="text-xl font-semibold">{scrollId}</div>
+                          <p className="text-sm text-gray-400">Scroll Identifier</p>
+                        </div>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Gate:</span>
+                          <span className={getSelectedGate()?.textColor || ""}>{getSelectedGate()?.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Elements:</span>
+                          <span>{selectedElements.map(e => AVATAR_ELEMENTS.find(el => el.id === e)?.name).join(", ")}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Alignment:</span>
+                          <span>{getSelectedGate()?.element} Aligned</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button variant="outline" className="w-full" onClick={regenerateScrollId}>
+                        Generate New Scroll ID
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </div>
+                
+                <div className="flex-1 p-4 bg-black/20 rounded-lg border border-justice-primary/20">
+                  <h3 className="text-lg font-semibold text-justice-light mb-2">About Your Selection</h3>
+                  <p className="text-sm text-gray-300 mb-4">
+                    Your chosen gate, {getSelectedGate()?.name}, reflects your approach to justice and truth. 
+                    As you journey through ScrollJustice, this alignment will guide your interactions.
+                  </p>
+                  
+                  <h4 className="text-md font-medium text-justice-secondary mt-4 mb-2">What This Means</h4>
+                  <ul className="text-sm text-gray-300 space-y-1 list-disc pl-5">
+                    <li>Your verdicts will carry the essence of {getSelectedGate()?.element} energy</li>
+                    <li>Your ScrollAvatar visually represents your spiritual alignment</li>
+                    <li>Your Scroll ID is your unique identifier in all proceedings</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="flex justify-between mt-6">
+                <Button variant="outline" onClick={() => setStep(2)}>
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="bg-justice-tertiary hover:bg-justice-tertiary/80"
+                >
+                  {isSubmitting ? "Aligning..." : "Complete Alignment"}
+                </Button>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </CardContent>
