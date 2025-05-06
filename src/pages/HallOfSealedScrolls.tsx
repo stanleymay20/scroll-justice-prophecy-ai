@@ -1,266 +1,296 @@
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import { NavBar } from "@/components/layout/NavBar";
 import { MetaTags } from "@/components/MetaTags";
-import { ScrollPetition } from "@/types/petition";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Gavel, FileText, Volume2, Filter } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CompactEHourClock } from "@/components/scroll-time/CompactEHourClock";
-import { SealAnimation } from "@/components/courtroom/SealAnimation";
-import { AudioVerdictPlayer } from "@/components/courtroom/AudioVerdictPlayer";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { useLanguage } from "@/contexts/language";
+import { Loader2, Gavel, Scroll, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { AudioVerdictPlayer } from "@/components/audio/AudioVerdictPlayer";
+import { SealedPetition } from "@/types/petitions";
 
-interface SealedPetition extends ScrollPetition {
-  petitioner_username?: string;
-  judge_username?: string;
-}
+// Scroll breaking animation component
+const ScrollBreakingAnimation = ({ onComplete }: { onComplete: () => void }) => {
+  useEffect(() => {
+    // Trigger completion after animation time
+    const timer = setTimeout(() => {
+      onComplete();
+    }, 3000);
+    
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+      <div className="text-center">
+        <div className="flex justify-center">
+          <Scroll className="h-20 w-20 text-justice-primary animate-pulse" />
+        </div>
+        <h2 className="text-2xl font-bold text-justice-light mt-6 mb-2">Breaking the Scroll Seal</h2>
+        <p className="text-justice-light/70">
+          The sacred scroll is being unsealed for viewing...
+        </p>
+      </div>
+    </div>
+  );
+};
 
 export default function HallOfSealedScrolls() {
-  const [sealedPetitions, setSealedPetitions] = useState<SealedPetition[]>([]);
+  const { t } = useLanguage();
+  const { toast } = useToast();
+  
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filterGate, setFilterGate] = useState<string>('all');
-  const [filterFlame, setFilterFlame] = useState<string>('all');
-  const [filterCountry, setFilterCountry] = useState<string>('all');
-  const [sealRevealing, setSealRevealing] = useState<string | null>(null);
-
+  const [sealedPetitions, setSealedPetitions] = useState<SealedPetition[]>([]);
+  const [selectedPetition, setSelectedPetition] = useState<SealedPetition | null>(null);
+  const [breakingSeal, setBreakingSeal] = useState(false);
+  
   useEffect(() => {
-    fetchSealedPetitions();
-  }, [filterGate, filterFlame, filterCountry]);
-
-  const fetchSealedPetitions = async () => {
-    try {
+    const fetchSealedPetitions = async () => {
       setLoading(true);
-      
-      // Simple version that just gets sealed petitions without joins to avoid errors
-      const { data, error } = await supabase
-        .from('scroll_petitions')
-        .select('*')
-        .eq('is_sealed', true)
-        .order('verdict_timestamp', { ascending: false });
-      
-      if (error) throw error;
-      
-      if (data) {
-        // Add placeholder usernames to avoid errors
-        const formattedData = data.map(petition => ({
-          ...petition,
-          petitioner_username: 'Anonymous Petitioner',
-          judge_username: 'Anonymous Judge'
-        }));
+      try {
+        const { data, error } = await supabase
+          .from("scroll_petitions")
+          .select(`
+            *,
+            petitioner:petitioner_id(username),
+            judge:assigned_judge_id(username)
+          `)
+          .eq("status", "sealed")
+          .eq("is_sealed", true)
+          .order("verdict_timestamp", { ascending: false });
         
-        setSealedPetitions(formattedData);
+        if (error) {
+          throw error;
+        }
+        
+        // Transform data to match the SealedPetition interface
+        const transformedData = data.map(item => ({
+          ...item,
+          petitioner_username: item.petitioner ? item.petitioner.username : "Unknown",
+          judge_username: item.judge ? item.judge.username : "Unknown",
+          status: item.status as "pending" | "in_review" | "verdict_delivered" | "sealed" | "rejected"
+        })) as SealedPetition[];
+        
+        setSealedPetitions(transformedData);
+      } catch (error: any) {
+        console.error("Error fetching sealed petitions:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load sealed scrolls. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching sealed petitions:', err);
-      setError('Failed to load sealed scrolls');
-    } finally {
-      setLoading(false);
-    }
+    };
+    
+    fetchSealedPetitions();
+  }, [toast]);
+  
+  const handleViewSealed = (petition: SealedPetition) => {
+    setBreakingSeal(true);
+    setSelectedPetition(petition);
   };
-
-  const revealSeal = (petitionId: string) => {
-    setSealRevealing(petitionId);
-    setTimeout(() => {
-      setSealRevealing(null);
-    }, 3000);
+  
+  const handleSealBroken = () => {
+    setBreakingSeal(false);
+    // In a real app, you might log this access or perform other actions
+    toast({
+      title: "Scroll Seal Broken",
+      description: "You now have access to view this sacred sealed scroll.",
+    });
   };
-
+  
+  // Format timestamp for display
+  const formatDate = (timestamp: string) => {
+    if (!timestamp) return "Unknown";
+    
+    const date = new Date(timestamp);
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(date);
+  };
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
+        <NavBar />
+        <div className="container mx-auto px-4 pt-20 pb-16 flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 text-justice-primary animate-spin mb-4 mx-auto" />
+            <p className="text-justice-light">Loading the Hall of Sealed Scrolls...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
       <MetaTags title="Hall of Sealed Scrolls" />
       <NavBar />
       
+      {breakingSeal && <ScrollBreakingAnimation onComplete={handleSealBroken} />}
+      
       <div className="container mx-auto px-4 pt-20 pb-16">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-justice-light">Hall of Sealed Scrolls</h1>
-          <CompactEHourClock />
-        </div>
+        <h1 className="text-3xl font-bold text-justice-light mb-2">Hall of Sealed Scrolls</h1>
+        <p className="text-justice-light/70 mb-8 max-w-3xl">
+          Browse the sacred repository of sealed petitions that have been judged and preserved for posterity.
+          These scrolls contain the wisdom and decisions of the ScrollJustice community.
+        </p>
         
-        <Card className="mb-6 bg-black/30 border border-justice-primary/30">
-          <CardContent className="pt-6">
-            <div className="flex flex-wrap gap-4">
-              <div className="flex flex-col space-y-1 flex-1 min-w-[200px]">
-                <label className="text-sm text-gray-300">Filter by Gate</label>
-                <Select value={filterGate} onValueChange={setFilterGate}>
-                  <SelectTrigger className="bg-black/50 border-justice-primary/30">
-                    <SelectValue placeholder="All Gates" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-justice-dark border-justice-primary/30">
-                    <SelectItem value="all">All Gates</SelectItem>
-                    <SelectItem value="dawn">Dawn Gate</SelectItem>
-                    <SelectItem value="light">Light Gate</SelectItem>
-                    <SelectItem value="sun">Sun Gate</SelectItem>
-                    <SelectItem value="fire">Fire Gate</SelectItem>
-                    <SelectItem value="star">Star Gate</SelectItem>
-                    <SelectItem value="moon">Moon Gate</SelectItem>
-                    <SelectItem value="water">Water Gate</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex flex-col space-y-1 flex-1 min-w-[200px]">
-                <label className="text-sm text-gray-300">Filter by Flame</label>
-                <Select value={filterFlame} onValueChange={setFilterFlame}>
-                  <SelectTrigger className="bg-black/50 border-justice-primary/30">
-                    <SelectValue placeholder="All Flames" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-justice-dark border-justice-primary/30">
-                    <SelectItem value="all">All Flames</SelectItem>
-                    <SelectItem value="truth">Truth Flame</SelectItem>
-                    <SelectItem value="wisdom">Wisdom Flame</SelectItem>
-                    <SelectItem value="justice">Justice Flame</SelectItem>
-                    <SelectItem value="mercy">Mercy Flame</SelectItem>
-                    <SelectItem value="righteousness">Righteousness Flame</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex flex-col space-y-1 flex-1 min-w-[200px]">
-                <label className="text-sm text-gray-300">Filter by Country</label>
-                <Select value={filterCountry} onValueChange={setFilterCountry}>
-                  <SelectTrigger className="bg-black/50 border-justice-primary/30">
-                    <SelectValue placeholder="All Countries" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-justice-dark border-justice-primary/30">
-                    <SelectItem value="all">All Countries</SelectItem>
-                    <SelectItem value="US">United States</SelectItem>
-                    <SelectItem value="CA">Canada</SelectItem>
-                    <SelectItem value="UK">United Kingdom</SelectItem>
-                    <SelectItem value="AU">Australia</SelectItem>
-                    <SelectItem value="IL">Israel</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <Button variant="outline" className="self-end px-4" onClick={fetchSealedPetitions}>
-                <Filter className="h-4 w-4 mr-2" />
-                Apply Filters
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {loading ? (
-          <div className="text-center py-10">
-            <div className="animate-spin h-8 w-8 border-t-2 border-justice-secondary rounded-full mx-auto mb-4"></div>
-            <p className="text-gray-300">Loading sealed scrolls...</p>
-          </div>
-        ) : error ? (
-          <Card className="bg-black/30 border border-destructive/30">
-            <CardContent className="pt-6 text-center">
-              <p className="text-destructive">{error}</p>
-              <Button variant="outline" className="mt-4" onClick={fetchSealedPetitions}>
-                Try Again
-              </Button>
-            </CardContent>
-          </Card>
-        ) : sealedPetitions.length === 0 ? (
-          <Card className="bg-black/30 border border-justice-primary/30">
-            <CardContent className="pt-6 text-center">
-              <p className="text-gray-300">No sealed scrolls found with the current filters.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sealedPetitions.map((petition) => (
-              <Card 
-                key={petition.id}
-                className="bg-black/30 border border-justice-primary/30 overflow-hidden relative"
-              >
-                {sealRevealing === petition.id && (
-                  <div className="absolute inset-0 z-10">
-                    <SealAnimation onComplete={() => setSealRevealing(null)} />
-                  </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* List of sealed scrolls */}
+          <div className="lg:col-span-1">
+            <Card className="bg-black/20 border-justice-primary/20">
+              <CardHeader>
+                <CardTitle className="text-justice-light">Sealed Scrolls</CardTitle>
+                <CardDescription>
+                  {sealedPetitions.length} sealed verdicts available
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="max-h-[70vh] overflow-y-auto space-y-4">
+                {sealedPetitions.length === 0 ? (
+                  <p className="text-center text-justice-light/50 py-8">
+                    No sealed scrolls are currently available.
+                  </p>
+                ) : (
+                  sealedPetitions.map((petition) => (
+                    <div 
+                      key={petition.id}
+                      className={`p-3 rounded-md cursor-pointer transition-colors ${
+                        selectedPetition?.id === petition.id
+                          ? "bg-justice-primary/30 border-justice-primary/70 border"
+                          : "bg-black/30 hover:bg-justice-primary/10 border border-transparent"
+                      }`}
+                      onClick={() => handleViewSealed(petition)}
+                    >
+                      <div className="flex items-start justify-between mb-1">
+                        <h3 className="font-medium text-justice-light">{petition.title}</h3>
+                        <Badge className="text-[10px] ml-2">
+                          {petition.status.replace("_", " ")}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center text-xs text-justice-light/60 gap-1 mb-2">
+                        <Clock className="h-3 w-3" />
+                        <span>{formatDate(petition.verdict_timestamp || '')}</span>
+                      </div>
+                      <p className="text-sm text-justice-light/70 line-clamp-2">
+                        {petition.description}
+                      </p>
+                    </div>
+                  ))
                 )}
-                
-                <CardHeader className="pb-2">
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Selected scroll details */}
+          <div className="lg:col-span-2">
+            {selectedPetition ? (
+              <Card className="bg-black/20 border-justice-primary/20">
+                <CardHeader>
                   <div className="flex justify-between items-start">
-                    <CardTitle className="text-justice-light">{petition.title}</CardTitle>
-                    <Badge variant="outline" className="bg-justice-primary/10">
-                      {petition.verdict === 'approved' ? 'Approved' : 'Rejected'}
-                    </Badge>
+                    <div>
+                      <Badge className="mb-2" variant="outline">
+                        Scroll #{selectedPetition.id.substring(0, 8).toUpperCase()}
+                      </Badge>
+                      <CardTitle className="text-justice-light">{selectedPetition.title}</CardTitle>
+                      <CardDescription>
+                        Sealed on {formatDate(selectedPetition.verdict_timestamp || '')}
+                      </CardDescription>
+                    </div>
+                    {selectedPetition?.scroll_gate && (
+                      <Badge variant="secondary" className="bg-justice-primary/20">
+                        {selectedPetition.scroll_gate}
+                      </Badge>
+                    )}
                   </div>
-                  <CardDescription className="flex items-center mt-1">
-                    <Gavel className="h-3.5 w-3.5 mr-1 text-justice-secondary" />
-                    Sealed on {new Date(petition.verdict_timestamp || '').toLocaleDateString()}
-                  </CardDescription>
                 </CardHeader>
                 
-                <CardContent>
-                  <Tabs defaultValue="summary" className="w-full">
-                    <TabsList className="w-full mb-2">
-                      <TabsTrigger value="summary" className="flex-1">Summary</TabsTrigger>
-                      <TabsTrigger value="verdict" className="flex-1">Verdict</TabsTrigger>
+                <CardContent className="space-y-6">
+                  <Tabs defaultValue="petition">
+                    <TabsList className="bg-black/30">
+                      <TabsTrigger value="petition">Petition</TabsTrigger>
+                      <TabsTrigger value="verdict">Verdict</TabsTrigger>
                     </TabsList>
                     
-                    <TabsContent value="summary">
-                      <div className="text-sm text-gray-300 space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Petitioner:</span>
-                          <span>{petition.petitioner_username}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Judge:</span>
-                          <span>{petition.judge_username}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Gate:</span>
-                          <span>{petition.scroll_gate || 'Unknown Gate'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Flame:</span>
-                          <span>{petition.flame_signature_hash ? petition.flame_signature_hash.substring(0, 8) + '...' : 'No Flame'}</span>
+                    <TabsContent value="petition" className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-justice-light/70">Petitioner</h3>
+                        <p className="bg-black/30 p-3 rounded text-justice-light">
+                          {selectedPetition.petitioner_username}
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-justice-light/70">Description</h3>
+                        <div className="bg-black/30 p-3 rounded text-justice-light whitespace-pre-wrap">
+                          {selectedPetition.description}
                         </div>
                       </div>
                     </TabsContent>
                     
-                    <TabsContent value="verdict">
-                      <div className="text-sm text-gray-300">
-                        <p className="italic mb-2">{petition.verdict_reasoning || 'No reasoning provided'}</p>
+                    <TabsContent value="verdict" className="mt-4 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div className="space-y-2">
+                          <h3 className="text-sm font-medium text-justice-light/70">Judge</h3>
+                          <p className="bg-black/30 p-2 rounded text-justice-light">
+                            {selectedPetition.judge_username || "No judge assigned"}
+                          </p>
+                        </div>
                         
-                        {petition.audio_verdict_url && (
-                          <div className="mt-4">
-                            <AudioVerdictPlayer url={petition.audio_verdict_url} />
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-justice-light/70 mb-2">Verdict</div>
+                          <Badge className={selectedPetition.verdict === "approved" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}>
+                            {selectedPetition.verdict || "No verdict"}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      {selectedPetition.verdict_reasoning && (
+                        <div className="space-y-2 mt-4">
+                          <h3 className="text-sm font-medium text-justice-light/70">Reasoning</h3>
+                          <div className="bg-black/30 p-3 rounded text-justice-light whitespace-pre-wrap">
+                            {selectedPetition.verdict_reasoning}
                           </div>
-                        )}
+                        </div>
+                      )}
+                      
+                      {/* Audio verdict player (would connect to a real audio source) */}
+                      <AudioVerdictPlayer audioUrl="/audio/sample-verdict.mp3" />
+                      
+                      <div className="flex items-center p-4 bg-justice-primary/10 border border-justice-primary/30 rounded-md">
+                        <Gavel className="h-8 w-8 text-justice-primary mr-4" />
+                        <div>
+                          <h3 className="text-justice-light font-medium">Immutable Verdict Record</h3>
+                          <p className="text-justice-light/70 text-sm">
+                            This verdict has been permanently recorded on the Sacred Scroll Chain and cannot be altered.
+                          </p>
+                        </div>
                       </div>
                     </TabsContent>
                   </Tabs>
                 </CardContent>
-                
-                <CardFooter className="border-t border-justice-primary/20 pt-4 flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => revealSeal(petition.id)}
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    View Seal
-                  </Button>
-                  
-                  {petition.audio_verdict_url && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="flex-1"
-                    >
-                      <Volume2 className="h-4 w-4 mr-2" />
-                      Hear Verdict
-                    </Button>
-                  )}
-                </CardFooter>
               </Card>
-            ))}
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full min-h-[400px] bg-black/20 rounded-lg border border-justice-primary/20 p-8">
+                <Scroll className="h-16 w-16 text-justice-primary/30 mb-4" />
+                <h3 className="text-xl font-medium text-justice-light mb-2">Select a Sealed Scroll</h3>
+                <p className="text-justice-light/60 text-center max-w-md">
+                  Choose a sealed scroll from the list to view its contents and the sacred verdict.
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

@@ -1,179 +1,197 @@
-import { supabase } from '@/integrations/supabase/client';
-import { logIntegrityAction } from './petitionQueries';
-import { generateFlameSignatureHash } from './utils/hashUtils';
+
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
+import { generateHash } from "@/utils/cryptoUtils";
 
 /**
- * Flags an integrity violation
+ * Records an integrity violation for a petition
+ * @param petitionId The ID of the petition
+ * @param userId The ID of the user reporting the violation
+ * @param violationType The type of violation being reported
+ * @param description A description of the violation
+ * @returns Success status
  */
-export async function flagIntegrityViolation(
+export const flagIntegrityViolation = async (
   petitionId: string,
+  userId: string,
+  violationType: string,
   description: string
-): Promise<boolean> {
+): Promise<boolean> => {
   try {
-    // Log a negative integrity impact
-    await logIntegrityAction(
-      'INTEGRITY_VIOLATION',
-      -10, // Significant negative impact
+    // Calculate impact based on violation type
+    const impactMap: Record<string, number> = {
+      'minor': -1,
+      'moderate': -5,
+      'severe': -10,
+      'critical': -20
+    };
+    
+    const impact = impactMap[violationType] || -5;
+    
+    // Log the violation
+    await supabase.from("scroll_integrity_logs").insert({
+      petition_id: petitionId,
+      user_id: userId,
+      action_type: `violation_${violationType}`,
       description,
-      petitionId
-    );
+      integrity_impact: impact
+    });
     
     // Update the petition's integrity score
-    const { error } = await supabase
-      .from('scroll_petitions')
-      .update({
-        scroll_integrity_score: supabase.rpc('calculate_new_score', { 
-          current_score: 100, 
-          impact: -10 
-        })
-      })
-      .eq('id', petitionId);
+    // This would typically be handled by a database trigger
+    try {
+      // Call a database function to calculate the new score
+      // This function would need to be created in the database
+      const { data } = await supabase.rpc("calculate_integrity_score", {
+        petition_id: petitionId
+      });
       
-    if (error) throw error;
-    
-    return true;
+      return true;
+    } catch (error) {
+      console.error("Failed to update integrity score:", error);
+      return false;
+    }
   } catch (error) {
-    console.error('Error flagging integrity violation:', error);
+    console.error("Error flagging integrity violation:", error);
+    toast({
+      title: "Error",
+      description: "Failed to report integrity violation. Please try again.",
+      variant: "destructive"
+    });
     return false;
   }
-}
+};
 
 /**
- * Checks if the user has rendered a verdict on their own petition
+ * Checks if a user has submitted a verdict on their own petition
+ * @param petitionId The ID of the petition
+ * @param userId The ID of the user
+ * @returns Whether the user attempted to self-verdict
  */
-export async function checkSelfVerdict(petitionId: string): Promise<boolean> {
+export const checkSelfVerdict = async (
+  petitionId: string,
+  userId: string
+): Promise<boolean> => {
   try {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id;
-    
-    if (!userId) return false;
-    
-    const { data, error } = await supabase
-      .from('scroll_petitions')
-      .select('petitioner_id, assigned_judge_id')
-      .eq('id', petitionId)
+    const { data: petition } = await supabase
+      .from("scroll_petitions")
+      .select("petitioner_id")
+      .eq("id", petitionId)
       .single();
-      
-    if (error) throw error;
     
-    // Check if user is both petitioner and judge
-    const isSelfVerdict = data.petitioner_id === userId && data.assigned_judge_id === userId;
-    return isSelfVerdict;
-  } catch (error) {
-    console.error('Error checking for self verdict:', error);
-    return false;
-  }
-}
-
-/**
- * Gets an AI suggested verdict for a petition
- */
-export async function getAiSuggestedVerdict(petitionId: string): Promise<string | null> {
-  try {
-    // In a real implementation, this would call an AI API
-    // For now, we'll generate a simple response
-    const suggestions = [
-      "Based on the evidence provided, the petition has merit.",
-      "The petition requires further evidence before a verdict can be reached.",
-      "The petition appears to lack sufficient grounds.",
-      "The submitted evidence supports the petitioner's claims.",
-      "This case should be referred to a higher court."
-    ];
-    
-    // Randomly select a suggestion
-    const suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
-    
-    // Update the petition with the AI suggestion
-    const { error } = await supabase
-      .from('scroll_petitions')
-      .update({
-        ai_suggested_verdict: suggestion
-      })
-      .eq('id', petitionId);
-      
-    if (error) throw error;
-    
-    // Log the AI interaction
-    await logIntegrityAction(
-      'AI_VERDICT_REQUESTED',
-      0, // Neutral impact
-      `AI verdict suggestion requested for petition #${petitionId.substring(0, 8)}`,
-      petitionId
-    );
-    
-    return suggestion;
-  } catch (error) {
-    console.error('Error getting AI suggested verdict:', error);
-    return null;
-  }
-}
-
-/**
- * Gets a user's integrity score
- */
-export async function getUserIntegrityScore(userId: string): Promise<number> {
-  try {
-    // Calculate integrity score based on logs
-    const { data, error } = await supabase
-      .rpc('calculate_integrity_score', { user_id_param: userId });
-    
-    if (error) {
-      console.error('Error calculating integrity score:', error);
-      return 50; // Default score
+    if (petition && petition.petitioner_id === userId) {
+      // Log self-verdict attempt as an integrity violation
+      await flagIntegrityViolation(
+        petitionId,
+        userId,
+        "severe",
+        "Attempted to submit verdict on own petition"
+      );
+      return true;
     }
     
-    return data || 50;
+    return false;
   } catch (error) {
-    console.error('Error in getUserIntegrityScore:', error);
-    return 50; // Default score on error
+    console.error("Error checking for self-verdict:", error);
+    return false;
   }
-}
+};
 
 /**
- * Analyzes content for integrity issues
+ * Gets an AI-suggested verdict for a petition
+ * @param petitionId The ID of the petition
+ * @returns The suggested verdict or null if unavailable
  */
-export async function analyzeContent(content: string): Promise<{
-  integrity_score: number;
-  flagged_terms: string[];
-}> {
+export const getAiSuggestedVerdict = async (
+  petitionId: string
+): Promise<string | null> => {
   try {
-    // For demo purposes, we'll use a simple analysis
-    const flaggedTerms = [];
-    let integrityScore = 100;
+    const { data } = await supabase
+      .from("scroll_petitions")
+      .select("ai_suggested_verdict")
+      .eq("id", petitionId)
+      .single();
     
-    // Check for potentially problematic terms
-    const problematicTerms = [
-      "fraud", "deceive", "manipulate", "corrupt", "bribe", "false", 
-      "fake", "illegal", "unlawful", "mislead", "violate"
+    return data?.ai_suggested_verdict || null;
+  } catch (error) {
+    console.error("Error getting AI verdict suggestion:", error);
+    return null;
+  }
+};
+
+/**
+ * Gets a user's integrity score based on their actions
+ * @param userId The ID of the user
+ * @returns The user's integrity score as a number between 0 and 100
+ */
+export const getUserIntegrityScore = async (userId: string): Promise<number> => {
+  try {
+    // Call a database function to calculate the user's integrity score
+    const { data, error } = await supabase.rpc("calculate_user_integrity", {
+      user_id: userId
+    });
+    
+    if (error) throw error;
+    
+    // Ensure the score is between 0 and 100
+    return Math.min(Math.max((data as number) || 50, 0), 100);
+  } catch (error) {
+    console.error("Error getting user integrity score:", error);
+    return 50; // Default middle score
+  }
+};
+
+/**
+ * Analyzes content for potential integrity issues
+ * @param content The content to analyze
+ * @returns Analysis results
+ */
+export const analyzeContent = async (content: string): Promise<{
+  score: number;
+  issues: string[];
+}> => {
+  try {
+    // For now, a simple implementation that checks for certain red flags
+    const issues: string[] = [];
+    let score = 100;
+    
+    const redFlags = [
+      { pattern: /\b(fake|false|lie|fraud)\b/i, penalty: 5, message: "Potential false information detected" },
+      { pattern: /\b(hate|racist|bigot)\b/i, penalty: 10, message: "Potential hate speech detected" },
+      { pattern: /\b(attack|harm|kill|threat)\b/i, penalty: 8, message: "Potential threatening content detected" },
+      { pattern: /\b(cheat|steal|scam)\b/i, penalty: 7, message: "Potential dishonest behavior referenced" }
     ];
     
-    problematicTerms.forEach(term => {
-      if (content.toLowerCase().includes(term)) {
-        flaggedTerms.push(`Contains potentially concerning term: "${term}"`);
-        integrityScore -= 10; // Reduce score for each flagged term
+    redFlags.forEach(flag => {
+      if (flag.pattern.test(content)) {
+        score -= flag.penalty;
+        issues.push(flag.message);
       }
     });
     
-    // Check text length
-    if (content.length < 20) {
-      flaggedTerms.push("Content is too short for meaningful analysis");
-      integrityScore -= 15;
-    }
-    
-    // Ensure score stays within 0-100 range
-    integrityScore = Math.max(0, Math.min(100, integrityScore));
-    
-    return {
-      integrity_score: integrityScore,
-      flagged_terms: flaggedTerms
-    };
+    return { score, issues };
   } catch (error) {
-    console.error('Error analyzing content:', error);
-    return {
-      integrity_score: 50,
-      flagged_terms: ["Error during analysis"]
-    };
+    console.error("Error analyzing content:", error);
+    return { score: 75, issues: ["Error analyzing content"] };
   }
-}
+};
 
-export { generateFlameSignatureHash };
+/**
+ * Generates a flame signature hash for integrity verification
+ * @param content The content to hash
+ * @param userId The ID of the user
+ * @returns A integrity verification hash
+ */
+export const generateFlameSignatureHash = async (
+  content: string,
+  userId: string
+): Promise<string> => {
+  try {
+    const timestamp = new Date().toISOString();
+    const dataToHash = `${content}|${userId}|${timestamp}`;
+    return generateHash(dataToHash);
+  } catch (error) {
+    console.error("Error generating flame signature:", error);
+    return "";
+  }
+};

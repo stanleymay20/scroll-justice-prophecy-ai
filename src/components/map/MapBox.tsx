@@ -102,7 +102,7 @@ export function MapBox({ selectedTribeId, tribes = [] }: MapBoxProps) {
           // If we have tribes data, add tribe territories
           if (tribes && tribes.length > 0) {
             // Very simplified territory coverage for the mock tribes
-            const regionCoordinates = {
+            const regionCoordinates: {[key: string]: number[]} = {
               'North America': [-100, 45],
               'South America': [-60, -20],
               'Europe': [10, 50],
@@ -112,26 +112,48 @@ export function MapBox({ selectedTribeId, tribes = [] }: MapBoxProps) {
               'Middle East': [45, 25]
             };
             
+            // Create proper GeoJSON features with Polygon geometry instead of Circle
+            const tribeFeatures = tribes.flatMap(tribe => 
+              tribe.regions.map(region => {
+                const center = regionCoordinates[region];
+                if (!center) return null;
+                
+                // Create a polygon (circle approximation) around the region center
+                const points = 64; // Number of points to approximate the circle
+                const radius = 10; // Radius in degrees
+                const coordinates = [[]];
+                
+                for (let i = 0; i < points; i++) {
+                  const angle = (i / points) * Math.PI * 2;
+                  const lng = center[0] + Math.cos(angle) * radius;
+                  const lat = center[1] + Math.sin(angle) * radius;
+                  coordinates[0].push([lng, lat]);
+                }
+                
+                // Close the polygon
+                coordinates[0].push(coordinates[0][0]);
+                
+                return {
+                  type: 'Feature',
+                  properties: {
+                    tribeId: tribe.id,
+                    tribeName: tribe.name,
+                    tribeColor: tribe.color
+                  },
+                  geometry: {
+                    type: 'Polygon',
+                    coordinates: coordinates
+                  }
+                };
+              })
+            ).filter(Boolean);
+            
             // Add source for tribe territories
             mapInstance.addSource('tribe-territories', {
               type: 'geojson',
               data: {
                 type: 'FeatureCollection',
-                features: tribes.flatMap(tribe => 
-                  tribe.regions.map(region => ({
-                    type: 'Feature',
-                    properties: {
-                      tribeId: tribe.id,
-                      tribeName: tribe.name,
-                      tribeColor: tribe.color
-                    },
-                    geometry: {
-                      type: 'Circle',
-                      coordinates: regionCoordinates[region as keyof typeof regionCoordinates],
-                      radius: 10 // degrees
-                    }
-                  }))
-                )
+                features: tribeFeatures as any
               }
             });
             

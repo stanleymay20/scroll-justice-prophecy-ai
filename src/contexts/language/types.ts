@@ -1,25 +1,12 @@
 
-export type LanguageCode = 
-  | "en" 
-  | "fr" 
-  | "es" 
-  | "de" 
-  | "zh" 
-  | "ar" 
-  | "hi" 
-  | "pt" 
-  | "he" 
-  | "sw" 
-  | "am";
+// Language codes supported by the application
+export type LanguageCode = 'en' | 'fr' | 'es' | 'de' | 'zh' | 'ar' | 'pt' | 'hi' | 'sw' | 'he' | 'am';
 
+// Interface for the Language Provider values
 export interface LanguageContextType {
   language: LanguageCode;
-  setLanguage: (language: LanguageCode) => void;
+  setLanguage: (code: LanguageCode) => void;
   t: (key: string, ...args: any[]) => string;
+  rtl: boolean;
   isLoading: boolean;
-  reloadTranslations?: () => Promise<void>;
 }
-
-export type TranslationsType = {
-  [key in LanguageCode]?: Record<string, string>;
-};
