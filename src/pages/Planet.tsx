@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NavBar } from "@/components/layout/NavBar";
 import { MetaTags } from "@/components/MetaTags";
@@ -6,8 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Globe, Users, Map, Layers } from "lucide-react";
+import { Users, Map, Layers } from "lucide-react";
 import { CompactEHourClock } from "@/components/scroll-time/CompactEHourClock";
+import { MapBox } from "@/components/map/MapBox";
 
 interface TribeData {
   id: string;
@@ -47,24 +47,7 @@ export default function PlanetPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3">
             <Card className="bg-black/30 border border-justice-primary/30 overflow-hidden">
-              <div className="w-full h-[600px] flex flex-col items-center justify-center bg-black/50">
-                <Globe className="h-16 w-16 text-justice-primary/50 mb-4" />
-                <h3 className="text-lg font-medium text-justice-light mb-2">ScrollPlanet Map</h3>
-                <p className="text-sm text-gray-400 text-center max-w-md mb-4">
-                  To enable the interactive ScrollPlanet Map, please install mapbox-gl via SQL in the Supabase dashboard.
-                </p>
-                <Badge variant="outline" className="mb-6">
-                  Map Loading Placeholder
-                </Badge>
-                
-                <Button 
-                  variant="outline"
-                  onClick={() => alert('Please add mapbox-gl dependency to enable this feature')}
-                >
-                  <Map className="h-4 w-4 mr-2" />
-                  Configure Map
-                </Button>
-              </div>
+              <MapBox selectedTribeId={selectedTribe} tribes={mockTribes} />
             </Card>
           </div>
           

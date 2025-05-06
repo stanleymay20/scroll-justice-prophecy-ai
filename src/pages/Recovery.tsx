@@ -1,11 +1,10 @@
-
-import { useState } from "react";
+import React, { useEffect, useState } from 'react';
 import { NavBar } from "@/components/layout/NavBar";
 import { MetaTags } from "@/components/MetaTags";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { QRCode } from "lucide-react";
+import { QrCode } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
@@ -249,7 +248,7 @@ export default function RecoveryPage() {
                       
                       <div className="flex justify-center p-6">
                         <div className="w-48 h-48 border-2 border-dashed border-justice-primary/50 rounded-lg flex items-center justify-center">
-                          <QRCode size={64} className="text-justice-primary opacity-50" />
+                          <QrCode size={64} className="text-justice-primary opacity-50" />
                           <span className="text-xs text-gray-400 absolute mt-24">QR scanner coming soon</span>
                         </div>
                       </div>
