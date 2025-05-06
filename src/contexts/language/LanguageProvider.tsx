@@ -51,6 +51,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [translations, setTranslations] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const rtl = isRtlLanguage(language);
 
   // Load translations when language changes
   useEffect(() => {
@@ -166,6 +167,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
       language, 
       setLanguage: changeLanguage, 
       t, 
+      rtl,
       isLoading, 
       reloadTranslations 
     }}>

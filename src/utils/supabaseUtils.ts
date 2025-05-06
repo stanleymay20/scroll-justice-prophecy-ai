@@ -11,8 +11,11 @@ export async function safeRpcCall<T, F>(
   fallbackFn: () => Promise<F>
 ): Promise<T | F> {
   try {
+    // Import the supabase client directly instead of using the window object
+    const { supabase } = await import('@/integrations/supabase/client');
+    
     // Try to call the database function through RPC
-    const { data, error } = await window.supabase.rpc(functionName, params);
+    const { data, error } = await supabase.rpc(functionName, params);
     
     if (error) {
       // If the function doesn't exist, use the fallback

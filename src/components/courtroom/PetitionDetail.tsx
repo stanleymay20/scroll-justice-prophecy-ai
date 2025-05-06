@@ -1,544 +1,390 @@
 
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { GlassCard } from '@/components/advanced-ui/GlassCard';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { toast } from '@/hooks/use-toast';
-import { ScrollPetition } from '@/types/petition';
-import { fetchPetitionById, getAiSuggestedVerdict, deliverVerdict, sealPetition } from '@/services/petitionService';
-import { getUserRole } from '@/services/userService';
-import { PulseEffect } from '@/components/advanced-ui/PulseEffect';
-import { Loader2, ChevronLeft, Shield, Gavel, AlertTriangle, User, CalendarClock } from 'lucide-react';
-import { format } from 'date-fns';
-import { SacredOathScreen } from '@/components/courtroom/SacredOathScreen';
-import { SealAnimation } from './SealAnimation';
-import { useAuth } from '@/contexts/AuthContext';
-import { EvidenceDisplay } from './EvidenceDisplay';
-import { FlameIntegrityMonitor } from './FlameIntegrityMonitor';
-import { AudioVerdictPlayer } from './AudioVerdictPlayer';
-import { AudioVerdictRecorder } from './AudioVerdictRecorder';
-import { checkSelfVerdict } from '@/services/integrityService';
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
+import { AlertTriangle, Clock, Download, MessageSquare, Scale, Shield } from "lucide-react";
+import { VerdictForm } from "./VerdictForm";
+import { AudioVerdictPlayer } from "./AudioVerdictPlayer";
+import { ScrollPetition } from "@/types/petition";
+import { useToast } from "@/components/ui/use-toast";
+import { useLanguage } from "@/contexts/language";
+import { AIDisclosure } from "../compliance/AIDisclosure";
 
-export function PetitionDetail() {
+const PetitionDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  
   const [petition, setPetition] = useState<ScrollPetition | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState('guest');
-  const [showOathScreen, setShowOathScreen] = useState(false);
-  
-  // Verdict state
-  const [isReviewing, setIsReviewing] = useState(false);
-  const [verdictText, setVerdictText] = useState('');
-  const [verdictReasoning, setVerdictReasoning] = useState('');
-  const [isSubmittingVerdict, setIsSubmittingVerdict] = useState(false);
-  const [isLoadingAiVerdict, setIsLoadingAiVerdict] = useState(false);
-  const [showSealAnimation, setShowSealAnimation] = useState(false);
-  const [audioVerdictRecorded, setAudioVerdictRecorded] = useState(false);
-  
-  // Load petition data and user role
+  const [isJudge, setIsJudge] = useState(false);
+  const [isPetitioner, setIsPetitioner] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { t } = useLanguage();
+
   useEffect(() => {
-    const loadData = async () => {
-      if (!id) return;
-      
+    const fetchPetition = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
+        // Check if user is logged in
+        const { data: { user } } = await supabase.auth.getUser();
         
-        // Get user role
-        const role = await getUserRole();
-        setUserRole(role);
-        
-        // Fetch petition
-        const petitionData = await fetchPetitionById(id);
-        setPetition(petitionData);
-        
-        // Check if audio verdict exists
-        if (petitionData.audio_verdict_url) {
-          setAudioVerdictRecorded(true);
+        if (!id) {
+          setError("Petition ID is missing");
+          setLoading(false);
+          return;
         }
-      } catch (err: any) {
-        console.error('Error loading petition:', err);
-        setError(err.message || 'Failed to load petition');
+        
+        // Fetch petition with petitioner and judge details
+        const { data, error } = await supabase
+          .from('scroll_petitions')
+          .select(`
+            *,
+            petitioner:petitioner_id(id, username),
+            judge:assigned_judge_id(id, username)
+          `)
+          .eq('id', id)
+          .single();
+        
+        if (error) throw error;
+        
+        if (data) {
+          // Add formatted date
+          const enhancedData = {
+            ...data,
+            timeAgo: formatDistanceToNow(new Date(data.created_at), { addSuffix: true }),
+            petitionerName: data.petitioner?.username || 'Anonymous Petitioner',
+            judgeName: data.judge?.username || 'Unassigned'
+          };
+          
+          setPetition(enhancedData);
+          
+          // Check if current user is the petitioner or judge
+          if (user) {
+            setIsPetitioner(user.id === data.petitioner_id);
+            setIsJudge(user.id === data.assigned_judge_id);
+          }
+        } else {
+          setError("Petition not found");
+        }
+      } catch (err) {
+        console.error("Error fetching petition:", err);
+        setError("Failed to load petition details");
       } finally {
         setLoading(false);
       }
     };
-    
-    loadData();
-  }, [id]);
-  
-  // Request AI suggested verdict
-  const handleRequestAiVerdict = async () => {
+
+    fetchPetition();
+  }, [id, toast]);
+
+  const handleDownloadPetition = () => {
     if (!petition) return;
     
-    try {
-      setIsLoadingAiVerdict(true);
-      
-      const aiResult = await getAiSuggestedVerdict(petition.id);
-      
-      // Set the result directly from the returned string
-      if (aiResult) {
-        setVerdictText(aiResult);
-        // You might want to set some default reasoning text here
-        setVerdictReasoning("AI-suggested verdict based on available evidence and precedents.");
-      }
-      
-      toast({
-        title: "AI Verdict Generated",
-        description: "The scrolls have suggested a verdict based on ancient wisdom.",
-      });
-    } catch (err: any) {
-      console.error('Error getting AI verdict:', err);
-      toast({
-        variant: "destructive",
-        title: "AI Verdict Failed",
-        description: err.message || "Could not generate AI verdict",
-      });
-    } finally {
-      setIsLoadingAiVerdict(false);
-    }
-  };
-  
-  // Submit verdict
-  const handleDeliverVerdict = async () => {
-    if (!petition || !id || !user) return;
+    // Create formatted text content
+    const content = `
+SACRED SCROLL PETITION
+======================
+
+Title: ${petition.title}
+Submitted: ${new Date(petition.created_at).toLocaleString()}
+Status: ${petition.status?.toUpperCase() || 'PENDING'}
+Petitioner: ${petition.petitionerName}
+Judge: ${petition.judgeName}
+
+DESCRIPTION
+----------
+${petition.description}
+
+${petition.verdict ? `
+VERDICT
+-------
+${petition.verdict.toUpperCase()}
+
+REASONING
+---------
+${petition.verdict_reasoning || 'No reasoning provided'}
+` : ''}
+    `.trim();
     
-    try {
-      setIsSubmittingVerdict(true);
-      
-      // Check for self-verdict violation
-      const isSelfVerdict = await checkSelfVerdict(id, user.id);
-      if (isSelfVerdict) {
-        toast({
-          variant: "destructive",
-          title: "Scroll Integrity Violation",
-          description: "You cannot issue verdicts on your own petitions. This violation has been logged.",
-        });
-        return;
-      }
-      
-      // Deliver verdict
-      const updatedPetition = await deliverVerdict(id, verdictText, verdictReasoning);
-      setPetition(updatedPetition);
-      
-      // Exit review mode
-      setIsReviewing(false);
-      
-      toast({
-        title: "Sacred Verdict Delivered",
-        description: "The judgment has been recorded in the scrolls.",
-      });
-    } catch (err: any) {
-      console.error('Error delivering verdict:', err);
-      toast({
-        variant: "destructive",
-        title: "Verdict Delivery Failed",
-        description: err.message || "Could not record verdict in the scrolls",
-      });
-    } finally {
-      setIsSubmittingVerdict(false);
-    }
-  };
-  
-  // Handle sealing the petition
-  const handleSealPetition = async () => {
-    if (!petition || !id) return;
+    // Create a blob and download
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `petition-${petition.id}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     
-    try {
-      setShowSealAnimation(true);
-      
-      // After animation delay, seal the petition
-      setTimeout(async () => {
-        const updatedPetition = await sealPetition(id);
-        setPetition(updatedPetition);
-        
-        toast({
-          title: "Sacred Verdict Sealed",
-          description: "The scroll has been sealed with the final judgment.",
-        });
-        
-        // Turn off animation after completion
-        setTimeout(() => {
-          setShowSealAnimation(false);
-        }, 2000);
-      }, 2000);
-    } catch (err: any) {
-      console.error('Error sealing petition:', err);
-      setShowSealAnimation(false);
-      toast({
-        variant: "destructive",
-        title: "Sealing Failed",
-        description: err.message || "Could not seal the scroll",
-      });
-    }
+    toast({
+      title: "Petition Downloaded",
+      description: "Sacred petition has been downloaded as a text file.",
+    });
   };
-  
-  // Start review process
-  const handleStartReview = () => {
-    setShowOathScreen(true);
-  };
-  
-  // After oath is accepted
-  const handleOathAccepted = () => {
-    setIsReviewing(true);
-  };
-  
-  // Handle oath completion
-  const handleOathComplete = () => {
-    setShowOathScreen(false);
-  }
-  
-  // Cancel oath screen
-  const handleOathCancel = () => {
-    setShowOathScreen(false);
-  };
-  
-  // Handle audio verdict recorded
-  const handleAudioVerdictRecorded = () => {
-    setAudioVerdictRecorded(true);
+
+  // Status badge renderer
+  const renderStatusBadge = (status: string | null) => {
+    if (!status) return <Badge variant="outline">Pending</Badge>;
     
-    // Refresh petition data to get the updated audio URL
-    if (id) {
-      fetchPetitionById(id).then(data => setPetition(data));
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return <Badge className="bg-green-600">Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive">Rejected</Badge>;
+      default:
+        return <Badge variant="outline" className="text-amber-400 border-amber-400">Pending</Badge>;
     }
   };
-  
-  // Format date
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'PPpp');
-  };
-  
-  // Check if user is allowed to review
-  const canReview = ['judge', 'admin'].includes(userRole);
-  
-  // Check if user is the petitioner
-  const isPetitioner = petition && user && petition.petitioner_id === user.id;
-  
-  const canSeal = petition && petition.verdict && !petition.is_sealed && 
-                  (petition.audio_verdict_url || audioVerdictRecorded) && 
-                  (canReview || isPetitioner);
-  
-  if (showOathScreen && user) {
-    return (
-      <SacredOathScreen 
-        userId={user.id}
-        onComplete={handleOathComplete}
-        onOathAccepted={handleOathAccepted}
-        onCancel={handleOathCancel}
-      />
-    );
-  }
   
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-justice-primary" />
-        <span className="ml-2 text-justice-light">Consulting the sacred scrolls...</span>
+      <div className="container py-8">
+        <Skeleton className="h-12 w-3/4 mb-4" />
+        <Skeleton className="h-6 w-1/3 mb-8" />
+        <Card className="bg-black/40 border-justice-secondary">
+          <CardHeader>
+            <Skeleton className="h-8 w-1/2" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-6 w-1/4" />
+          </CardContent>
+        </Card>
       </div>
     );
   }
   
-  if (error || !petition) {
+  if (error) {
     return (
-      <div className="bg-destructive/20 border border-destructive/50 rounded-md p-6 text-white">
-        <h3 className="text-xl font-semibold mb-2 flex items-center">
-          <AlertTriangle className="h-6 w-6 mr-2" />
-          Error Loading Petition
-        </h3>
-        <p>{error || "Petition not found in the sacred scrolls."}</p>
-        <Button onClick={() => navigate(-1)} variant="outline" className="mt-4">
-          <ChevronLeft className="h-4 w-4 mr-1" /> Return to Courtroom
+      <div className="container py-8">
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <Button onClick={() => navigate('/petitions')}>Return to Petitions</Button>
+      </div>
+    );
+  }
+
+  if (!petition) {
+    return (
+      <div className="container py-8">
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Not Found</AlertTitle>
+          <AlertDescription>This sacred petition does not exist or has been removed.</AlertDescription>
+        </Alert>
+        <Button onClick={() => navigate('/petitions')}>Return to Petitions</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container py-8">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-justice-primary mb-2">{petition.title}</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-justice-light/70 flex items-center">
+              <Clock className="inline h-4 w-4 mr-1" /> 
+              {petition.timeAgo}
+            </span>
+            {renderStatusBadge(petition.status)}
+            {petition.is_sealed && (
+              <Badge variant="outline" className="border-justice-secondary text-justice-secondary">
+                <Shield className="h-3.5 w-3.5 mr-1.5" /> Sealed
+              </Badge>
+            )}
+          </div>
+        </div>
+        
+        <Button 
+          variant="outline"
+          className="flex items-center"
+          onClick={handleDownloadPetition}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Download Petition
         </Button>
       </div>
-    );
-  }
-  
-  return (
-    <div className="w-full relative">
-      {showSealAnimation && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/80">
-          <SealAnimation />
-        </div>
-      )}
       
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="mb-4"
-        onClick={() => navigate('/courtroom')}
-      >
-        <ChevronLeft className="h-4 w-4 mr-1" />
-        Back to Courtroom
-      </Button>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <GlassCard className={`p-6 lg:col-span-3 ${petition.is_sealed ? 'border-purple-500/50' : ''}`}>
-          <div className="mb-6">
-            <div className="flex flex-wrap justify-between items-start gap-4">
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-2">{petition.title}</h2>
-                
-                <div className="flex flex-wrap gap-3 items-center text-sm text-justice-light/70 mb-2">
-                  <div className="flex items-center">
-                    <CalendarClock className="h-4 w-4 mr-1" />
-                    Submitted {formatDate(petition.created_at)}
-                  </div>
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-1" />
-                    Petitioner #{petition.petitioner_id.substring(0, 8)}
-                  </div>
-                  <div className="flex items-center">
-                    <Shield className="h-4 w-4 mr-1" />
-                    Integrity: {petition.scroll_integrity_score}
-                  </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="bg-black/40 border-justice-secondary">
+            <CardHeader>
+              <CardTitle className="flex items-center text-justice-light">
+                <MessageSquare className="h-5 w-5 mr-2" /> 
+                Petition Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="prose prose-invert max-w-none">
+              <p className="whitespace-pre-wrap">{petition.description}</p>
+              
+              <Separator className="my-6" />
+              
+              <div className="flex flex-wrap gap-x-8 gap-y-4 text-sm">
+                <div>
+                  <h4 className="text-justice-light/70 mb-1">Petitioner</h4>
+                  <p className="font-medium">{petition.petitionerName}</p>
                 </div>
                 
-                <div className="flex gap-2 items-center">
-                  <Badge className={
-                    petition.status === 'pending' ? 'bg-amber-500 text-justice-dark' :
-                    petition.status === 'in_review' ? 'bg-blue-500 text-justice-dark' :
-                    petition.status === 'verdict_delivered' ? 'bg-green-500 text-justice-dark' :
-                    petition.status === 'sealed' ? 'bg-purple-500 text-justice-dark' :
-                    petition.status === 'rejected' ? 'bg-destructive text-white' :
-                    'bg-justice-light/50'
-                  }>
-                    {petition.status === 'pending' ? 'Awaiting Review' :
-                     petition.status === 'in_review' ? 'In Review' :
-                     petition.status === 'verdict_delivered' ? 'Verdict Delivered' :
-                     petition.status === 'sealed' ? 'Sealed' :
-                     petition.status === 'rejected' ? 'Rejected' : 'Unknown'}
-                  </Badge>
-                  
-                  {petition.assigned_judge_id && (
-                    <div className="text-sm text-justice-light/70 flex items-center">
-                      <Gavel className="h-4 w-4 mr-1" />
-                      Assigned to Judge #{petition.assigned_judge_id.substring(0, 8)}
-                    </div>
-                  )}
+                <div>
+                  <h4 className="text-justice-light/70 mb-1">Assigned Judge</h4>
+                  <p className="font-medium">{petition.judgeName}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-justice-light/70 mb-1">Submitted On</h4>
+                  <p className="font-medium">{new Date(petition.created_at).toLocaleDateString()}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-justice-light/70 mb-1">Integrity Score</h4>
+                  <p className="font-medium" style={{
+                    color: getIntegrityColor(petition.scroll_integrity_score || 0)
+                  }}>
+                    {petition.scroll_integrity_score || "N/A"}
+                  </p>
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+            
+            <CardFooter>
+              <AIDisclosure compact={true} />
+            </CardFooter>
+          </Card>
           
-          <Separator className="my-4 bg-justice-light/10" />
-          
-          <div className="mb-6">
-            <h3 className="text-lg font-medium text-white mb-2">Petition Details</h3>
-            <div className={`text-justice-light whitespace-pre-wrap ${petition.is_sealed && !canReview ? 'blur-sm select-none' : ''}`}>
-              {petition.description}
-            </div>
-          </div>
-          
-          <Separator className="my-4 bg-justice-light/10" />
-          
-          <div className="mb-6">
-            <h3 className="text-lg font-medium text-white mb-2">Evidence</h3>
-            {id && <EvidenceDisplay 
-              petitionId={id} 
-              isSealed={petition.is_sealed} 
-              canView={canReview}
-            />}
-          </div>
-          
+          {/* Show verdict if it exists */}
           {petition.verdict && (
-            <>
-              <Separator className="my-4 bg-justice-light/10" />
-              
-              <div className="mb-4">
-                <div className="flex items-center mb-2">
-                  <Gavel className="h-5 w-5 text-justice-primary mr-2" />
-                  <h3 className="text-lg font-medium text-white">Sacred Verdict</h3>
+            <Card className="bg-black/40 border-justice-secondary">
+              <CardHeader className={`border-b border-justice-${petition.verdict === 'approved' ? 'green' : 'red'}/30`}>
+                <CardTitle className="flex items-center text-justice-light">
+                  <Scale className="h-5 w-5 mr-2" /> 
+                  Sacred Verdict: <span className="ml-2 uppercase">{petition.verdict}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-invert max-w-none pt-6">
+                <p className="whitespace-pre-wrap">{petition.verdict_reasoning}</p>
+                
+                {/* Audio verdict player if available */}
+                <AudioVerdictPlayer petitionId={petition.id} />
+              </CardContent>
+              <CardFooter className="text-sm text-justice-light/50">
+                {petition.verdict_timestamp && (
+                  <span>
+                    Verdict delivered {formatDistanceToNow(new Date(petition.verdict_timestamp), { addSuffix: true })}
+                  </span>
+                )}
+              </CardFooter>
+            </Card>
+          )}
+        </div>
+        
+        <div className="space-y-6">
+          {/* Show verdict form only for judges with no verdict yet */}
+          {isJudge && !petition.verdict && (
+            <VerdictForm 
+              petitionId={petition.id} 
+              onVerdictSubmitted={(newVerdict) => {
+                // Update the petition with the new verdict
+                setPetition(prev => prev ? {
+                  ...prev,
+                  verdict: newVerdict.verdict,
+                  verdict_reasoning: newVerdict.reasoning,
+                  status: newVerdict.verdict,
+                  verdict_timestamp: new Date().toISOString()
+                } : null);
+                
+                toast({
+                  title: "Verdict Delivered",
+                  description: "Your sacred verdict has been recorded in the scrolls."
+                });
+              }} 
+            />
+          )}
+          
+          {/* Status info card */}
+          <Card className="bg-black/40 border-justice-secondary">
+            <CardHeader>
+              <CardTitle className="text-justice-light">Petition Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-justice-light/70">Status:</span>
+                  <span>{renderStatusBadge(petition.status)}</span>
                 </div>
                 
-                <div className={petition.is_sealed && !canReview ? 'blur-sm select-none' : ''}>
-                  <div className="p-4 bg-justice-primary/10 border border-justice-primary/30 rounded-md mb-4">
-                    <p className="text-white font-medium">{petition.verdict}</p>
+                <div className="flex justify-between">
+                  <span className="text-justice-light/70">Sealed:</span>
+                  <span>{petition.is_sealed ? 'Yes' : 'No'}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-justice-light/70">Created:</span>
+                  <span>{petition.timeAgo}</span>
+                </div>
+                
+                {petition.verdict_timestamp && (
+                  <div className="flex justify-between">
+                    <span className="text-justice-light/70">Verdict Date:</span>
+                    <span>{new Date(petition.verdict_timestamp).toLocaleDateString()}</span>
                   </div>
-                  
-                  {petition.verdict_reasoning && (
-                    <div>
-                      <h4 className="text-base font-medium text-white mb-2">Reasoning</h4>
-                      <p className="text-justice-light whitespace-pre-wrap">{petition.verdict_reasoning}</p>
-                    </div>
-                  )}
-                  
-                  {petition.verdict_timestamp && (
-                    <div className="mt-3 text-sm text-justice-light/70 flex items-center">
-                      <CalendarClock className="h-4 w-4 mr-1" />
-                      Verdict delivered {formatDate(petition.verdict_timestamp)}
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
-              
-              {/* Audio verdict player - if one exists */}
-              {petition.audio_verdict_url && (
-                <>
-                  <Separator className="my-4 bg-justice-light/10" />
-                  
-                  <AudioVerdictPlayer 
-                    audioUrl={petition.audio_verdict_url}
-                    transcript={petition.verdict_transcription || undefined}
-                  />
-                </>
-              )}
-              
-              {/* Audio verdict recorder - for judges if verdict exists but no audio yet */}
-              {petition.verdict && canReview && !petition.is_sealed && !petition.audio_verdict_url && (
-                <>
-                  <Separator className="my-4 bg-justice-light/10" />
-                  
-                  <AudioVerdictRecorder 
-                    petitionId={id || ''}
-                    onVerdictRecorded={handleAudioVerdictRecorded}
-                  />
-                </>
-              )}
-            </>
-          )}
-          
-          <div className="mt-6 flex flex-wrap gap-3">
-            {/* Review actions - only for judges/admins */}
-            {canReview && !petition.verdict && !isReviewing && (
-              <div className="relative">
+            </CardContent>
+            {(isPetitioner || isJudge) && !petition.verdict && (
+              <CardFooter>
                 <Button 
-                  onClick={handleStartReview}
-                  className="bg-justice-tertiary hover:bg-justice-tertiary/80"
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => navigate(`/petition/${petition.id}/evidence/upload`)}
                 >
-                  Begin Sacred Review
+                  <Upload className="h-4 w-4 mr-2" />
+                  {isPetitioner ? 'Upload Evidence' : 'Review Evidence'}
                 </Button>
-                <div className="absolute -top-1 -right-1">
-                  <PulseEffect color="bg-justice-primary" />
-                </div>
-              </div>
+              </CardFooter>
             )}
-            
-            {/* Sealing action - for judges or petitioners after verdict and audio */}
-            {canSeal && (
-              <Button 
-                onClick={handleSealPetition}
-                variant="outline"
-                className="border-purple-500 text-purple-500 hover:bg-purple-500/20"
-              >
-                Seal Verdict in Scrolls
-              </Button>
-            )}
-            
-            {/* View sealed witness page */}
-            {petition.is_sealed && id && (
-              <Button
-                onClick={() => navigate(`/witness/${id}`)}
-                variant="outline"
-                className="border-purple-500 text-purple-500 hover:bg-purple-500/20"
-              >
-                View Witness Record
-              </Button>
-            )}
-            
-            {/* Return button */}
-            {isReviewing && (
-              <Button 
-                variant="outline"
-                onClick={() => setIsReviewing(false)}
-              >
-                Cancel Review
-              </Button>
-            )}
-          </div>
-        </GlassCard>
-        
-        {/* Side panel with flame integrity monitor */}
-        <div className="lg:row-span-full space-y-4">
-          <FlameIntegrityMonitor 
-            petitionId={id} 
-          />
-          
-          {/* Informational cards can go here */}
-          {petition.is_sealed && (
-            <GlassCard className="p-4 bg-purple-500/10 border border-purple-500/30">
-              <h3 className="text-sm font-medium text-white mb-2">Sealed Record</h3>
-              <p className="text-xs text-justice-light/80">
-                This petition has been sealed in the sacred scrolls for eternal preservation.
-              </p>
-              {petition.scroll_seal_timestamp && (
-                <p className="text-xs text-justice-light/60 mt-2">
-                  Sealed on {formatDate(petition.scroll_seal_timestamp)}
-                </p>
-              )}
-            </GlassCard>
-          )}
-          
-          {petition.flame_signature_hash && (
-            <GlassCard className="p-4 bg-black/30">
-              <h3 className="text-sm font-medium text-white mb-2">Flame Signature</h3>
-              <p className="text-xs font-mono text-justice-light/60 break-all">
-                {petition.flame_signature_hash}
-              </p>
-            </GlassCard>
-          )}
+          </Card>
         </div>
       </div>
-      
-      {/* Review interface */}
-      {isReviewing && (
-        <GlassCard className="p-6 mt-6 border-justice-primary/30">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold text-white">Sacred Review Process</h3>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRequestAiVerdict}
-              disabled={isLoadingAiVerdict}
-            >
-              {isLoadingAiVerdict && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Request AI Guidance
-            </Button>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-justice-light mb-1">
-                Sacred Verdict
-              </label>
-              <Textarea
-                value={verdictText}
-                onChange={(e) => setVerdictText(e.target.value)}
-                rows={3}
-                placeholder="Enter the official verdict..."
-                className="resize-none"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-justice-light mb-1">
-                Verdict Reasoning
-              </label>
-              <Textarea
-                value={verdictReasoning}
-                onChange={(e) => setVerdictReasoning(e.target.value)}
-                rows={6}
-                placeholder="Provide reasoning based on sacred principles..."
-              />
-            </div>
-            
-            <Button 
-              onClick={handleDeliverVerdict}
-              disabled={isSubmittingVerdict || !verdictText.trim()}
-              className="bg-justice-tertiary hover:bg-justice-tertiary/80"
-            >
-              {isSubmittingVerdict && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Deliver Sacred Verdict
-            </Button>
-          </div>
-        </GlassCard>
-      )}
     </div>
   );
-}
+};
+
+// Helper function for integrity score color
+const getIntegrityColor = (score: number) => {
+  if (score >= 80) return '#22c55e'; // Green
+  if (score >= 50) return '#eab308'; // Yellow
+  return '#ef4444'; // Red
+};
+
+// Placeholder icon component for Upload
+const Upload = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);
+
+export default PetitionDetail;

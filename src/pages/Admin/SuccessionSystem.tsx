@@ -1,328 +1,307 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { NavBar } from "@/components/layout/NavBar";
-import { MetaTags } from "@/components/MetaTags";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Shield, Activity } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Loader2, AlertTriangle, UserPlus, UserMinus, FileText } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/language";
 
-interface FlameActivity {
-  id: string;
-  user_id: string;
-  action_type: string;
-  description: string;
-  created_at: string;
-  username?: string;
-}
-
-export default function SuccessionSystem() {
-  const [flameActivity, setFlameActivity] = useState<FlameActivity[]>([]);
-  const [potentialSuccessors, setPotentialSuccessors] = useState<{id: string; username: string}[]>([]);
-  const [selectedSuccessorId, setSelectedSuccessorId] = useState<string>('');
-  const [scrollKey, setScrollKey] = useState<string>('');
-  const { user } = useAuth();
-  const navigate = useNavigate();
+const SuccessionSystem = () => {
+  const [judges, setJudges] = useState<any[]>([]);
+  const [witnesses, setWitnesses] = useState<any[]>([]);
+  const [integrityLogs, setIntegrityLogs] = useState<any[]>([]);
+  const [newJudgeEmail, setNewJudgeEmail] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
+  
+  // Function to safely handle username display from potentially incorrect data
+  const getUsernameDisplay = (userData: any) => {
+    if (!userData) return 'Unknown User';
+    if (typeof userData === 'string') return userData;
+    return userData.username || 'Unnamed User';
+  };
 
   useEffect(() => {
-    if (!user) {
-      navigate('/signin');
-      return;
-    }
-
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch judges
+        const { data: judgesData, error: judgesError } = await supabase
+          .from('user_roles')
+          .select('user_id, profiles(username)')
+          .eq('role', 'judge');
+        
+        if (judgesError) throw judgesError;
+        setJudges(judgesData || []);
+        
+        // Fetch witnesses
+        const { data: witnessesData, error: witnessesError } = await supabase
+          .from('user_roles')
+          .select('user_id, profiles(username)')
+          .eq('role', 'witness');
+        
+        if (witnessesError) throw witnessesError;
+        setWitnesses(witnessesData || []);
+        
+        // Fetch integrity logs
+        const { data: logsData, error: logsError } = await supabase
+          .from('scroll_integrity_logs')
+          .select('user_id, action_type, integrity_impact, profiles(username)')
+          .limit(50);
+        
+        if (logsError) throw logsError;
+        setIntegrityLogs(logsData || []);
+      } catch (err: any) {
+        console.error("Error fetching data:", err);
+        setError(err.message || "Failed to load system data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     fetchData();
-  }, [user, navigate]);
-
-  const fetchData = async () => {
+  }, [toast]);
+  
+  const handleAddJudge = async () => {
     try {
-      // Fetch potential successors (judges with high integrity)
-      const { data: judgesData } = await supabase
-        .from('user_roles')
-        .select(`
-          user_id,
-          role,
-          reputation_score,
-          profiles:user_id(username)
-        `)
-        .eq('role', 'judge')
-        .gt('reputation_score', 75)
-        .order('reputation_score', { ascending: false });
-
-      if (judgesData) {
-        const successors = judgesData
-          .filter(judge => judge.profiles && typeof judge.profiles === 'object')
-          .map(judge => ({
-            id: judge.user_id,
-            // Safely extract username, providing a fallback
-            username: judge.profiles && typeof judge.profiles === 'object' ? 
-              (judge.profiles as any).username || 'Unknown Judge' : 
-              'Unknown Judge'
-          }));
-        
-        setPotentialSuccessors(successors);
-      }
-
-      // Fetch flame activity logs
-      const { data: activityData } = await supabase
-        .from('scroll_integrity_logs')
-        .select(`
-          id,
-          user_id,
-          action_type,
-          description,
-          created_at,
-          profiles:user_id(username)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (activityData) {
-        const activities = activityData
-          .filter(activity => activity.profiles && typeof activity.profiles === 'object')
-          .map(activity => ({
-            id: activity.id,
-            user_id: activity.user_id,
-            action_type: activity.action_type,
-            description: activity.description,
-            created_at: activity.created_at,
-            // Safely extract username, providing a fallback
-            username: activity.profiles && typeof activity.profiles === 'object' ? 
-              (activity.profiles as any).username || 'Unknown User' : 
-              'Unknown User'
-          }));
-        
-        setFlameActivity(activities);
-      }
-    } catch (error) {
-      console.error('Error fetching succession data:', error);
-    }
-  };
-
-  const handleNominateSuccessor = async () => {
-    if (!selectedSuccessorId || !scrollKey) {
-      toast({
-        title: "Missing information",
-        description: "Please select a successor and provide a scroll key",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Log this activity for now, later we'll store it in flame_succession table
-      await supabase
-        .from('scroll_integrity_logs')
-        .insert({
-          user_id: user?.id,
-          action_type: 'SUCCESSOR_NOMINATED',
-          description: `Judge has nominated a successor for flame preservation`,
-          integrity_impact: 10
+      // Check if the email is valid
+      if (!newJudgeEmail || !newJudgeEmail.includes('@')) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive"
         });
-
-      toast({
-        title: "Successor nominated",
-        description: "Your scroll successor has been nominated successfully",
-      });
-
-      setSelectedSuccessorId('');
-      setScrollKey('');
-      fetchData();
-
-    } catch (error) {
-      console.error('Error nominating successor:', error);
-      toast({
-        title: "Nomination failed",
-        description: "There was an error nominating your successor",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleTransferCase = async (caseId: string, successorId: string) => {
-    try {
-      const { error } = await supabase
-        .from('scroll_petitions')
-        .update({
-          assigned_judge_id: successorId
-        })
-        .eq('id', caseId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Case transferred",
-        description: "The sealed case has been transferred to your successor",
-      });
-
-      fetchData();
-
-      // Log this activity
-      await supabase
-        .from('scroll_integrity_logs')
-        .insert({
-          user_id: user?.id,
-          action_type: 'CASE_TRANSFERRED',
-          description: `Judge has transferred a sealed case to successor`,
-          integrity_impact: 5
-        });
-
-    } catch (error) {
-      console.error('Error transferring case:', error);
-      toast({
-        title: "Transfer failed",
-        description: "There was an error transferring the case",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleTabChange = (tab: string) => {
-    // Find the target element and trigger a click if it exists
-    const tabElement = document.querySelector(`[data-value="${tab}"]`) as HTMLElement;
-    if (tabElement) {
-      tabElement.click();
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
-      <MetaTags title="ScrollFlame Succession" />
-      <NavBar />
+        return;
+      }
       
-      <div className="container mx-auto px-4 pt-20 pb-16">
-        <h1 className="text-2xl font-bold text-justice-light mb-6">ScrollFlame Succession System</h1>
-        
-        <Tabs defaultValue="nominate" className="space-y-4">
-          <TabsList className="grid grid-cols-3 mb-4">
-            <TabsTrigger value="nominate">Nominate Successor</TabsTrigger>
-            <TabsTrigger value="flame">Flame Activity</TabsTrigger>
-            <TabsTrigger value="cases">Transfer Cases</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="nominate">
-            <Card className="p-6 bg-black/30 border border-justice-primary/30">
-              <h2 className="text-xl font-semibold text-justice-light mb-4">Nominate a Scroll Successor</h2>
-              <p className="text-gray-300 mb-6">
-                As a judge, you must ensure the continuity of ScrollJustice by nominating a successor 
-                who will inherit your flame and continue your sacred duty.
-              </p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-200 mb-1">
-                    Select a Successor
-                  </label>
-                  <select 
-                    className="w-full px-3 py-2 bg-black/50 border border-justice-primary/50 rounded-md text-white"
-                    value={selectedSuccessorId}
-                    onChange={(e) => setSelectedSuccessorId(e.target.value)}
-                  >
-                    <option value="">-- Select a Judge --</option>
-                    {potentialSuccessors.map(judge => (
-                      <option key={judge.id} value={judge.id}>
-                        {judge.username}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-200 mb-1">
-                    Scroll Key (for encrypted flame transfer)
-                  </label>
-                  <Input 
-                    type="password"
-                    value={scrollKey}
-                    onChange={(e) => setScrollKey(e.target.value)}
-                    className="bg-black/50 border-justice-primary/50 text-white"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">
-                    This key will be used to encrypt your flame signature. Keep it secure.
-                  </p>
-                </div>
-                
-                <Button 
-                  onClick={handleNominateSuccessor}
-                  className="w-full bg-justice-tertiary hover:bg-justice-tertiary/80"
-                >
-                  Nominate Successor
+      // Check if the user exists
+      const { data: userData, error: userError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', newJudgeEmail)
+        .single();
+      
+      if (userError) throw userError;
+      if (!userData) {
+        toast({
+          title: "User Not Found",
+          description: "No user found with that email address.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Add the user as a judge
+      const { data, error } = await supabase
+        .from('user_roles')
+        .insert({ user_id: userData.id, role: 'judge' });
+      
+      if (error) throw error;
+      
+      // Refresh the data
+      setJudges(prev => [...prev, { user_id: userData.id, username: newJudgeEmail }]);
+      setNewJudgeEmail("");
+      
+      toast({
+        title: "Judge Added",
+        description: `${newJudgeEmail} has been added as a judge.`,
+      });
+    } catch (err: any) {
+      console.error("Error adding judge:", err);
+      toast({
+        title: "Error Adding Judge",
+        description: err.message || "Failed to add judge.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleRemoveJudge = async (userId: string) => {
+    try {
+      // Remove the user as a judge
+      const { data, error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId)
+        .eq('role', 'judge');
+      
+      if (error) throw error;
+      
+      // Refresh the data
+      setJudges(prev => prev.filter(judge => judge.user_id !== userId));
+      
+      toast({
+        title: "Judge Removed",
+        description: "Judge has been removed successfully.",
+      });
+    } catch (err: any) {
+      console.error("Error removing judge:", err);
+      toast({
+        title: "Error Removing Judge",
+        description: err.message || "Failed to remove judge.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleElevateUser = (userId: string) => {
+    // Placeholder for elevate user functionality
+    toast({
+      title: "Elevate User",
+      description: `Elevating user ${userId} to a higher role.`,
+    });
+  };
+
+  const exportSystemData = () => {
+    // Create a formatted string with all system data
+    let exportData = "--- SCROLL JUSTICE SYSTEM DATA ---\n\n";
+    
+    exportData += "JUDGES:\n";
+    judges.forEach((judge, i) => {
+      exportData += `${i + 1}. ${getUsernameDisplay(judge)} - Role: Judge\n`;
+    });
+    
+    exportData += "\nWITNESSES:\n";
+    witnesses.forEach((witness, i) => {
+      exportData += `${i + 1}. ${getUsernameDisplay(witness)} - Role: Witness\n`;
+    });
+    
+    exportData += "\nINTEGRITY LOGS:\n";
+    integrityLogs.forEach((log, i) => {
+      exportData += `${i + 1}. Action: ${log.action_type} - Impact: ${log.integrity_impact} - User: ${getUsernameDisplay(log)}\n`;
+    });
+    
+    // Create blob and download
+    const blob = new Blob([exportData], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'scroll-justice-system-data.txt';
+    document.body.appendChild(link);
+    link.dispatchEvent(
+      new MouseEvent('click', { 
+        bubbles: true, 
+        cancelable: true, 
+        view: window 
+      })
+    );
+    document.body.removeChild(link);
+  };
+  
+  return (
+    <div className="container py-8">
+      <h1 className="text-3xl font-bold text-justice-primary mb-4">Succession System</h1>
+      <p className="text-justice-light/70 mb-8">Manage judges, witnesses, and system integrity.</p>
+      
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-justice-primary" />
+        </div>
+      ) : error ? (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Judges Management */}
+          <Card className="bg-black/40 border-justice-secondary">
+            <CardHeader>
+              <CardTitle className="text-justice-light">Judges</CardTitle>
+              <CardDescription>Manage sacred scroll judges.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Input
+                  type="email"
+                  placeholder="Enter judge email"
+                  value={newJudgeEmail}
+                  onChange={(e) => setNewJudgeEmail(e.target.value)}
+                />
+                <Button size="sm" onClick={handleAddJudge}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add
                 </Button>
               </div>
-            </Card>
-          </TabsContent>
+              
+              <ul className="space-y-2">
+                {judges.map(judge => (
+                  <li key={judge.user_id} className="flex items-center justify-between">
+                    <span className="text-justice-light">{getUsernameDisplay(judge)}</span>
+                    <Button 
+                      variant="destructive" 
+                      size="xs" 
+                      onClick={() => handleRemoveJudge(judge.user_id)}
+                    >
+                      <UserMinus className="h-3 w-3 mr-1" />
+                      Remove
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
           
-          <TabsContent value="flame">
-            <Card className="p-6 bg-black/30 border border-justice-primary/30">
-              <h2 className="text-xl font-semibold text-justice-light mb-4">Flame Activity Logs</h2>
-              
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Action</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Timestamp</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {flameActivity.map((activity) => (
-                      <TableRow key={activity.id}>
-                        <TableCell className="flex items-center space-x-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback>{activity.username?.[0] || 'U'}</AvatarFallback>
-                          </Avatar>
-                          <span>{activity.username}</span>
-                        </TableCell>
-                        <TableCell>{activity.action_type}</TableCell>
-                        <TableCell>{activity.description}</TableCell>
-                        <TableCell>{new Date(activity.created_at).toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </Card>
-          </TabsContent>
+          {/* Witnesses Management */}
+          <Card className="bg-black/40 border-justice-secondary">
+            <CardHeader>
+              <CardTitle className="text-justice-light">Witnesses</CardTitle>
+              <CardDescription>Manage sacred scroll witnesses.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ul className="space-y-2">
+                {witnesses.map(witness => (
+                  <li key={witness.user_id} className="flex items-center justify-between">
+                    <span className="text-justice-light">{getUsernameDisplay(witness)}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="xs"
+                      onClick={() => handleElevateUser(witness.user_id)}
+                    >
+                      Elevate
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
           
-          <TabsContent value="cases">
-            <Card className="p-6 bg-black/30 border border-justice-primary/30">
-              <h2 className="text-xl font-semibold text-justice-light mb-4">Transfer Sealed Cases</h2>
-              
-              <p className="text-gray-300">
-                This feature will allow you to transfer sealed cases to your successors. 
-                First, nominate a successor in the "Nominate Successor" tab.
-              </p>
-              
-              <div className="mt-6 flex justify-center">
-                <div className="p-8 rounded-lg border border-justice-primary/20 flex flex-col items-center">
-                  <Shield className="h-16 w-16 text-justice-primary/50 mb-4" />
-                  <h3 className="text-lg font-medium text-justice-light mb-2">Succession Protocol</h3>
-                  <p className="text-sm text-gray-400 text-center max-w-md">
-                    The flame succession protocol ensures continuity and preservation of sacred verdicts.
-                    Nominate a successor to ensure the ScrollJustice flame continues to burn.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => document.querySelector('[data-value="nominate"]')?.click()}
-                  >
-                    <Activity className="h-4 w-4 mr-2" />
-                    Nominate a Successor First
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          {/* Integrity Logs */}
+          <Card className="bg-black/40 border-justice-secondary">
+            <CardHeader>
+              <CardTitle className="text-justice-light">Integrity Logs</CardTitle>
+              <CardDescription>Recent system integrity logs.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ul className="space-y-2">
+                {integrityLogs.map(log => (
+                  <li key={log.id} className="text-sm text-justice-light/70">
+                    {log.action_type} - {log.integrity_impact} - {getUsernameDisplay(log)}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
+      <div className="mt-8">
+        <Button 
+          variant="secondary" 
+          onClick={exportSystemData}
+          className="flex items-center"
+        >
+          <FileText className="h-4 w-4 mr-2" />
+          Export System Data
+        </Button>
       </div>
     </div>
   );
 }
+
+export default SuccessionSystem;

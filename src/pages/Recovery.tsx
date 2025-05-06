@@ -1,282 +1,306 @@
-import { useState, useEffect, useRef } from "react";
-import { NavBar } from "@/components/layout/NavBar";
-import { MetaTags } from "@/components/MetaTags";
-import { useLanguage } from "@/contexts/language";
+
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
-import { AlertCircle, Key, Mic, MicOff, Shield } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Mic, MicOff, RotateCcw } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { safeRpcCall } from "@/utils/supabaseUtils";
 
-// Define the SpeechRecognition interface for TypeScript
+// Add TypeScript interface for SpeechRecognition
 interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
   results: SpeechRecognitionResultList;
 }
 
-interface SpeechRecognitionError extends Event {
-  error: string;
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  [index: number]: SpeechRecognitionAlternative;
 }
 
-// Add the global SpeechRecognition types
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+// Define SpeechRecognition type 
 declare global {
   interface Window {
-    SpeechRecognition?: typeof SpeechRecognition;
-    webkitSpeechRecognition?: typeof SpeechRecognition;
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
   }
 }
 
-export default function Recovery() {
-  const { t } = useLanguage();
-  const { user } = useAuth();
-  const { toast } = useToast();
-  
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: ((event: Event) => void) | null;
+}
+
+const Recovery = () => {
+  const [recoveryMethod, setRecoveryMethod] = useState<'text' | 'voice'>('text');
   const [passphrase, setPassphrase] = useState("");
-  const [recoveryKey, setRecoveryKey] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState("");
   const [isRecording, setIsRecording] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  
-  // Check if SpeechRecognition is available in the browser
-  const speechRecognitionSupported = typeof window !== 'undefined' && 
-    !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  
-  const recognitionRef = useRef<any>(null);
-  
-  // Initialize speech recognition
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const { toast } = useToast();
+
   useEffect(() => {
-    if (speechRecognitionSupported) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
+    // Initialize speech recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0].transcript)
+          .join('');
         
-        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
-          let finalTranscript = '';
-          for (let i = 0; i < event.results.length; i++) {
-            if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript;
-            }
-          }
-          setTranscript(finalTranscript);
-        };
-        
-        recognitionRef.current.onerror = (event: SpeechRecognitionError) => {
-          console.error("Speech recognition error", event.error);
-          setIsRecording(false);
-        };
-        
-        recognitionRef.current.onend = () => {
-          setIsRecording(false);
-        };
-      }
+        setVoiceTranscript(transcript);
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error('Speech recognition error', event);
+        setIsRecording(false);
+        toast({
+          title: "Voice Recording Error",
+          description: "There was a problem with voice recognition. Please try again or use text recovery.",
+          variant: "destructive"
+        });
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+      };
     }
-    
+
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        recognitionRef.current.abort();
       }
     };
-  }, [speechRecognitionSupported]);
-  
+  }, [toast]);
+
   const toggleRecording = () => {
-    if (!speechRecognitionSupported) {
+    if (!recognitionRef.current) {
       toast({
-        title: "Speech Recognition Not Supported",
-        description: "Your browser does not support speech recognition.",
-        variant: "destructive",
+        title: "Voice Recovery Unavailable",
+        description: "Your browser doesn't support speech recognition. Please use text recovery.",
+        variant: "destructive"
       });
       return;
     }
-    
+
     if (isRecording) {
       recognitionRef.current.stop();
+      setIsRecording(false);
     } else {
-      setTranscript("");
+      setVoiceTranscript("");
       recognitionRef.current.start();
       setIsRecording(true);
     }
   };
-  
-  const generateRecoveryKey = async () => {
-    if (!user) {
+
+  const handleResetVoiceRecording = () => {
+    setVoiceTranscript("");
+    if (isRecording && recognitionRef.current) {
+      recognitionRef.current.abort();
+      recognitionRef.current.start();
+    }
+  };
+
+  const handleSubmitRecovery = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (recoveryMethod === 'text' && !passphrase) {
       toast({
-        title: "Authentication Required",
-        description: "You must be signed in to generate a recovery key.",
-        variant: "destructive",
+        title: "Missing Recovery Key",
+        description: "Please enter your recovery key passphrase.",
+        variant: "destructive"
       });
       return;
     }
-    
-    if (!passphrase) {
+
+    if (recoveryMethod === 'voice' && !voiceTranscript) {
       toast({
-        title: "Passphrase Required",
-        description: "Please enter a passphrase to secure your recovery key.",
-        variant: "destructive",
+        title: "Missing Voice Recovery",
+        description: "Please record your voice recovery phrase.",
+        variant: "destructive"
       });
       return;
     }
-    
-    setIsGenerating(true);
-    
+
     try {
-      // Create a secure recovery key using a combination of the passphrase and user details
-      const recoveryData = {
-        user_id: user.id,
-        passphrase: passphrase,
-        created_at: new Date().toISOString(),
-        recovery_type: transcript ? "voice" : "text",
-        voice_transcript: transcript || null,
-      };
+      const { data: { user } } = await supabase.auth.getUser();
       
-      // We need to use a raw query since the table might not exist in the types yet
-      // Create the recovery key record in the database
-      const { data, error } = await supabase.rpc('create_recovery_key', {
-        user_id: user.id,
-        passphrase: passphrase,
-        recovery_type: transcript ? "voice" : "text",
-        voice_transcript: transcript || null
-      });
-      
-      if (error) throw error;
-      
-      // Generate a display format for the recovery key
-      const displayKey = `SCROLL-${generateRandomString(4)}-${generateRandomString(4)}-${generateRandomString(4)}`;
-      setRecoveryKey(displayKey);
-      
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "You must be logged in to create or use recovery keys.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Call the database function to create a recovery key
+      const result = await safeRpcCall(
+        "create_recovery_key",
+        {
+          user_id: user.id,
+          passphrase: recoveryMethod === 'text' ? passphrase : '',
+          recovery_type: recoveryMethod,
+          voice_transcript: recoveryMethod === 'voice' ? voiceTranscript : null
+        },
+        async () => {
+          // Fallback implementation if the function doesn't exist
+          const { data, error } = await supabase
+            .from('scroll_recovery_keys')
+            .insert({
+              user_id: user.id,
+              passphrase: recoveryMethod === 'text' ? passphrase : '',
+              recovery_type: recoveryMethod,
+              voice_transcript: recoveryMethod === 'voice' ? voiceTranscript : null
+            })
+            .select();
+          
+          if (error) throw error;
+          return data?.[0]?.id || null;
+        }
+      );
+
+      if (result) {
+        toast({
+          title: "Recovery Key Created",
+          description: "Your sacred recovery key has been safely stored in the scrolls.",
+        });
+        
+        // Clear form after success
+        setPassphrase("");
+        setVoiceTranscript("");
+      } else {
+        throw new Error("Failed to create recovery key");
+      }
+    } catch (error) {
+      console.error("Recovery key creation error:", error);
       toast({
-        title: "Recovery Key Generated",
-        description: "Your sacred scroll recovery key has been created. Store it in a safe place.",
+        title: "Recovery Error",
+        description: "There was an error creating your recovery key. Please try again.",
+        variant: "destructive"
       });
-      
-    } catch (error: any) {
-      console.error("Error generating recovery key:", error);
-      toast({
-        title: "Error Generating Key",
-        description: error.message || "An error occurred while generating your recovery key.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
     }
   };
-  
-  const generateRandomString = (length: number) => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    return result;
-  };
-  
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
-      <MetaTags title="Sacred Scroll Recovery" />
-      <NavBar />
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold text-justice-primary text-center mb-8">
+        Sacred Scroll Recovery System
+      </h1>
       
-      <div className="container mx-auto px-4 pt-20 pb-16">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold text-justice-light mb-2">Sacred Scroll Recovery System</h1>
-          <p className="text-justice-light/70 mb-8">
-            Generate a secure recovery key for your sacred scrolls, protected by a passphrase and optional voice recognition.
-          </p>
+      <Card className="max-w-xl mx-auto bg-black/40 border-justice-secondary">
+        <CardHeader>
+          <CardTitle className="text-justice-light">Establish Recovery Key</CardTitle>
+          <CardDescription>Create a sacred key to recover your accounts and petitions.</CardDescription>
+        </CardHeader>
+        
+        <Tabs defaultValue="text" onValueChange={(value) => setRecoveryMethod(value as 'text' | 'voice')}>
+          <TabsList className="grid grid-cols-2 mx-6">
+            <TabsTrigger value="text">Text Recovery</TabsTrigger>
+            <TabsTrigger value="voice">Voice Recovery</TabsTrigger>
+          </TabsList>
           
-          <Alert className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Important</AlertTitle>
-            <AlertDescription>
-              Your recovery key is a sacred artifact. Store it securely and never share it with anyone. 
-              It will be required if you need to restore access to sealed scrolls.
-            </AlertDescription>
-          </Alert>
-          
-          <Card className="bg-black/40 border-justice-primary/30">
-            <CardHeader>
-              <CardTitle className="text-justice-light flex items-center gap-2">
-                <Shield className="h-5 w-5 text-justice-primary" /> Recovery Key Generation
-              </CardTitle>
-              <CardDescription>
-                Create a recovery phrase that will protect your scrolls in case of emergencies.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label htmlFor="passphrase" className="block text-sm font-medium text-justice-light/70 mb-1">
-                  Sacred Passphrase
-                </label>
-                <Input
-                  id="passphrase"
-                  type="password"
-                  value={passphrase}
-                  onChange={(e) => setPassphrase(e.target.value)}
-                  placeholder="Enter a strong passphrase"
-                  className="bg-black/30 border-justice-primary/20"
-                />
-                <p className="text-xs text-justice-light/50 mt-1">
-                  Use a memorable but strong passphrase that combines words, numbers, and symbols.
-                </p>
-              </div>
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmitRecovery}>
+              <TabsContent value="text">
+                <div className="mb-4">
+                  <Label htmlFor="passphrase">Sacred Passphrase</Label>
+                  <Input
+                    id="passphrase"
+                    type="password"
+                    value={passphrase}
+                    onChange={(e) => setPassphrase(e.target.value)}
+                    placeholder="Enter your sacred recovery passphrase"
+                    className="mt-1"
+                  />
+                  <p className="text-sm text-justice-light/70 mt-2">
+                    Create a unique phrase with deep spiritual meaning to you. This will be your key to access the sacred scrolls if needed.
+                  </p>
+                </div>
+              </TabsContent>
               
-              {speechRecognitionSupported && (
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-sm font-medium text-justice-light/70">
-                      Voice Recognition (Optional)
-                    </label>
+              <TabsContent value="voice">
+                <div className="mb-4">
+                  <Label>Sacred Voice Recognition</Label>
+                  <div className="mt-2 flex items-center gap-2">
                     <Button 
-                      variant="outline" 
-                      size="sm" 
+                      type="button"
                       onClick={toggleRecording}
-                      className={isRecording ? "bg-red-900/20 text-red-400" : ""}
+                      variant={isRecording ? "destructive" : "outline"}
                     >
-                      {isRecording ? <MicOff className="h-4 w-4 mr-1" /> : <Mic className="h-4 w-4 mr-1" />}
+                      {isRecording ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
                       {isRecording ? "Stop Recording" : "Start Recording"}
                     </Button>
+                    
+                    <Button 
+                      type="button"
+                      variant="ghost" 
+                      onClick={handleResetVoiceRecording}
+                      disabled={!voiceTranscript}
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
                   </div>
+                  
                   <Textarea
-                    value={transcript}
-                    onChange={(e) => setTranscript(e.target.value)}
-                    placeholder="Speak a sacred phrase to add voice recognition security..."
-                    className="bg-black/30 border-justice-primary/20 min-h-[100px]"
-                    disabled={isRecording}
+                    value={voiceTranscript}
+                    onChange={(e) => setVoiceTranscript(e.target.value)}
+                    placeholder="Voice transcript will appear here..."
+                    className="mt-2 min-h-[100px]"
+                    readOnly={isRecording}
                   />
-                  <p className="text-xs text-justice-light/50 mt-1">
-                    Adding a voice component enhances security through multi-factor authentication.
+                  
+                  <p className="text-sm text-justice-light/70 mt-2">
+                    Speak your sacred recovery phrase clearly. This voice pattern will be recorded and can be used for recovery.
                   </p>
                 </div>
-              )}
+              </TabsContent>
               
-              {recoveryKey && (
-                <div className="mt-4 p-4 bg-justice-primary/10 border border-justice-primary/30 rounded-md">
-                  <h3 className="text-justice-primary font-medium flex items-center gap-2 mb-2">
-                    <Key className="h-4 w-4" /> Your Sacred Recovery Key
-                  </h3>
-                  <p className="text-xl text-justice-light font-mono tracking-wider">
-                    {recoveryKey}
-                  </p>
-                  <p className="text-xs text-justice-light/50 mt-2">
-                    Store this key in a secure location. It cannot be recovered if lost.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter>
-              <Button 
-                onClick={generateRecoveryKey} 
-                className="w-full"
-                disabled={!passphrase || isGenerating}
-              >
-                {isGenerating ? "Generating..." : "Generate Recovery Key"}
+              <Button type="submit" className="w-full mt-4">
+                Create Recovery Key
               </Button>
-            </CardFooter>
-          </Card>
-        </div>
-      </div>
+            </form>
+          </CardContent>
+        </Tabs>
+        
+        <CardFooter className="flex flex-col items-start">
+          <p className="text-sm text-justice-light/70">
+            Your recovery key is securely stored and can be used to restore access to your scrolls in case of spiritual disconnection.
+          </p>
+          <p className="text-sm text-justice-tertiary mt-2">
+            Keep your recovery method sacred and private.
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   );
-}
+};
+
+export default Recovery;

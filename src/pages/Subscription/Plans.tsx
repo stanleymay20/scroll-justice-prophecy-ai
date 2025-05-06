@@ -1,262 +1,329 @@
-import { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { GlassCard } from "@/components/advanced-ui/GlassCard";
-import { Check, X, Loader2 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
-import { toast } from "@/hooks/use-toast";
-import { stripePriceIds, createCheckoutSession } from "@/lib/stripe";
-import type { SubscriptionPlan, SubscriptionTier } from "@/types/subscription";
+import { PlanCard, SubscriptionPlan } from "@/components/subscription/PlanCard";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, AlertCircle, ShieldCheck, Info } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { createCheckoutSession, openCustomerPortal, stripePriceIds } from "@/lib/stripe";
+import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/language";
 
-// Subscription plan data
-const plans: SubscriptionPlan[] = [
-  {
-    id: "basic",
-    name: "Basic",
-    description: "Essential sacred legal tools for individuals",
-    price: 0,
-    tier: "basic",
-    features: [
-      "Basic case search",
-      "5 document uploads per month",
-      "Limited precedent explorer",
-      "Standard response time"
-    ],
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    description: "Advanced features for legal professionals",
-    price: 49.99,
-    tier: "professional",
-    recommended: true,
-    features: [
-      "Full case search capabilities",
-      "Unlimited document uploads",
-      "Complete precedent explorer access",
-      "Trial simulation (limited)",
-      "Priority support"
-    ],
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    description: "Complete solution for law firms",
-    price: 99.99,
-    tier: "enterprise",
-    features: [
-      "All Professional features",
-      "Advanced AI training",
-      "Custom case classification",
-      "Team collaboration features",
-      "Dedicated account manager",
-      "API access"
-    ],
-  }
-];
-
-const SubscriptionPlans = () => {
-  const [loading, setLoading] = useState<string | null>(null);
-  const { user, subscriptionTier, subscriptionStatus, checkSubscriptionStatus } = useAuth();
+const Plans = () => {
+  const [selectedBillingCycle, setSelectedBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [loading, setLoading] = useState(false);
+  const [checkingSubscription, setCheckingSubscription] = useState(true);
+  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
-  const handleSubscribe = async (plan: SubscriptionPlan) => {
-    if (!user) {
-      navigate("/signin?redirect=/subscription/plans");
-      return;
+  // Define the plans
+  const subscriptionPlans: SubscriptionPlan[] = [
+    {
+      id: "basic",
+      name: t("subscription.basic"),
+      description: "Essential access to the sacred scrolls of justice",
+      priceId: stripePriceIds.basic,
+      price: 0,
+      currency: "usd",
+      billing: selectedBillingCycle,
+      features: [
+        { name: "Access to petition submission", included: true },
+        { name: "View public precedents", included: true },
+        { name: "AI integrity analysis (basic)", included: true },
+        { name: "Scroll witness participation", included: true },
+        { name: "Enhanced AI verdict analysis", included: false },
+        { name: "Priority case assignment", included: false },
+        { name: "Sacred archive access", included: false },
+        { name: "Voice-based recovery keys", included: false },
+        { name: "Advanced jurisdiction access", included: false },
+        { name: "Automatic case forwarding", included: false },
+      ],
+      currentPlan: currentSubscription?.tier === 'basic'
+    },
+    {
+      id: "professional",
+      name: t("subscription.professional"),
+      description: "Advanced tools for dedicated petitioners and witnesses",
+      priceId: stripePriceIds.professional,
+      price: 49.99,
+      currency: "usd",
+      billing: selectedBillingCycle,
+      features: [
+        { name: "Access to petition submission", included: true },
+        { name: "View public precedents", included: true },
+        { name: "AI integrity analysis (advanced)", included: true },
+        { name: "Scroll witness participation", included: true },
+        { name: "Enhanced AI verdict analysis", included: true },
+        { name: "Priority case assignment", included: true },
+        { name: "Sacred archive access", included: true },
+        { name: "Voice-based recovery keys", included: true },
+        { name: "Advanced jurisdiction access", included: false },
+        { name: "Automatic case forwarding", included: false },
+      ],
+      highlighted: true,
+      currentPlan: currentSubscription?.tier === 'professional'
+    },
+    {
+      id: "enterprise",
+      name: t("subscription.enterprise"),
+      description: "Full access for Scroll Judges and institutional users",
+      priceId: stripePriceIds.enterprise,
+      price: 99.99,
+      currency: "usd",
+      billing: selectedBillingCycle,
+      features: [
+        { name: "Access to petition submission", included: true },
+        { name: "View public precedents", included: true },
+        { name: "AI integrity analysis (comprehensive)", included: true },
+        { name: "Scroll witness participation", included: true },
+        { name: "Enhanced AI verdict analysis", included: true },
+        { name: "Priority case assignment", included: true },
+        { name: "Sacred archive access", included: true },
+        { name: "Voice-based recovery keys", included: true },
+        { name: "Advanced jurisdiction access", included: true },
+        { name: "Automatic case forwarding", included: true },
+      ],
+      currentPlan: currentSubscription?.tier === 'enterprise'
     }
+  ];
 
-    if (plan.id === "basic") {
-      // Basic plan is free, no checkout needed
-      toast({
-        title: "You're on the Basic plan",
-        description: "You're already using our free Basic plan.",
-      });
-      return;
-    }
+  // Check if user has an active subscription
+  useEffect(() => {
+    const checkSubscription = async () => {
+      setCheckingSubscription(true);
+      try {
+        // Make sure user is logged in
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          setCheckingSubscription(false);
+          return;
+        }
+        
+        // Call check-subscription edge function
+        const { data, error } = await supabase.functions.invoke("check-subscription");
+        
+        if (error) {
+          console.error("Error checking subscription:", error);
+          throw error;
+        }
+        
+        if (data?.subscribed) {
+          setCurrentSubscription({
+            tier: data.subscription_tier?.toLowerCase(),
+            endDate: data.subscription_end ? new Date(data.subscription_end) : null
+          });
+        } else {
+          // Default to basic tier if no subscription
+          setCurrentSubscription({
+            tier: 'basic',
+            endDate: null
+          });
+        }
+      } catch (err) {
+        console.error("Subscription check failed:", err);
+        setError("Failed to check subscription status. Please try again later.");
+      } finally {
+        setCheckingSubscription(false);
+      }
+    };
+    
+    checkSubscription();
+  }, []);
 
+  // Handle subscription
+  const handleSubscribe = async (planId: string, priceId: string) => {
     try {
-      setLoading(plan.id);
+      setLoading(true);
       
-      // Force refresh subscription status before proceeding
-      await checkSubscriptionStatus();
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
       
-      // Check if this tier has a valid price ID
-      if (!stripePriceIds[plan.id]) {
-        throw new Error(`No price ID configured for ${plan.name} plan`);
+      if (!user) {
+        // Redirect to login if not authenticated
+        navigate("/login", { state: { returnUrl: "/subscription/plans" } });
+        return;
       }
       
-      console.log("Starting checkout for plan:", {
-        planId: plan.id,
-        priceId: stripePriceIds[plan.id]
-      });
-      
-      // Use the createCheckoutSession utility function from stripe.ts
-      const data = await createCheckoutSession(
-        stripePriceIds[plan.id],
+      // Create checkout session for the selected plan
+      const { url, error } = await createCheckoutSession(
+        priceId, 
         `${window.location.origin}/subscription/success`
       );
       
-      if (data?.url) {
-        window.location.href = data.url;
+      if (error) throw new Error(error);
+      
+      if (url) {
+        // Redirect to Stripe checkout
+        window.location.href = url;
       } else {
-        throw new Error("No checkout URL returned");
+        throw new Error("Failed to create checkout session.");
       }
-    } catch (error: any) {
-      console.error("Checkout error:", error);
+    } catch (error) {
+      console.error("Subscription error:", error);
       toast({
-        title: "Checkout failed",
-        description: error.message || "There was an error creating your checkout session.",
+        title: "Subscription Error",
+        description: "There was a problem processing your subscription. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setLoading(null);
+      setLoading(false);
     }
   };
 
-  const isCurrentPlan = (tier: SubscriptionTier) => {
-    return tier === subscriptionTier && subscriptionStatus === "active";
-  };
-
-  const getButtonLabel = (plan: SubscriptionPlan) => {
-    if (isCurrentPlan(plan.tier)) {
-      return "Current Plan";
+  // Handle manage subscription
+  const handleManageSubscription = async () => {
+    try {
+      setLoading(true);
+      
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        // Redirect to login if not authenticated
+        navigate("/login", { state: { returnUrl: "/subscription/plans" } });
+        return;
+      }
+      
+      // Open customer portal
+      const { url, error } = await openCustomerPortal(
+        `${window.location.origin}/subscription/plans`
+      );
+      
+      if (error) throw new Error(error);
+      
+      if (url) {
+        // Redirect to Stripe customer portal
+        window.location.href = url;
+      } else {
+        throw new Error("Failed to open customer portal.");
+      }
+    } catch (error) {
+      console.error("Customer portal error:", error);
+      toast({
+        title: "Portal Access Error",
+        description: "There was a problem accessing the subscription portal. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-    
-    if (plan.id === "basic") {
-      return "Free Plan";
-    }
-    
-    if (loading === plan.id) {
-      return "Processing...";
-    }
-    
-    return "Subscribe";
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">Sacred Subscription Plans</h1>
-          <p className="text-justice-light/80 max-w-2xl mx-auto">
-            Select the subscription plan that best fits your justice journey. Upgrade anytime to access more sacred features.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {plans.map((plan) => (
-            <GlassCard 
-              key={plan.id}
-              className={`relative p-6 flex flex-col ${
-                plan.recommended ? "border-justice-primary" : ""
-              }`}
-              intensity={plan.recommended ? "medium" : "light"}
-              glow={plan.recommended}
-            >
-              {plan.recommended && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-justice-primary text-white px-4 py-1 rounded-full text-sm font-medium">
-                  Recommended
-                </div>
-              )}
-              
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
-                <p className="text-justice-light/70 mt-1">{plan.description}</p>
-              </div>
-              
-              <div className="mb-6">
-                <div className="flex items-end">
-                  <span className="text-4xl font-bold text-white">
-                    ${plan.price === 0 ? "0" : plan.price.toFixed(2)}
-                  </span>
-                  <span className="text-justice-light/70 ml-2 mb-1">/month</span>
-                </div>
-              </div>
-              
-              <ul className="space-y-3 mb-8 flex-grow">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-start">
-                    <Check className="h-5 w-5 text-justice-primary shrink-0 mr-2" />
-                    <span className="text-justice-light/90">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <Button
-                onClick={() => handleSubscribe(plan)}
-                className={`w-full ${
-                  isCurrentPlan(plan.tier)
-                    ? "bg-justice-light/20 border border-justice-primary text-white cursor-default"
-                    : ""
-                }`}
-                disabled={loading !== null || isCurrentPlan(plan.tier)}
+    <div className="container py-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold text-justice-primary mb-2">
+          {t("subscription.title")}
+        </h1>
+        <p className="text-justice-light/70 mb-8">
+          Choose a sacred subscription plan to access enhanced features and support the ScrollJustice.AI mission.
+        </p>
+        
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
+        {currentSubscription && currentSubscription.tier !== 'basic' && (
+          <Alert className="mb-6 bg-justice-primary/10 border-justice-primary/30">
+            <ShieldCheck className="h-4 w-4 text-justice-primary" />
+            <AlertTitle className="text-justice-primary">Active Subscription</AlertTitle>
+            <AlertDescription>
+              You currently have an active {currentSubscription.tier} subscription
+              {currentSubscription.endDate && ` until ${currentSubscription.endDate.toLocaleDateString()}`}.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        <Tabs defaultValue="monthly" className="mb-8">
+          <div className="flex justify-center mb-6">
+            <TabsList>
+              <TabsTrigger 
+                value="monthly"
+                onClick={() => setSelectedBillingCycle("monthly")}
               >
-                {loading === plan.id ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {getButtonLabel(plan)}
-                  </>
-                ) : (
-                  getButtonLabel(plan)
-                )}
-              </Button>
-              
-              {isCurrentPlan(plan.tier) && (
-                <p className="text-center text-justice-primary text-sm mt-3">
-                  Current active subscription
-                </p>
-              )}
-            </GlassCard>
-          ))}
-        </div>
-
-        <div className="mt-16 text-center">
-          <h2 className="text-2xl font-semibold text-white mb-6">Sacred Plan Comparison</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-justice-light/20">
-                  <th className="p-4 text-left text-justice-light">Features</th>
-                  {plans.map((plan) => (
-                    <th key={plan.id} className="p-4 text-center text-white">{plan.name}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-justice-light/10">
-                  <td className="p-4 text-justice-light">Case Search</td>
-                  <td className="p-4 text-center text-justice-light">Basic</td>
-                  <td className="p-4 text-center text-justice-light">Advanced</td>
-                  <td className="p-4 text-center text-justice-light">Advanced</td>
-                </tr>
-                <tr className="border-b border-justice-light/10">
-                  <td className="p-4 text-justice-light">Document Uploads</td>
-                  <td className="p-4 text-center text-justice-light">5/month</td>
-                  <td className="p-4 text-center text-justice-light">Unlimited</td>
-                  <td className="p-4 text-center text-justice-light">Unlimited</td>
-                </tr>
-                <tr className="border-b border-justice-light/10">
-                  <td className="p-4 text-justice-light">Precedent Explorer</td>
-                  <td className="p-4 text-center text-justice-light">Limited</td>
-                  <td className="p-4 text-center text-justice-light">Full</td>
-                  <td className="p-4 text-center text-justice-light">Full + Custom</td>
-                </tr>
-                <tr className="border-b border-justice-light/10">
-                  <td className="p-4 text-justice-light">Trial Simulation</td>
-                  <td className="p-4 text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></td>
-                  <td className="p-4 text-center text-justice-light">Limited</td>
-                  <td className="p-4 text-center text-justice-light">Full</td>
-                </tr>
-                <tr className="border-b border-justice-light/10">
-                  <td className="p-4 text-justice-light">AI Training</td>
-                  <td className="p-4 text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></td>
-                </tr>
-              </tbody>
-            </table>
+                Monthly Billing
+              </TabsTrigger>
+              <TabsTrigger 
+                value="yearly"
+                onClick={() => setSelectedBillingCycle("yearly")}
+              >
+                Yearly Billing
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="monthly">
+            {checkingSubscription ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-justice-primary" />
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-6">
+                {subscriptionPlans.map((plan) => (
+                  <PlanCard
+                    key={plan.id}
+                    plan={plan}
+                    onSubscribe={handleSubscribe}
+                    onManage={handleManageSubscription}
+                    loading={loading}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="yearly">
+            <div className="flex justify-center items-center py-12">
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertTitle>Coming Soon</AlertTitle>
+                <AlertDescription>
+                  Yearly subscription options will be available in a future update.
+                  Please use monthly billing for now.
+                </AlertDescription>
+              </Alert>
+            </div>
+          </TabsContent>
+        </Tabs>
+        
+        <div className="bg-black/30 border border-justice-tertiary/30 rounded-lg p-6">
+          <h3 className="text-lg font-medium text-justice-light mb-4">
+            Subscription FAQs
+          </h3>
+          
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-justice-primary mb-1">What happens if I cancel my subscription?</h4>
+              <p className="text-justice-light/70 text-sm">
+                Your access to premium features will continue until the end of your current billing period.
+                After that, your account will revert to the free Basic tier.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-justice-primary mb-1">Can I change my subscription plan?</h4>
+              <p className="text-justice-light/70 text-sm">
+                Yes, you can upgrade or downgrade your plan at any time. If you upgrade, you'll be charged the prorated
+                difference. If you downgrade, the change will take effect at the end of your current billing period.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-justice-primary mb-1">Is my payment information secure?</h4>
+              <p className="text-justice-light/70 text-sm">
+                Yes, all payments are processed securely through Stripe. We never store your payment information
+                on our servers.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -264,4 +331,4 @@ const SubscriptionPlans = () => {
   );
 };
 
-export default SubscriptionPlans;
+export default Plans;
