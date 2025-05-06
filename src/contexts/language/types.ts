@@ -9,4 +9,5 @@ export interface LanguageContextType {
   t: (key: string, ...args: any[]) => string;
   rtl: boolean;
   isLoading: boolean;
+  reloadTranslations?: () => Promise<void>;
 }

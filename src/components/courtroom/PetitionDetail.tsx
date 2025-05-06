@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -112,7 +113,7 @@ export function PetitionDetail() {
       setIsSubmittingVerdict(true);
       
       // Check for self-verdict violation
-      const isSelfVerdict = await checkSelfVerdict(id);
+      const isSelfVerdict = await checkSelfVerdict(id, user.id);
       if (isSelfVerdict) {
         toast({
           variant: "destructive",

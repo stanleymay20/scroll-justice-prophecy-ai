@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,8 +52,8 @@ export function PetitionForm({ onPetitionCreated, onCancel }: PetitionFormProps)
     try {
       setAnalyzing(true);
       const result = await analyzeContent(text);
-      setIntegrityScore(result.integrity_score);
-      setContentWarnings(result.flagged_terms || []);
+      setIntegrityScore(result.score);
+      setContentWarnings(result.issues || []);
     } catch (err) {
       console.error('Error analyzing content:', err);
     } finally {

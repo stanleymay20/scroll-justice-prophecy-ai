@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,7 +60,10 @@ export default function SuccessionSystem() {
           .filter(judge => judge.profiles && typeof judge.profiles === 'object')
           .map(judge => ({
             id: judge.user_id,
-            username: judge.profiles?.username || 'Unknown Judge'
+            // Safely extract username, providing a fallback
+            username: judge.profiles && typeof judge.profiles === 'object' ? 
+              (judge.profiles as any).username || 'Unknown Judge' : 
+              'Unknown Judge'
           }));
         
         setPotentialSuccessors(successors);
@@ -90,7 +92,10 @@ export default function SuccessionSystem() {
             action_type: activity.action_type,
             description: activity.description,
             created_at: activity.created_at,
-            username: activity.profiles?.username || 'Unknown User'
+            // Safely extract username, providing a fallback
+            username: activity.profiles && typeof activity.profiles === 'object' ? 
+              (activity.profiles as any).username || 'Unknown User' : 
+              'Unknown User'
           }));
         
         setFlameActivity(activities);
@@ -175,6 +180,14 @@ export default function SuccessionSystem() {
         description: "There was an error transferring the case",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleTabChange = (tab: string) => {
+    // Find the target element and trigger a click if it exists
+    const tabElement = document.querySelector(`[data-value="${tab}"]`) as HTMLElement;
+    if (tabElement) {
+      tabElement.click();
     }
   };
 

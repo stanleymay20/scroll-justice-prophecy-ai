@@ -38,13 +38,22 @@ export const flagIntegrityViolation = async (
     });
     
     // Update the petition's integrity score
-    // This would typically be handled by a database trigger
     try {
-      // Call a database function to calculate the new score
-      // This function would need to be created in the database
-      const { data } = await supabase.rpc("calculate_integrity_score", {
-        petition_id: petitionId
-      });
+      // For now, manually update the score since the RPC function may not exist yet
+      const { data: currentScore } = await supabase
+        .from("scroll_petitions")
+        .select("scroll_integrity_score")
+        .eq("id", petitionId)
+        .single();
+      
+      if (currentScore) {
+        const newScore = Math.max(0, Math.min(100, currentScore.scroll_integrity_score + impact));
+        
+        await supabase
+          .from("scroll_petitions")
+          .update({ scroll_integrity_score: newScore })
+          .eq("id", petitionId);
+      }
       
       return true;
     } catch (error) {
@@ -70,8 +79,10 @@ export const flagIntegrityViolation = async (
  */
 export const checkSelfVerdict = async (
   petitionId: string,
-  userId: string
+  userId?: string
 ): Promise<boolean> => {
+  if (!userId) return false;
+  
   try {
     const { data: petition } = await supabase
       .from("scroll_petitions")
@@ -126,15 +137,35 @@ export const getAiSuggestedVerdict = async (
  */
 export const getUserIntegrityScore = async (userId: string): Promise<number> => {
   try {
-    // Call a database function to calculate the user's integrity score
-    const { data, error } = await supabase.rpc("calculate_user_integrity", {
-      user_id: userId
-    });
+    // For now, implement a simple calculation since the function may not exist
+    const { data: positiveActions } = await supabase
+      .from("scroll_petitions")
+      .select("id")
+      .eq("petitioner_id", userId)
+      .eq("verdict", "approved");
     
-    if (error) throw error;
+    const { data: negativeActions } = await supabase
+      .from("scroll_integrity_logs")
+      .select("id")
+      .eq("user_id", userId)
+      .lt("integrity_impact", 0);
     
+    const { data: rejectedPetitions } = await supabase
+      .from("scroll_petitions")
+      .select("id")
+      .eq("petitioner_id", userId)
+      .eq("verdict", "rejected");
+    
+    // Calculate a basic score
+    const baseScore = 50;
+    const positive = (positiveActions?.length || 0) * 5;
+    const negative = ((negativeActions?.length || 0) + (rejectedPetitions?.length || 0)) * 10;
+    
+    let score = baseScore + positive - negative;
     // Ensure the score is between 0 and 100
-    return Math.min(Math.max((data as number) || 50, 0), 100);
+    score = Math.min(Math.max(score, 0), 100);
+    
+    return score;
   } catch (error) {
     console.error("Error getting user integrity score:", error);
     return 50; // Default middle score

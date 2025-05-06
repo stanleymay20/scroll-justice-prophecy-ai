@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { NavBar } from "@/components/layout/NavBar";
 import { MetaTags } from "@/components/MetaTags";
@@ -13,6 +12,23 @@ import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Define the SpeechRecognition interface for TypeScript
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionError extends Event {
+  error: string;
+}
+
+// Add the global SpeechRecognition types
+declare global {
+  interface Window {
+    SpeechRecognition?: typeof SpeechRecognition;
+    webkitSpeechRecognition?: typeof SpeechRecognition;
+  }
+}
+
 export default function Recovery() {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -26,7 +42,7 @@ export default function Recovery() {
   
   // Check if SpeechRecognition is available in the browser
   const speechRecognitionSupported = typeof window !== 'undefined' && 
-    (window.SpeechRecognition || window.webkitSpeechRecognition);
+    !!(window.SpeechRecognition || window.webkitSpeechRecognition);
   
   const recognitionRef = useRef<any>(null);
   
@@ -34,28 +50,30 @@ export default function Recovery() {
   useEffect(() => {
     if (speechRecognitionSupported) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      
-      recognitionRef.current.onresult = (event: any) => {
-        let finalTranscript = '';
-        for (let i = 0; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+        
+        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+          let finalTranscript = '';
+          for (let i = 0; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            }
           }
-        }
-        setTranscript(finalTranscript);
-      };
-      
-      recognitionRef.current.onerror = (event: any) => {
-        console.error("Speech recognition error", event.error);
-        setIsRecording(false);
-      };
-      
-      recognitionRef.current.onend = () => {
-        setIsRecording(false);
-      };
+          setTranscript(finalTranscript);
+        };
+        
+        recognitionRef.current.onerror = (event: SpeechRecognitionError) => {
+          console.error("Speech recognition error", event.error);
+          setIsRecording(false);
+        };
+        
+        recognitionRef.current.onend = () => {
+          setIsRecording(false);
+        };
+      }
     }
     
     return () => {
@@ -115,13 +133,14 @@ export default function Recovery() {
         voice_transcript: transcript || null,
       };
       
+      // We need to use a raw query since the table might not exist in the types yet
       // Create the recovery key record in the database
-      // Note: We would need to create a recovery_keys table in the database
-      const { data, error } = await supabase
-        .from("scroll_recovery_keys")
-        .insert(recoveryData)
-        .select()
-        .single();
+      const { data, error } = await supabase.rpc('create_recovery_key', {
+        user_id: user.id,
+        passphrase: passphrase,
+        recovery_type: transcript ? "voice" : "text",
+        voice_transcript: transcript || null
+      });
       
       if (error) throw error;
       
