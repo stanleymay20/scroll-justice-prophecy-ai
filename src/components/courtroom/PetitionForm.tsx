@@ -11,12 +11,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { AIDisclosure } from "@/components/compliance/AIDisclosure";
 import { useLanguage } from "@/contexts/language";
+import { ScrollPetition } from "@/types/petition";
 
 interface PetitionFormProps {
   onSubmit?: (data: any) => void;
+  onPetitionCreated?: (petition: ScrollPetition) => void;
+  onCancel?: () => void;
 }
 
-export const PetitionForm = ({ onSubmit }: PetitionFormProps) => {
+export const PetitionForm = ({ 
+  onSubmit,
+  onPetitionCreated,
+  onCancel
+}: PetitionFormProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,8 +100,15 @@ export const PetitionForm = ({ onSubmit }: PetitionFormProps) => {
         onSubmit(petition);
       }
       
-      // Navigate to the petition detail page
-      navigate(`/petition/${petition.id}`);
+      // Call the onPetitionCreated callback if provided
+      if (onPetitionCreated) {
+        onPetitionCreated(petition as ScrollPetition);
+      }
+      
+      // Navigate to the petition detail page if no callbacks provided
+      if (!onSubmit && !onPetitionCreated) {
+        navigate(`/petition/${petition.id}`);
+      }
     } catch (error) {
       console.error('Error submitting petition:', error);
       toast({
@@ -154,10 +168,20 @@ export const PetitionForm = ({ onSubmit }: PetitionFormProps) => {
           <AIDisclosure />
         </CardContent>
         
-        <CardFooter className="flex justify-end">
+        <CardFooter className="flex justify-between">
+          {onCancel && (
+            <Button 
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+            >
+              {t("button.cancel")}
+            </Button>
+          )}
           <Button 
             type="submit" 
             disabled={!isFormValid || isSubmitting}
+            className={onCancel ? "" : "w-full"}
           >
             {isSubmitting ? t("button.submitting") : t("button.submit")}
           </Button>

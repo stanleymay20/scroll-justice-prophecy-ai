@@ -1,77 +1,84 @@
 
 /**
- * Generates a simple hash from the provided string data
- * @param data The string to hash
- * @returns A hash string
+ * Utilities for cryptographic operations used in the ScrollCourt system.
  */
-export const generateHash = (data: string): string => {
-  let hash = 0;
-  if (data.length === 0) return hash.toString(16);
-  
-  for (let i = 0; i < data.length; i++) {
-    const char = data.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  
-  return Math.abs(hash).toString(16);
-};
 
 /**
- * Generates a unique ID based on timestamp and random values
- * @returns A unique string ID
+ * Generates a SHA-256 hash from a string input.
+ * @param message The string to hash
+ * @returns A promise that resolves to the hex-encoded hash
  */
-export const generateUniqueId = (): string => {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`;
-};
-
-/**
- * Performs a one-way encryption of a password or phrase
- * @param text The text to encrypt
- * @returns An encrypted string
- */
-export const encryptOneWay = async (text: string): Promise<string> => {
-  // Create a hash using the Web Crypto API
-  const msgBuffer = new TextEncoder().encode(text);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+export async function generateSha256Hash(message: string): Promise<string> {
+  // Convert the message string to a Uint8Array
+  const msgUint8 = new TextEncoder().encode(message);
+  
+  // Hash the message
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  
+  // Convert the hash buffer to a hex string
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-};
+}
 
 /**
- * Checks if two strings match after one-way encryption
- * @param plainText The plain text to check
- * @param hashedText The previously hashed text to compare against
- * @returns True if the texts match after hashing
+ * Generates a cryptographic signature based on petition contents,
+ * verdict, judge, timestamp, and optional salt.
+ * 
+ * @param content The concatenated content to sign
+ * @param salt Optional cryptographic salt to add entropy
+ * @returns A promise that resolves to the flame signature (hex-encoded hash)
  */
-export const verifyMatch = async (plainText: string, hashedText: string): Promise<boolean> => {
-  const hashedPlainText = await encryptOneWay(plainText);
-  return hashedPlainText === hashedText;
-};
+export async function generateFlameSignature(
+  content: string,
+  salt: string = new Date().toISOString()
+): Promise<string> {
+  const combinedContent = `${content}|${salt}`;
+  return generateSha256Hash(combinedContent);
+}
 
 /**
- * Creates a verification token with expiration
- * @param userId User ID to include in the token
- * @param expiryMinutes Minutes until expiration
- * @returns A token object with the token string and expiry timestamp
+ * Verifies a flame signature against provided content
+ * 
+ * @param content The content that was signed
+ * @param signature The signature to verify
+ * @param salt The original salt used, if any
+ * @returns A promise resolving to true if signature is valid
  */
-export const createVerificationToken = (userId: string, expiryMinutes: number = 60): { 
-  token: string, 
-  expiresAt: number 
-} => {
-  const expiresAt = Date.now() + expiryMinutes * 60 * 1000;
-  const tokenData = `${userId}|${expiresAt}|${Math.random().toString(36).substring(2)}`;
-  return {
-    token: generateHash(tokenData),
-    expiresAt
+export async function verifyFlameSignature(
+  content: string,
+  signature: string,
+  salt: string = ""
+): Promise<boolean> {
+  const combinedContent = salt ? `${content}|${salt}` : content;
+  const computedHash = await generateSha256Hash(combinedContent);
+  return computedHash === signature;
+}
+
+/**
+ * Generates a time-limited token based on user ID and purpose
+ * 
+ * @param userId The user's ID
+ * @param purpose The token purpose (e.g., "recovery", "verification")
+ * @param expiryHours Hours until token expires
+ * @returns A promise resolving to the token
+ */
+export async function generateTimeToken(
+  userId: string,
+  purpose: string,
+  expiryHours: number = 24
+): Promise<string> {
+  const expiry = new Date();
+  expiry.setHours(expiry.getHours() + expiryHours);
+  
+  const payload = {
+    uid: userId,
+    purpose,
+    exp: Math.floor(expiry.getTime() / 1000)
   };
-};
-
-/**
- * Validates if a token is still valid based on expiry time
- * @param tokenExpiryTimestamp The timestamp when the token expires
- * @returns True if token is still valid
- */
-export const isTokenValid = (tokenExpiryTimestamp: number): boolean => {
-  return Date.now() < tokenExpiryTimestamp;
-};
+  
+  const payloadStr = JSON.stringify(payload);
+  const hash = await generateSha256Hash(payloadStr);
+  
+  // Return first 16 characters of hash as the token
+  return hash.substring(0, 16);
+}

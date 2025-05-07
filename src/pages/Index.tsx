@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { NavBar } from "@/components/layout/NavBar";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
 import { MetaTags } from "@/components/MetaTags";
 import { Dashboard } from "@/components/dashboard/Dashboard";

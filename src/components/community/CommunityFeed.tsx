@@ -12,7 +12,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/language";
 
-export type PostType = 'testimony' | 'legal' | 'prayer' | 'righteous_insight' | 'all';
+// Updated PostType to match database enum values
+export type PostType = 'testimony' | 'legal_question' | 'prayer_request' | 'righteous_insight' | 'announcement' | 'all';
 
 export interface CommunityPost {
   id: string;
@@ -72,10 +73,11 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
         if (error) throw error;
         
         // Transform the data to match the CommunityPost interface
-        const formattedPosts = data.map(post => ({
+        const formattedPosts: CommunityPost[] = data.map(post => ({
           ...post,
           username: post.profiles?.username || 'Anonymous',
-          avatar_url: post.profiles?.avatar_url || null
+          avatar_url: post.profiles?.avatar_url || null,
+          category: post.category as PostType
         }));
         
         setPosts(formattedPosts);
@@ -170,8 +172,8 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
             <TabsList className="grid grid-cols-5">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="testimony">Testimony</TabsTrigger>
-              <TabsTrigger value="legal">Legal</TabsTrigger>
-              <TabsTrigger value="prayer">Prayer</TabsTrigger>
+              <TabsTrigger value="legal_question">Legal</TabsTrigger>
+              <TabsTrigger value="prayer_request">Prayer</TabsTrigger>
               <TabsTrigger value="righteous_insight">Insights</TabsTrigger>
             </TabsList>
           </Tabs>
@@ -230,8 +232,8 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
           <TabsList className="grid grid-cols-5">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="testimony">Testimony</TabsTrigger>
-            <TabsTrigger value="legal">Legal</TabsTrigger>
-            <TabsTrigger value="prayer">Prayer</TabsTrigger>
+            <TabsTrigger value="legal_question">Legal</TabsTrigger>
+            <TabsTrigger value="prayer_request">Prayer</TabsTrigger>
             <TabsTrigger value="righteous_insight">Insights</TabsTrigger>
           </TabsList>
         </Tabs>
