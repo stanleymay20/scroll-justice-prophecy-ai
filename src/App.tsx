@@ -8,16 +8,16 @@ import { Toaster } from "@/components/ui/toaster";
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <LanguageProvider>
           <AIComplianceProvider>
             <AppRoutes />
             <Toaster />
           </AIComplianceProvider>
         </LanguageProvider>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
