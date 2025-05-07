@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,8 +12,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { useLanguage } from "@/contexts/language";
 
-// Create an enhanced version of ScrollPetition for this page
-interface EnhancedSealedPetition extends ScrollPetition {
+// Create an interface specifically for this page that doesn't require reasoning
+interface EnhancedSealedPetition extends Omit<ScrollPetition, 'reasoning'> {
   petitionerName: string;
   judgeName: string;
   timeAgo: string;
@@ -47,7 +48,7 @@ const HallOfSealedScrolls = () => {
         }
         
         // Process and enhance petition data
-        const enhancedData = data.map(petition => ({
+        const enhancedData: EnhancedSealedPetition[] = data.map(petition => ({
           ...petition,
           petitionerName: petition.petitioner?.username || 'Anonymous Petitioner',
           judgeName: petition.judge?.username || 'Unassigned',

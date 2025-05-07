@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ export const PetitionDetail = () => {
         
       if (error) throw error;
       
+      // Handle potentially missing relation data safely
       const timeAgo = formatDistanceToNow(new Date(data.created_at), { addSuffix: true });
       const petitionerName = data.petitioner?.username || "Anonymous";
       const judgeName = data.judge?.username || "Unassigned";

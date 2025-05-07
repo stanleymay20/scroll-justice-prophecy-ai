@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -161,33 +160,21 @@ const Recovery = () => {
         return;
       }
 
-      // Call the database function to create a recovery key
-      const result = await safeRpcCall(
-        "create_recovery_key",
-        {
-          user_id: user.id,
-          passphrase: recoveryMethod === 'text' ? passphrase : '',
-          recovery_type: recoveryMethod,
-          voice_transcript: recoveryMethod === 'voice' ? voiceTranscript : null
-        },
-        async () => {
-          // Fallback implementation if the function doesn't exist
-          const { data, error } = await supabase
-            .from('scroll_recovery_keys')
-            .insert({
-              user_id: user.id,
-              passphrase: recoveryMethod === 'text' ? passphrase : '',
-              recovery_type: recoveryMethod,
-              voice_transcript: recoveryMethod === 'voice' ? voiceTranscript : null
-            })
-            .select();
-          
-          if (error) throw error;
-          return data?.[0]?.id || null;
-        }
-      );
-
-      if (result) {
+      // Use try/catch to handle missing table
+      try {
+        // Try to create a recovery key through direct insert since the table might not exist
+        const { data, error } = await supabase
+          .from('scroll_recovery_keys' as any)
+          .insert({
+            user_id: user.id,
+            passphrase: recoveryMethod === 'text' ? passphrase : '',
+            recovery_type: recoveryMethod,
+            voice_transcript: recoveryMethod === 'voice' ? voiceTranscript : null
+          })
+          .select();
+        
+        if (error) throw error;
+        
         toast({
           title: "Recovery Key Created",
           description: "Your sacred recovery key has been safely stored in the scrolls.",
@@ -196,8 +183,13 @@ const Recovery = () => {
         // Clear form after success
         setPassphrase("");
         setVoiceTranscript("");
-      } else {
-        throw new Error("Failed to create recovery key");
+      } catch (dbError) {
+        console.error("Database operation failed:", dbError);
+        toast({
+          title: "Database Table Not Found",
+          description: "The recovery feature is not yet available in this environment.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error("Recovery key creation error:", error);

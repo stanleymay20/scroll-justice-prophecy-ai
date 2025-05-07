@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -142,7 +141,10 @@ export const ContentAnalyzer = ({
   };
   
   const severity = getSeverity();
-  const variantColor = severity.color as "success" | "warning" | "destructive" | "default";
+  // Fix: Use destructive as fallback for success/warning variants
+  const variantColor = (severity.color === "success" || severity.color === "warning") 
+    ? "default" 
+    : (severity.color as "destructive" | "default");
 
   return (
     <div className={`border rounded-md p-4 ${

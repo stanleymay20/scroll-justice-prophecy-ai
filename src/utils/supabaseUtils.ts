@@ -15,7 +15,7 @@ export async function safeRpcCall<T, F>(
     const { supabase } = await import('@/integrations/supabase/client');
     
     // Try to call the database function through RPC
-    const { data, error } = await supabase.rpc(functionName, params);
+    const { data, error } = await supabase.rpc(functionName as any, params);
     
     if (error) {
       // If the function doesn't exist, use the fallback
