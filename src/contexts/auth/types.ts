@@ -17,4 +17,9 @@ export interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
+  // Add new fields for subscription related data
+  subscriptionTier: string | null;
+  subscriptionStatus: string | null;
+  subscriptionEnd: string | null;
+  checkSubscriptionStatus: () => Promise<void>;
 }
