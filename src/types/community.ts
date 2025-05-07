@@ -25,3 +25,17 @@ export interface Comment {
   created_at: string;
   likes: number;
 }
+
+export interface CommunityPost {
+  id: string;
+  user_id: string;
+  username: string;
+  avatar_url?: string;
+  title: string;
+  content: string;
+  category: PostType;
+  created_at: string;
+  updated_at: string;
+  likes: number;
+  comments_count: number;
+}

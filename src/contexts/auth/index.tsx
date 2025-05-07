@@ -8,7 +8,10 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   isAdmin: boolean;
+  isJudge: boolean;
   userRole: string | null;
+  subscription: any | null;
+  loading: boolean;
   refreshSession: () => Promise<void>;
   refreshUserProfile: () => Promise<void>;
   profile: any | null;
@@ -19,7 +22,10 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   isLoading: true,
   isAdmin: false,
+  isJudge: false,
   userRole: null,
+  subscription: null,
+  loading: true,
   refreshSession: async () => {},
   refreshUserProfile: async () => {},
   profile: null,
@@ -32,6 +38,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<any | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isJudge, setIsJudge] = useState(false);
+  const [subscription, setSubscription] = useState<any | null>(null);
 
   // Initial session check and auth state listener
   useEffect(() => {
@@ -59,6 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setProfile(null);
             setUserRole(null);
             setIsAdmin(false);
+            setIsJudge(false);
+            setSubscription(null);
           }
         }
       );
@@ -113,10 +123,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Check if user is an admin
       setIsAdmin(role === 'admin' || role === 'judge');
+      setIsJudge(role === 'judge');
     } catch (error) {
       console.error("Error fetching user role:", error);
       setUserRole('petitioner'); // Default to basic role
       setIsAdmin(false);
+      setIsJudge(false);
     }
   };
   
@@ -133,6 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (data?.subscribed) {
         console.log("Active subscription found:", data);
+        setSubscription(data);
         
         // If enterprise tier, update role to advanced roles if applicable
         if (data.subscription_tier?.toLowerCase() === 'enterprise') {
@@ -153,8 +166,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: { session: freshSession } } = await supabase.auth.refreshSession();
       setSession(freshSession);
       setUser(freshSession?.user ?? null);
-      
-      return freshSession;
     } catch (error) {
       console.error("Failed to refresh session:", error);
     }
@@ -173,8 +184,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     session,
     isLoading,
+    loading: isLoading, // Alias for compatibility
     isAdmin,
+    isJudge,
     userRole,
+    subscription,
     refreshSession,
     refreshUserProfile,
     profile

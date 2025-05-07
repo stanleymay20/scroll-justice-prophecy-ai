@@ -1,92 +1,159 @@
 
-import { useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AIConsentToggle } from "@/components/compliance/AIConsentToggle";
-import { ReasoningField } from "./ReasoningField";
-import { AiSuggestionButton } from "./AiSuggestionButton";
-import { VerdictButtons } from "./VerdictButtons";
-import { useVerdictSubmission } from "./useVerdictSubmission";
-import { useAiSuggestion } from "./useAiSuggestion";
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
+import { supabase } from "@/integrations/supabase/client";
+import { EnhancedScrollPetition } from "@/types/scroll-petition";
+import { AIDisclosure } from "@/components/compliance/AIDisclosure";
+import { ReasoningField } from "./ReasoningField";
+import { VerdictButtons } from "./VerdictButtons";
+import { AiSuggestionButton } from "./AiSuggestionButton";
 
-interface VerdictFormProps {
-  petitionId: string;
-  petitionTitle: string;
-  petitionDescription: string;
+export interface VerdictFormProps {
+  petition: EnhancedScrollPetition;
+  petitionId?: string;
   onVerdictSubmitted: () => void;
+  onScrollSealed?: () => void;
 }
 
 export const VerdictForm = ({
+  petition,
   petitionId,
-  petitionTitle,
-  petitionDescription,
-  onVerdictSubmitted
+  onVerdictSubmitted,
+  onScrollSealed
 }: VerdictFormProps) => {
+  const { t } = useLanguage();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [verdict, setVerdict] = useState("");
   const [reasoning, setReasoning] = useState("");
-  const [aiConsent, setAiConsent] = useState(true);
-  const { t } = useLanguage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSealing, setIsSealing] = useState(false);
 
-  const {
-    loading,
-    error,
-    submitVerdict,
-    setError
-  } = useVerdictSubmission({
-    petitionId,
-    onVerdictSubmitted
-  });
+  const id = petition?.id || petitionId;
 
-  const {
-    suggestingVerdict,
-    getAiSuggestion
-  } = useAiSuggestion({
-    petitionId,
-    petitionTitle,
-    aiConsent,
-    setReasoning,
-    setError
-  });
+  const handleSubmitVerdict = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verdict || !reasoning || !id || !user) return;
 
-  const handleSubmitVerdict = (approved: boolean) => {
-    submitVerdict(approved, reasoning);
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('scroll_petitions')
+        .update({
+          verdict,
+          reasoning,
+          status: 'verdict_delivered',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: t("verdict.submitted"),
+        description: t("verdict.submittedDescription"),
+      });
+
+      // Notify the parent component
+      onVerdictSubmitted();
+    } catch (error) {
+      console.error("Error submitting verdict:", error);
+      toast({
+        title: t("verdict.error"),
+        description: t("verdict.errorDescription"),
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSealScroll = async () => {
+    if (!id || !user) return;
+
+    setIsSealing(true);
+    try {
+      const { error } = await supabase
+        .from('scroll_petitions')
+        .update({
+          is_sealed: true,
+          status: 'sealed',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: t("scroll.sealed"),
+        description: t("scroll.sealedDescription"),
+      });
+
+      // Notify the parent component
+      if (onScrollSealed) {
+        onScrollSealed();
+      }
+    } catch (error) {
+      console.error("Error sealing scroll:", error);
+      toast({
+        title: t("scroll.sealError"),
+        description: t("scroll.sealErrorDescription"),
+        variant: "destructive"
+      });
+    } finally {
+      setIsSealing(false);
+    }
   };
 
   return (
-    <div className="space-y-4 bg-black/20 p-4 rounded-lg border border-justice-primary/30">
-      <h3 className="text-lg font-medium text-white">{t("verdict.sacred")}</h3>
-      
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
-      <div className="space-y-4">
-        <ReasoningField 
-          value={reasoning} 
-          onChange={setReasoning} 
-        />
-        
-        <AIConsentToggle 
-          userRole="judge"
-          onConsentChange={setAiConsent}
-        />
-        
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-          <AiSuggestionButton 
-            onGetSuggestion={getAiSuggestion}
-            disabled={!aiConsent}
-          />
-        </div>
-        
+    <form onSubmit={handleSubmitVerdict} className="space-y-4">
+      <div className="space-y-1">
+        <Label htmlFor="verdict">{t("verdict.verdict")}</Label>
         <VerdictButtons 
-          onApprove={() => handleSubmitVerdict(true)}
-          onReject={() => handleSubmitVerdict(false)}
-          disabled={!reasoning}
-          loading={loading}
+          selectedVerdict={verdict} 
+          onVerdictSelect={setVerdict} 
         />
       </div>
-    </div>
+
+      <ReasoningField 
+        reasoning={reasoning}
+        setReasoning={setReasoning}
+      />
+
+      <div className="flex justify-between items-center">
+        <AiSuggestionButton 
+          petitionId={id!}
+          setVerdict={setVerdict}
+          setReasoning={setReasoning}
+        />
+        
+        <div className="flex space-x-2">
+          {petition?.status === 'verdict_delivered' && (
+            <Button
+              type="button"
+              onClick={handleSealScroll}
+              disabled={isSealing}
+              variant="outline"
+            >
+              {isSealing ? t("button.sealing") : t("button.sealScroll")}
+            </Button>
+          )}
+          
+          <Button
+            type="submit"
+            disabled={!verdict || !reasoning || isSubmitting || petition?.status === 'sealed'}
+          >
+            {isSubmitting ? t("button.submitting") : t("button.submitVerdict")}
+          </Button>
+        </div>
+      </div>
+      
+      <AIDisclosure />
+    </form>
   );
 };
