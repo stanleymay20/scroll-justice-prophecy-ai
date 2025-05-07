@@ -13,6 +13,7 @@ import { useLanguage } from "@/contexts/language";
 import { useAuth } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Globe } from "lucide-react";
+import { LanguageCode } from "@/contexts/language/types";
 
 export function MobileMenu() {
   const { t, language, setLanguage } = useLanguage();
@@ -67,10 +68,10 @@ export function MobileMenu() {
   
   // Language options with flags
   const languages = [
-    { code: "en", name: "English", flag: "🇺🇸" },
-    { code: "fr", name: "Français", flag: "🇫🇷" },
-    { code: "es", name: "Español", flag: "🇪🇸" },
-    { code: "de", name: "Deutsch", flag: "🇩🇪" },
+    { code: "en" as LanguageCode, name: "English", flag: "🇺🇸" },
+    { code: "fr" as LanguageCode, name: "Français", flag: "🇫🇷" },
+    { code: "es" as LanguageCode, name: "Español", flag: "🇪🇸" },
+    { code: "de" as LanguageCode, name: "Deutsch", flag: "🇩🇪" },
   ];
 
   return (
