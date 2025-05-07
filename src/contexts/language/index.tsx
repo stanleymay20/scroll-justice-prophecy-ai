@@ -130,3 +130,4 @@ export const useLanguage = (): LanguageContextType => {
 
 // Re-export types
 export type { LanguageCode } from './types';
+export type { LanguageContextType };

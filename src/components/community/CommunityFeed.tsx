@@ -24,6 +24,7 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   const [filteredPosts, setFilteredPosts] = useState<CommunityPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<PostType>(initialFilter);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { t } = useLanguage();
 
   const fetchPosts = async () => {
@@ -76,6 +77,12 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
     }
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchPosts();
+    setIsRefreshing(false);
+  };
+
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -88,6 +95,10 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
     setActiveFilter(value as PostType);
   };
 
+  const handleCreatePost = () => {
+    navigate('/community/create');
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-8">
@@ -98,7 +109,25 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="all" onValueChange={handleFilterChange}>
+      <div className="flex items-center justify-between mb-4">
+        {showCreateButton && (
+          <Button onClick={handleCreatePost} className="flex items-center gap-2">
+            <PlusCircle className="h-4 w-4" />
+            {t("feed.createPost")}
+          </Button>
+        )}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="ml-auto"
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+        </Button>
+      </div>
+
+      <Tabs defaultValue={activeFilter} onValueChange={handleFilterChange}>
         <TabsList className="grid grid-cols-3 md:grid-cols-6">
           <TabsTrigger value="all">{t("categories.all")}</TabsTrigger>
           <TabsTrigger value="testimony">{t("categories.testimony")}</TabsTrigger>
