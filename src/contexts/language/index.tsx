@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { loadTranslations, getNestedValue, formatTranslation } from '@/services/i18n/i18nService';
 import { LanguageCode } from './types';
 import { 
@@ -11,13 +10,7 @@ import {
 } from '@/utils/languageUtils';
 
 // Context interface
-export interface LanguageContextType {
-  language: LanguageCode;
-  setLanguage: (code: LanguageCode) => void;
-  t: (key: string, ...args: any[]) => string;
-  rtl: boolean;
-  isLoading: boolean;
-}
+import type { LanguageContextType } from './types';
 
 // Create the context
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -110,6 +103,7 @@ export const LanguageProvider = ({
     isLoading,
   };
 
+  // Re-export the context for useLanguage
   return (
     <LanguageContext.Provider value={contextValue}>
       {children}
@@ -117,17 +111,8 @@ export const LanguageProvider = ({
   );
 };
 
-// Custom hook for using the language context
-export const useLanguage = (): LanguageContextType => {
-  const context = useContext(LanguageContext);
-  
-  if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  
-  return context;
-};
+// Export the context for the useLanguage hook
+export { LanguageContext };
 
-// Re-export types
-export type { LanguageCode } from './types';
-export type { LanguageContextType };
+// Export types explicitly
+export type { LanguageCode, LanguageContextType };

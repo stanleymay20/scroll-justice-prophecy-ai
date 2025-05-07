@@ -1,8 +1,14 @@
 
-import { useLanguage } from './useLanguage';
+// Direct imports of runtime components
 import { LanguageProvider } from './LanguageProvider';
-import { LanguageCode } from './types';
-// Fix: Use export type for re-exporting types when isolatedModules is enabled
-export type { LanguageContextType } from './types';
+import { useLanguage } from './useLanguage';
+// Import types separately 
+import type { LanguageCode } from './types';
 
-export { useLanguage, LanguageProvider, LanguageCode };
+// Export runtime values
+export { useLanguage, LanguageProvider };
+
+// Export types with explicit 'export type' syntax
+export type { LanguageCode };
+// Re-export additional types
+export type { LanguageContextType } from './types';
