@@ -22,7 +22,9 @@ const en = {
     "profile": "Profile",
     "signin": "Sign In",
     "signup": "Sign Up",
-    "language": "Language"
+    "language": "Language",
+    "signout": "Sign Out",
+    "community": "Community"
   },
   "button": {
     "register": "Register",
@@ -52,6 +54,40 @@ const en = {
       "judgeTooltip": "AI will help draft initial responses but all decisions require human review",
       "petitionerTooltip": "Your petition may be analyzed by AI to improve processing time",
       "generalTooltip": "Enable AI-assisted features throughout the platform"
+    }
+  },
+  "court": {
+    "simulation": "Simulation Trial"
+  },
+  "landing": {
+    "cta": {
+      "title": "Sacred Justice for the Digital Age",
+      "description": "ScrollJustice.AI combines ancient wisdom with cutting-edge technology to deliver a revolutionary legal platform.",
+      "secure": "Secure & Encrypted",
+      "secureDesc": "All court sessions and evidence are protected by ScrollSeal encryption.",
+      "knowledge": "Ancient Knowledge",
+      "knowledgeDesc": "Access thousands of years of legal precedents and sacred principles.",
+      "experience": "Experience Sacred Justice",
+      "experienceDesc": "Join thousands of legal professionals already using ScrollJustice.AI to transform their practice.",
+      "viewPlans": "View Sacred Plans"
+    }
+  },
+  "features": {
+    "precedents": {
+      "title": "Sacred Precedents",
+      "description": "Access the ancient scroll library of legal precedents and principles"
+    },
+    "courtrooms": {
+      "title": "Secure Courtrooms",
+      "description": "Participate in encrypted sacred court sessions with oath protection"
+    },
+    "analysis": {
+      "title": "Justice Analysis",
+      "description": "Gain insights from advanced scroll analytics and pattern recognition"
+    },
+    "trials": {
+      "title": "Simulation Trials",
+      "description": "Practice in safe, simulated court environments before real proceedings"
     }
   }
 };

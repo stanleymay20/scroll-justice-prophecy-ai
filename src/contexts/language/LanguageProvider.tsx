@@ -1,12 +1,11 @@
 
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { 
   normalizeLanguageCode, 
   isRtlLanguage, 
   getSavedLanguagePreference, 
   getBrowserLanguage, 
-  applyLanguageDirection, 
-  saveLanguagePreference,
+  applyLanguageDirection,
   getSupportedLanguages
 } from "@/utils/languageUtils";
 import { 
@@ -23,9 +22,15 @@ const defaultLanguage: LanguageCode = "en";
 
 export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ 
-  children 
-}) => {
+interface LanguageProviderProps {
+  children: ReactNode;
+  initialLanguage?: LanguageCode;
+}
+
+export const LanguageProvider = ({ 
+  children,
+  initialLanguage
+}: LanguageProviderProps) => {
   const [language, setLanguage] = useState<LanguageCode>(() => {
     // Try to get language from URL first
     const urlParams = new URLSearchParams(window.location.search);
@@ -49,68 +54,86 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     return browserLang as LanguageCode;
   });
 
-  const [translations, setTranslations] = useState<Record<string, any>>({});
+  const [translations, setTranslations] = useState<Record<string, any>>(fallbackTranslations.en || {});
   const [isLoading, setIsLoading] = useState(true);
-  const rtl = isRtlLanguage(language);
+  const [rtl, setRtl] = useState(isRtlLanguage(language));
 
   // Load translations when language changes
   useEffect(() => {
     const fetchTranslations = async () => {
       setIsLoading(true);
       try {
-        console.log(`Loading translations for ${language}...`);
+        console.info(`Loading translations for ${language}...`);
         
         // First try to load translations from JSON file
         const loadedTranslations = await loadTranslations(language);
         
-        // Load English translations as fallback
+        // Always load English translations as fallback
         let englishTranslations = {};
         if (language !== 'en') {
-          englishTranslations = await loadTranslations('en');
+          englishTranslations = await loadTranslations('en').catch(() => fallbackTranslations.en || {});
         }
         
         // Merge translations with fallbacks for missing keys
         const mergedTranslations = language === 'en' ? 
-          loadedTranslations : 
+          { ...fallbackTranslations.en, ...loadedTranslations } : 
           mergeWithFallback(loadedTranslations, englishTranslations);
         
-        console.log(`Loaded translations for ${language}:`, 
+        console.info(`Loaded translations for ${language}:`, 
           Object.keys(mergedTranslations).length > 0 ? 
           `${Object.keys(mergedTranslations).length} keys found` : 
           'No keys found, using fallback'
         );
         
         setTranslations(mergedTranslations);
+        
+        // Update RTL status
+        const isRtl = isRtlLanguage(language);
+        setRtl(isRtl);
+        
+        // Apply RTL direction to document
+        applyLanguageDirection(language);
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
         // Fall back to in-memory translations
-        setTranslations(fallbackTranslations[language as keyof typeof fallbackTranslations] || fallbackTranslations.en);
+        const fallbackData = fallbackTranslations[language as keyof typeof fallbackTranslations] || fallbackTranslations.en;
+        console.warn(`Using in-memory fallback translations for ${language}`);
+        setTranslations(fallbackData);
+        
+        // Make sure RTL is still applied correctly even with fallbacks
+        const isRtl = isRtlLanguage(language);
+        setRtl(isRtl);
+        applyLanguageDirection(language);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchTranslations();
-  }, [language]);
-
-  // Apply language effects when language changes
-  useEffect(() => {
+    
     // Save language preference to localStorage
     saveLanguagePreference(language);
     
     // Sync language with URL
     syncLanguageWithRouter(language);
     
-    // Update document language attributes for accessibility and RTL
-    applyLanguageDirection(language);
-
     // Dispatch a custom event that components can listen for
     window.dispatchEvent(new CustomEvent('languageChanged', { detail: language }));
     
-    console.log(`Language set to: ${language}`);
+    console.info(`Language set to: ${language} (RTL: ${isRtlLanguage(language) ? 'Yes' : 'No'})`);
   }, [language]);
   
-  // Enhanced translation function with better fallbacks
+  // Method to change language with validation
+  const changeLanguage = (newLanguage: LanguageCode) => {
+    if (getSupportedLanguages().includes(newLanguage)) {
+      setLanguage(newLanguage);
+    } else {
+      console.error(`Unsupported language: ${newLanguage}`);
+      setLanguage(defaultLanguage); // Fallback to default language
+    }
+  };
+
+  // Enhanced translation function with better fallbacks and logging
   const t = (key: string, ...args: any[]): string => {
     // Try to get the translation from loaded translations
     if (translations && Object.keys(translations).length > 0) {
@@ -131,6 +154,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     // Fallback to English if translation doesn't exist in current language
     const englishTranslation = getNestedValue(fallbackTranslations.en || {}, key);
     if (englishTranslation !== key) {
+      console.warn(`Missing translation for key: ${key} in language: ${language}, using English fallback`);
       return formatTranslation(englishTranslation, args);
     }
     
@@ -138,7 +162,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     console.warn(`Missing translation for key: ${key} in language: ${language}`);
     return formatTranslation(key, args);
   };
-  
+
   // Method to reload translations manually
   const reloadTranslations = async () => {
     setIsLoading(true);
@@ -154,17 +178,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Method to change language with validation
-  const changeLanguage = (newLanguage: LanguageCode) => {
-    if (getSupportedLanguages().includes(newLanguage)) {
-      setLanguage(newLanguage);
-    } else {
-      console.error(`Unsupported language: ${newLanguage}`);
-      setLanguage(defaultLanguage); // Fallback to default language
-    }
-  }
-
-  const availableLanguages = getSupportedLanguages() as LanguageCode[];
+  const availableLanguages = getSupportedLanguages();
 
   return (
     <LanguageContext.Provider value={{ 
