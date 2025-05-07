@@ -30,22 +30,32 @@ const EmailPreferences = () => {
   }, [user]);
   
   const loadPreferences = async () => {
+    if (!user?.email) return;
+    
     try {
       setLoading(true);
       
       const { data, error } = await supabase
         .from('user_onboarding')
         .select('preferences')
-        .eq('user_email', user?.email)
+        .eq('user_email', user.email)
         .maybeSingle();
         
       if (!error && data?.preferences) {
+        const prefs = data.preferences as {
+          receiveWelcome?: boolean;
+          receivePetition?: boolean;
+          receiveSubscription?: boolean;
+          receivePrivacy?: boolean;
+          receiveCommunity?: boolean;
+        };
+        
         setPreferences({
-          receiveWelcome: data.preferences.receiveWelcome ?? true,
-          receivePetition: data.preferences.receivePetition ?? true,
-          receiveSubscription: data.preferences.receiveSubscription ?? true,
-          receivePrivacy: data.preferences.receivePrivacy ?? true,
-          receiveCommunity: data.preferences.receiveCommunity ?? true,
+          receiveWelcome: prefs.receiveWelcome ?? true,
+          receivePetition: prefs.receivePetition ?? true,
+          receiveSubscription: prefs.receiveSubscription ?? true,
+          receivePrivacy: prefs.receivePrivacy ?? true,
+          receiveCommunity: prefs.receiveCommunity ?? true,
         });
       }
     } catch (error) {

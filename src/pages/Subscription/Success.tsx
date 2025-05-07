@@ -1,154 +1,80 @@
 
-import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CheckCircle, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { openCustomerPortal } from "@/lib/stripe";
+import React, { useEffect } from 'react';
+import { NavBar } from "@/components/layout/NavBar";
+import { MetaTags } from "@/components/MetaTags";
 import { useLanguage } from "@/contexts/language";
+import { useAuth } from "@/contexts/auth";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
-const SubscriptionSuccess = () => {
-  const [refreshing, setRefreshing] = useState(true);
-  const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
-  const navigate = useNavigate();
+const Success = () => {
   const { t } = useLanguage();
-
-  // Refresh subscription status when the page loads
+  const { refreshSession, checkSubscriptionStatus } = useAuth();
+  const navigate = useNavigate();
+  
   useEffect(() => {
-    const refreshSubscription = async () => {
-      setRefreshing(true);
-      try {
-        // Call check-subscription edge function to refresh status
-        const { data, error } = await supabase.functions.invoke("check-subscription");
-        
-        if (error) {
-          console.error("Error refreshing subscription:", error);
-          throw error;
-        }
-        
-        if (data?.subscribed) {
-          setSubscriptionDetails({
-            tier: data.subscription_tier,
-            endDate: data.subscription_end ? new Date(data.subscription_end) : null
-          });
-        }
-      } catch (err) {
-        console.error("Failed to refresh subscription:", err);
-      } finally {
-        setRefreshing(false);
-      }
+    // Refresh the auth session to make sure we get updated subscription info
+    const updateAuthData = async () => {
+      await refreshSession();
+      await checkSubscriptionStatus();
     };
     
-    refreshSubscription();
-  }, []);
-
-  const getPlanName = (tierCode: string) => {
-    switch (tierCode?.toLowerCase()) {
-      case 'basic':
-        return "Flame Seeker";
-      case 'professional':
-        return "Scroll Advocate";
-      case 'enterprise':
-        return "Elder Judge";
-      default:
-        return tierCode || "Unknown Plan";
-    }
-  };
-
-  const handleManageSubscription = async () => {
-    try {
-      const { url } = await openCustomerPortal(`${window.location.origin}/subscription/plans`);
-      if (url) {
-        window.location.href = url;
-      }
-    } catch (error) {
-      console.error("Error opening customer portal:", error);
-    }
-  };
-
+    updateAuthData();
+  }, [refreshSession, checkSubscriptionStatus]);
+  
   return (
-    <div className="container max-w-2xl py-12">
-      <Card className="bg-black/40 border-justice-secondary">
-        <CardHeader className="pb-4 text-center">
-          <div className="mx-auto mb-4">
-            <CheckCircle className="h-12 w-12 text-green-500" />
-          </div>
-          <CardTitle className="text-2xl text-justice-primary">
-            Sacred Subscription Activated
-          </CardTitle>
-          <CardDescription>
-            Thank you for supporting the ScrollJustice.AI mission.
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="flex flex-col items-center">
-          {refreshing ? (
-            <div className="flex flex-col items-center py-6">
-              <Loader2 className="h-8 w-8 animate-spin text-justice-primary mb-2" />
-              <p className="text-justice-light/70">Confirming your sacred covenant...</p>
-            </div>
-          ) : subscriptionDetails ? (
-            <div className="text-center">
-              <div className="mb-4 py-2 px-4 bg-justice-primary/10 border border-justice-primary/30 rounded-lg inline-block">
-                <h3 className="text-xl font-bold text-justice-primary">
-                  {getPlanName(subscriptionDetails.tier)}
-                </h3>
-              </div>
-              
-              <p className="text-justice-light mb-6">
-                Your sacred powers have been bestowed. You now have access to all
-                {' '}{subscriptionDetails.tier} tier features.
-              </p>
-              
-              <div className="space-y-2 text-left bg-black/30 p-4 rounded-lg border border-justice-tertiary/30">
-                <h4 className="font-medium text-justice-light">Your subscription includes:</h4>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li className="text-justice-light/80 text-sm">Enhanced petition processing</li>
-                  <li className="text-justice-light/80 text-sm">Advanced integrity analysis</li>
-                  <li className="text-justice-light/80 text-sm">Priority access to ancient precedents</li>
-                  {subscriptionDetails.tier.toLowerCase() === 'professional' && (
-                    <li className="text-justice-light/80 text-sm">Sacred scroll recovery tools</li>
-                  )}
-                  {subscriptionDetails.tier.toLowerCase() === 'enterprise' && (
-                    <>
-                      <li className="text-justice-light/80 text-sm">Sacred scroll recovery tools</li>
-                      <li className="text-justice-light/80 text-sm">Full judicial authority</li>
-                      <li className="text-justice-light/80 text-sm">Cross-jurisdictional verdict capabilities</li>
-                    </>
-                  )}
-                </ul>
+    <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
+      <MetaTags title={t("subscription.success.title") || "Subscription Success"} />
+      <NavBar />
+      
+      <div className="container mx-auto px-4 pt-20 pb-16">
+        <div className="max-w-lg mx-auto">
+          <Card className="border-justice-tertiary/50 bg-black/40 overflow-hidden">
+            <div className="bg-justice-tertiary/20 p-8 flex justify-center">
+              <div className="w-20 h-20 rounded-full bg-justice-tertiary flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-black">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
               </div>
             </div>
-          ) : (
-            <div className="text-center py-6">
-              <p className="text-justice-light">
-                Your subscription has been processed, but we're still waiting for confirmation.
-                Please check your dashboard later to see your subscription status.
+            
+            <CardContent className="p-8 text-center">
+              <h1 className="text-3xl font-bold text-justice-light mb-4">Subscription Successful</h1>
+              <p className="text-justice-light/70 mb-6">
+                Your sacred scroll subscription has been activated. You now have access to enhanced sacred knowledge and petition filing abilities.
               </p>
-            </div>
-          )}
-        </CardContent>
-        
-        <CardFooter className="flex flex-col sm:flex-row gap-3 pt-2">
-          <Button 
-            onClick={() => navigate("/dashboard")}
-            className="w-full sm:w-auto"
-          >
-            Go to Dashboard
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            onClick={handleManageSubscription}
-            className="w-full sm:w-auto"
-          >
-            Manage Subscription
-          </Button>
-        </CardFooter>
-      </Card>
+              
+              <div className="p-4 border border-justice-tertiary/30 rounded-md bg-justice-tertiary/5 mb-6">
+                <p className="text-justice-light text-sm">
+                  "The true seeker of justice must possess not only the wisdom to understand the scrolls, but also the humility to be guided by them."
+                </p>
+                <p className="text-justice-light/50 text-xs mt-2">
+                  — Ancient Scroll Wisdom
+                </p>
+              </div>
+            </CardContent>
+            
+            <CardFooter className="bg-black/40 px-8 py-6 flex flex-col sm:flex-row gap-4">
+              <Button 
+                className="flex-1 bg-justice-tertiary hover:bg-justice-tertiary/80 text-black"
+                onClick={() => navigate('/dashboard')}
+              >
+                Go to Dashboard
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex-1 border-justice-secondary/30 hover:bg-justice-secondary/10"
+                onClick={() => navigate('/subscription/manage')}
+              >
+                Manage Subscription
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default SubscriptionSuccess;
+export default Success;

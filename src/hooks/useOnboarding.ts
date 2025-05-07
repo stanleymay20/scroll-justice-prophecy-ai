@@ -42,6 +42,4 @@ export const useOnboarding = () => {
     
     checkAndInitOnboarding();
   }, [user]);
-  
-  return null;
 };

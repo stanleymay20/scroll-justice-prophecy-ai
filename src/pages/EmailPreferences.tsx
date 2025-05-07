@@ -5,7 +5,6 @@ import { MetaTags } from "@/components/MetaTags";
 import { useLanguage } from "@/contexts/language";
 import EmailPreferences from "@/components/onboarding/EmailPreferences";
 import { AIDisclosureBanner } from "@/components/compliance/AIDisclosureBanner";
-import { XMarkIcon } from "lucide-react";
 
 const EmailPreferencesPage = () => {
   const { t } = useLanguage();

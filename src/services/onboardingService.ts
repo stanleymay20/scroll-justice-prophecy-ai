@@ -21,19 +21,16 @@ export async function scheduleOnboardingSequence(email: string, username: string
     });
     
     // Record the onboarding sequence initiation in the database
-    // This could be expanded to track which emails have been sent
     const { error } = await supabase
       .from('user_onboarding')
-      .insert([
-        {
-          user_email: email,
-          welcome_sent: welcomeSent,
-          welcome_sent_at: welcomeSent ? new Date().toISOString() : null,
-          sequence_position: welcomeSent ? 1 : 0,
-          next_email_type: welcomeSent ? "petition" : "welcome",
-          next_email_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days later
-        }
-      ]);
+      .insert({
+        user_email: email,
+        welcome_sent: welcomeSent,
+        welcome_sent_at: welcomeSent ? new Date().toISOString() : null,
+        sequence_position: welcomeSent ? 1 : 0,
+        next_email_type: welcomeSent ? "petition" : "welcome",
+        next_email_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days later
+      });
       
     if (error) {
       console.error("Failed to record onboarding sequence:", error);
@@ -99,7 +96,7 @@ export async function sendNextOnboardingEmail(email: string): Promise<boolean> {
       to: email,
       username,
       emailType: onboardingData.next_email_type as any,
-      days: Math.floor((Date.now() - new Date(onboardingData.welcome_sent_at).getTime()) / (24 * 60 * 60 * 1000))
+      days: Math.floor((Date.now() - new Date(onboardingData.welcome_sent_at || '').getTime()) / (24 * 60 * 60 * 1000))
     });
 
     if (emailSent) {
@@ -116,17 +113,27 @@ export async function sendNextOnboardingEmail(email: string): Promise<boolean> {
       const nextPosition = onboardingData.sequence_position + 1;
       
       // Update the onboarding record
+      const updateData: Record<string, any> = {
+        sequence_position: nextPosition,
+        next_email_type: nextEmailType,
+      };
+      
+      // Set the appropriate sent flag and timestamp
+      if (onboardingData.next_email_type) {
+        updateData[`${onboardingData.next_email_type}_sent`] = true;
+        updateData[`${onboardingData.next_email_type}_sent_at`] = new Date().toISOString();
+      }
+      
+      // Set the next email date if not completed
+      if (nextEmailType !== "completed") {
+        updateData.next_email_date = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+      } else {
+        updateData.next_email_date = null;
+      }
+      
       const { error: updateError } = await supabase
         .from('user_onboarding')
-        .update({
-          [`${onboardingData.next_email_type}_sent`]: true,
-          [`${onboardingData.next_email_type}_sent_at`]: new Date().toISOString(),
-          sequence_position: nextPosition,
-          next_email_type: nextEmailType,
-          next_email_date: nextEmailType !== "completed" 
-            ? new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days later
-            : null
-        })
+        .update(updateData)
         .eq('user_email', email);
 
       if (updateError) {
@@ -178,7 +185,7 @@ export async function updateOnboardingPreferences(
     const { error } = await supabase
       .from('user_onboarding')
       .update({
-        preferences: preferences
+        preferences
       })
       .eq('user_email', email);
       

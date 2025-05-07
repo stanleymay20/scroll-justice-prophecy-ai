@@ -1,9 +1,10 @@
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthRouteWrapper } from "@/components/auth/ProtectedRoute";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 // Import pages
 import Index from "@/pages/Index";
-import Dashboard from "@/components/dashboard/Dashboard";
+import { Dashboard } from "@/components/dashboard/Dashboard";
 import PrecedentExplorer from "@/pages/PrecedentExplorer";
 import ScrollMemory from "@/pages/ScrollMemory";
 import PrinciplesPage from "@/pages/PrinciplesPage";
@@ -21,7 +22,9 @@ import HallOfSealedScrolls from "@/pages/HallOfSealedScrolls";
 import Witness from "@/pages/Witness";
 import EmailPreferencesPage from "@/pages/EmailPreferences";
 import Unsubscribe from "@/pages/Unsubscribe";
-import { Plans, Manage, Success } from "@/pages/Subscription";
+import Plans from "@/pages/Subscription/Plans";
+import Manage from "@/pages/Subscription/Manage";
+import Success from "@/pages/Subscription/Success";
 import AIUsagePolicy from "@/pages/policy/AIUsagePolicy";
 import Blessing from "@/pages/Blessing";
 import Recovery from "@/pages/Recovery";
@@ -60,7 +63,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<AuthRouteWrapper component={Dashboard} />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/precedent" element={<PrecedentExplorer />} />
         <Route path="/scroll-memory" element={<ScrollMemory />} />
         <Route path="/principles" element={<PrinciplesPage />} />
@@ -72,17 +75,15 @@ function App() {
         <Route path="/document-upload" element={<DocumentUpload />} />
         <Route path="/simulation-trial" element={<SimulationTrial />} />
         <Route path="/ai-training" element={<AITraining />} />
-        <Route path="/profile" element={<AuthRouteWrapper component={Profile} />} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/courtroom" element={<Courtroom />} />
         <Route path="/sealed-scrolls" element={<HallOfSealedScrolls />} />
         <Route path="/witness" element={<Witness />} />
         <Route path="/preferences" element={<EmailPreferencesPage />} />
         <Route path="/unsubscribe" element={<Unsubscribe />} />
-        <Route path="/subscription">
-          <Route path="plans" element={<Plans />} />
-          <Route path="manage" element={<AuthRouteWrapper component={Manage} />} />
-          <Route path="success" element={<Success />} />
-        </Route>
+        <Route path="/subscription/plans" element={<Plans />} />
+        <Route path="/subscription/manage" element={<ProtectedRoute><Manage /></ProtectedRoute>} />
+        <Route path="/subscription/success" element={<Success />} />
         <Route path="/policy/ai-usage" element={<AIUsagePolicy />} />
         <Route path="/blessing" element={<Blessing />} />
         <Route path="/recovery" element={<Recovery />} />

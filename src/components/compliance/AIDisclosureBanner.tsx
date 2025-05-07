@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { XMarkIcon } from "lucide-react";
+import { X } from "lucide-react";
 import { useLanguage } from "@/contexts/language";
 
 export const AIDisclosureBanner = () => {
@@ -24,7 +24,7 @@ export const AIDisclosureBanner = () => {
         className="ml-2 text-justice-light hover:text-white"
         aria-label={t("common.dismiss") || "Dismiss"}
       >
-        <XMarkIcon className="h-5 w-5" />
+        <X className="h-5 w-5" />
       </button>
     </div>
   );

@@ -562,6 +562,78 @@ export type Database = {
         }
         Relationships: []
       }
+      user_onboarding: {
+        Row: {
+          community_sent: boolean | null
+          community_sent_at: string | null
+          created_at: string | null
+          id: string
+          next_email_date: string | null
+          next_email_type: string | null
+          opted_out: boolean | null
+          opted_out_at: string | null
+          petition_sent: boolean | null
+          petition_sent_at: string | null
+          preferences: Json | null
+          privacy_sent: boolean | null
+          privacy_sent_at: string | null
+          sequence_position: number | null
+          subscription_sent: boolean | null
+          subscription_sent_at: string | null
+          updated_at: string | null
+          user_email: string
+          user_id: string | null
+          welcome_sent: boolean | null
+          welcome_sent_at: string | null
+        }
+        Insert: {
+          community_sent?: boolean | null
+          community_sent_at?: string | null
+          created_at?: string | null
+          id?: string
+          next_email_date?: string | null
+          next_email_type?: string | null
+          opted_out?: boolean | null
+          opted_out_at?: string | null
+          petition_sent?: boolean | null
+          petition_sent_at?: string | null
+          preferences?: Json | null
+          privacy_sent?: boolean | null
+          privacy_sent_at?: string | null
+          sequence_position?: number | null
+          subscription_sent?: boolean | null
+          subscription_sent_at?: string | null
+          updated_at?: string | null
+          user_email: string
+          user_id?: string | null
+          welcome_sent?: boolean | null
+          welcome_sent_at?: string | null
+        }
+        Update: {
+          community_sent?: boolean | null
+          community_sent_at?: string | null
+          created_at?: string | null
+          id?: string
+          next_email_date?: string | null
+          next_email_type?: string | null
+          opted_out?: boolean | null
+          opted_out_at?: string | null
+          petition_sent?: boolean | null
+          petition_sent_at?: string | null
+          preferences?: Json | null
+          privacy_sent?: boolean | null
+          privacy_sent_at?: string | null
+          sequence_position?: number | null
+          subscription_sent?: boolean | null
+          subscription_sent_at?: string | null
+          updated_at?: string | null
+          user_email?: string
+          user_id?: string | null
+          welcome_sent?: boolean | null
+          welcome_sent_at?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
