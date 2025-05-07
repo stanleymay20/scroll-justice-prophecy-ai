@@ -48,13 +48,24 @@ const HallOfSealedScrolls = () => {
         }
         
         // Process and enhance petition data
-        const enhancedData: EnhancedSealedPetition[] = data.map(petition => ({
-          ...petition,
-          petitionerName: petition.petitioner?.username || 'Anonymous Petitioner',
-          judgeName: petition.judge?.username || 'Unassigned',
-          timeAgo: formatDistanceToNow(new Date(petition.created_at), { addSuffix: true }),
-          status: petition.status as PetitionStatus,
-        }));
+        const enhancedData: EnhancedSealedPetition[] = data.map(petition => {
+          // Safely extract names from potentially missing relations
+          const petitionerName = petition.petitioner ? 
+            ((petition.petitioner as any)?.username || 'Anonymous Petitioner') : 
+            'Anonymous Petitioner';
+            
+          const judgeName = petition.judge ? 
+            ((petition.judge as any)?.username || 'Unassigned') : 
+            'Unassigned';
+            
+          return {
+            ...petition,
+            petitionerName,
+            judgeName,
+            timeAgo: formatDistanceToNow(new Date(petition.created_at), { addSuffix: true }),
+            status: petition.status as PetitionStatus,
+          };
+        });
         
         setPetitions(enhancedData);
         setFilteredPetitions(enhancedData);

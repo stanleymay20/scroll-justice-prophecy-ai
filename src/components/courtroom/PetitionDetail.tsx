@@ -50,8 +50,10 @@ export const PetitionDetail = () => {
       
       // Handle potentially missing relation data safely
       const timeAgo = formatDistanceToNow(new Date(data.created_at), { addSuffix: true });
-      const petitionerName = data.petitioner?.username || "Anonymous";
-      const judgeName = data.judge?.username || "Unassigned";
+      const petitionerName = data.petitioner ? 
+        ((data.petitioner as any)?.username || "Anonymous") : "Anonymous";
+      const judgeName = data.judge ? 
+        ((data.judge as any)?.username || "Unassigned") : "Unassigned";
       
       setPetition({
         ...data,
@@ -200,7 +202,7 @@ export const PetitionDetail = () => {
           
           {isJudge && petition.status === 'pending' && oathCompleted && (
             <Button 
-              onClick={() => {}} 
+              onClick={handleAssignToMe} 
               className="w-full mt-4"
             >
               {t("button.assignToMe")}

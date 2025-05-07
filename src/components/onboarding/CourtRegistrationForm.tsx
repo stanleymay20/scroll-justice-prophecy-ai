@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -36,10 +37,10 @@ const CourtRegistrationForm = () => {
     }));
   };
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCheckboxChange = (checked: boolean) => {
     setFormData(prevState => ({
       ...prevState,
-      ethicalCommitment: e.target.checked
+      ethicalCommitment: checked
     }));
   };
 

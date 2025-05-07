@@ -47,8 +47,8 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
         const mappedPosts: CommunityPost[] = data.map((post) => ({
           id: post.id,
           user_id: post.user_id,
-          username: post.profiles?.username || 'Anonymous',
-          avatar_url: post.profiles?.avatar_url || undefined,
+          username: post.profiles ? (post.profiles as any)?.username || 'Anonymous' : 'Anonymous',
+          avatar_url: post.profiles ? (post.profiles as any)?.avatar_url : undefined,
           title: post.title,
           content: post.content,
           category: post.category as PostType,
