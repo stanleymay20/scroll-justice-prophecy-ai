@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { CalendarPlus, Gavel, BookOpen, Globe, Archive, Shield, KeyRound } from "lucide-react";
 import { ScrollCalendar } from "./ScrollCalendar";
 import { FlameIntegrityMonitor } from "../courtroom/FlameIntegrityMonitor";
-import { useAuth } from "@/contexts/auth";
+import { useAuth } from "@/contexts/auth"; // Updated import path
 import { ScrollClock } from "../scroll-time/ScrollClock";
 
 export function DashboardSidebar() {

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, User, LogOut, ScrollText, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth"; // Updated import path
 import { useLanguage } from "@/contexts/language";
 import { NavLinks } from "./NavLinks";
 import { LanguageSelector } from "@/components/LanguageSelector";

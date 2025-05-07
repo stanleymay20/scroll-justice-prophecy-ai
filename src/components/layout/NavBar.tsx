@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useScrollEffect } from "@/hooks/useScrollEffect";
-import { useAuth } from "@/contexts/auth";
+import { useAuth } from "@/contexts/auth"; // Updated import path
 import { BrandLogo } from "./nav/BrandLogo";
 import { NavLinks } from "./nav/NavLinks";
 import { UserMenu } from "./nav/UserMenu";
