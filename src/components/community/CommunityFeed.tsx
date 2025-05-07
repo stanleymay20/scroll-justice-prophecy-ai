@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -11,10 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/language";
+import { PostType } from "@/types/community";
 
-// Updated PostType to match database enum values
-export type PostType = 'testimony' | 'legal_question' | 'prayer_request' | 'righteous_insight' | 'announcement' | 'all';
-
+// CommunityPost interface updated to match database structure
 export interface CommunityPost {
   id: string;
   title: string;
@@ -65,7 +63,11 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
         
         // Apply category filter if not 'all'
         if (selectedCategory !== 'all') {
-          query = query.eq('category', selectedCategory);
+          // Map UI category to database category if needed
+          const dbCategory = selectedCategory === 'legal' ? 'legal_question' : 
+                            selectedCategory === 'prayer' ? 'prayer_request' : 
+                            selectedCategory;
+          query = query.eq('category', dbCategory);
         }
         
         const { data, error } = await query;
@@ -73,12 +75,21 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
         if (error) throw error;
         
         // Transform the data to match the CommunityPost interface
-        const formattedPosts: CommunityPost[] = data.map(post => ({
-          ...post,
-          username: post.profiles?.username || 'Anonymous',
-          avatar_url: post.profiles?.avatar_url || null,
-          category: post.category as PostType
-        }));
+        const formattedPosts: CommunityPost[] = data.map(post => {
+          // Safely extract profile data with fallbacks
+          const username = post.profiles?.username || 'Anonymous';
+          const avatarUrl = post.profiles?.avatar_url || null;
+
+          // Map database category to UI category if needed
+          let uiCategory = post.category as PostType;
+          
+          return {
+            ...post,
+            username,
+            avatar_url: avatarUrl,
+            category: uiCategory
+          };
+        });
         
         setPosts(formattedPosts);
         setFilteredPosts(formattedPosts);
@@ -100,6 +111,7 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
 
   // Handle category change
   const handleCategoryChange = (category: string) => {
+    // Convert UI category to database category
     setSelectedCategory(category as PostType);
   };
 

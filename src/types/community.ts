@@ -1,6 +1,8 @@
 
 export type PostCategory = "testimony" | "prayer_request" | "legal_question" | "righteous_insight" | "announcement";
 
+export type PostType = "testimony" | "legal_question" | "prayer_request" | "righteous_insight" | "announcement" | "all";
+
 export interface Post {
   id: string;
   user_id: string;

@@ -1,84 +1,134 @@
 
 /**
- * Utilities for cryptographic operations used in the ScrollCourt system.
+ * ScrollCourt Cryptographic Utilities
+ * Contains utilities for hashing, encrypting, and managing cryptographic 
+ * operations for the ScrollCourt system.
  */
 
 /**
- * Generates a SHA-256 hash from a string input.
- * @param message The string to hash
- * @returns A promise that resolves to the hex-encoded hash
+ * Generates a SHA-256 hash for a given string input
+ * @param input - The string to hash
+ * @returns A promise that resolves to the hexadecimal hash string
  */
-export async function generateSha256Hash(message: string): Promise<string> {
-  // Convert the message string to a Uint8Array
-  const msgUint8 = new TextEncoder().encode(message);
-  
-  // Hash the message
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-  
-  // Convert the hash buffer to a hex string
+export async function sha256Hash(input: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
- * Generates a cryptographic signature based on petition contents,
- * verdict, judge, timestamp, and optional salt.
- * 
- * @param content The concatenated content to sign
- * @param salt Optional cryptographic salt to add entropy
- * @returns A promise that resolves to the flame signature (hex-encoded hash)
+ * Encrypts data with AES-GCM using a provided key
+ * @param data - Data to encrypt
+ * @param key - Encryption key
+ * @returns Encrypted data as a base64 string
  */
-export async function generateFlameSignature(
-  content: string,
-  salt: string = new Date().toISOString()
-): Promise<string> {
-  const combinedContent = `${content}|${salt}`;
-  return generateSha256Hash(combinedContent);
+export async function encryptData(data: string, key: CryptoKey): Promise<string> {
+  try {
+    const encoder = new TextEncoder();
+    const encodedData = encoder.encode(data);
+    
+    // Generate random IV
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    
+    // Encrypt
+    const encryptedData = await crypto.subtle.encrypt(
+      {
+        name: 'AES-GCM',
+        iv
+      },
+      key,
+      encodedData
+    );
+    
+    // Concatenate IV and ciphertext
+    const result = new Uint8Array(iv.length + encryptedData.byteLength);
+    result.set(iv);
+    result.set(new Uint8Array(encryptedData), iv.length);
+    
+    // Convert to base64
+    return btoa(String.fromCharCode(...result));
+  } catch (err) {
+    console.error('Encryption error:', err);
+    throw new Error('Failed to encrypt data');
+  }
 }
 
 /**
- * Verifies a flame signature against provided content
- * 
- * @param content The content that was signed
- * @param signature The signature to verify
- * @param salt The original salt used, if any
- * @returns A promise resolving to true if signature is valid
+ * Decrypts AES-GCM encrypted data using the provided key
+ * @param encryptedData - Base64 encoded encrypted data
+ * @param key - Decryption key
+ * @returns Decrypted data as a string
+ */
+export async function decryptData(encryptedData: string, key: CryptoKey): Promise<string> {
+  try {
+    // Convert from base64
+    const encryptedBytes = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+    
+    // Extract IV (first 12 bytes)
+    const iv = encryptedBytes.slice(0, 12);
+    const ciphertext = encryptedBytes.slice(12);
+    
+    // Decrypt
+    const decryptedData = await crypto.subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv
+      },
+      key,
+      ciphertext
+    );
+    
+    // Decode and return
+    const decoder = new TextDecoder();
+    return decoder.decode(decryptedData);
+  } catch (err) {
+    console.error('Decryption error:', err);
+    throw new Error('Failed to decrypt data');
+  }
+}
+
+/**
+ * Generates a flame signature hash for scroll integrity verification
+ * @param content - The content to generate a flame signature for
+ * @param salt - Optional salt value to add uniqueness
+ * @returns A flame signature hash string
+ */
+export async function generateFlameSignature(content: string, salt?: string): Promise<string> {
+  const timestamp = Date.now().toString();
+  const contentToHash = `${content}|${salt || ''}|${timestamp}`;
+  const hash = await sha256Hash(contentToHash);
+  return `${hash.substring(0, 12)}-${timestamp.substring(timestamp.length - 6)}`;
+}
+
+/**
+ * Verifies whether a scroll's content matches its flame signature
+ * @param content - The content to verify
+ * @param signature - The flame signature to check against
+ * @param salt - Optional salt used in the original signature
+ * @returns Boolean indicating if the signature is valid
  */
 export async function verifyFlameSignature(
-  content: string,
+  content: string, 
   signature: string,
-  salt: string = ""
+  salt?: string
 ): Promise<boolean> {
-  const combinedContent = salt ? `${content}|${salt}` : content;
-  const computedHash = await generateSha256Hash(combinedContent);
-  return computedHash === signature;
-}
-
-/**
- * Generates a time-limited token based on user ID and purpose
- * 
- * @param userId The user's ID
- * @param purpose The token purpose (e.g., "recovery", "verification")
- * @param expiryHours Hours until token expires
- * @returns A promise resolving to the token
- */
-export async function generateTimeToken(
-  userId: string,
-  purpose: string,
-  expiryHours: number = 24
-): Promise<string> {
-  const expiry = new Date();
-  expiry.setHours(expiry.getHours() + expiryHours);
-  
-  const payload = {
-    uid: userId,
-    purpose,
-    exp: Math.floor(expiry.getTime() / 1000)
-  };
-  
-  const payloadStr = JSON.stringify(payload);
-  const hash = await generateSha256Hash(payloadStr);
-  
-  // Return first 16 characters of hash as the token
-  return hash.substring(0, 16);
+  try {
+    // Extract timestamp from signature
+    const timestampPart = signature.split('-')[1];
+    if (!timestampPart) return false;
+    
+    const timestamp = Date.now().toString().substring(0, 
+      Date.now().toString().length - 6) + timestampPart;
+    
+    const contentToHash = `${content}|${salt || ''}|${timestamp}`;
+    const hash = await sha256Hash(contentToHash);
+    const sigHash = signature.split('-')[0];
+    
+    return hash.substring(0, 12) === sigHash;
+  } catch (err) {
+    console.error('Flame signature verification error:', err);
+    return false;
+  }
 }

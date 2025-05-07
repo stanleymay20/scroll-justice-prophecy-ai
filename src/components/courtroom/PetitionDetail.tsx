@@ -18,9 +18,16 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { ScrollPetition } from "@/types/petition";
 
+// Update ScrollPetition type to include petitionerName and judgeName
+export interface EnhancedScrollPetition extends ScrollPetition {
+  timeAgo?: string;
+  petitionerName?: string;
+  judgeName?: string;
+}
+
 export const PetitionDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [petition, setPetition] = useState<ScrollPetition | null>(null);
+  const [petition, setPetition] = useState<EnhancedScrollPetition | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("details");
@@ -57,12 +64,15 @@ export const PetitionDetail = () => {
         const petitionerName = data.petitioner?.username || 'Anonymous Petitioner';
         const judgeName = data.judge?.username || 'Not Assigned';
         
-        setPetition({
+        // Create an enhanced petition object
+        const enhancedPetition: EnhancedScrollPetition = {
           ...data,
           timeAgo,
           petitionerName,
           judgeName
-        } as unknown as ScrollPetition);
+        };
+        
+        setPetition(enhancedPetition);
       }
     } catch (err) {
       console.error("Error fetching petition:", err);
@@ -149,26 +159,30 @@ export const PetitionDetail = () => {
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
               <CardTitle className="text-2xl text-justice-primary mb-2">
-                {petition.title}
+                {petition?.title}
               </CardTitle>
               <div className="flex flex-wrap gap-2 items-center text-sm text-justice-light/70">
                 <div className="flex items-center">
                   <User className="h-4 w-4 mr-1" />
-                  <span>Petitioner: {petition.petitionerName}</span>
+                  <span>Petitioner: {petition?.petitionerName}</span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />
-                  <span>{new Date(petition.created_at).toLocaleDateString()}</span>
+                  <span>{petition ? new Date(petition.created_at).toLocaleDateString() : ''}</span>
                 </div>
                 <div className="flex items-center">
                   <Clock className="h-4 w-4 mr-1" />
-                  <span>{petition.timeAgo}</span>
+                  <span>{petition?.timeAgo}</span>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <StatusBadge status={petition.status} />
-              <IntegrityScoreBadge score={petition.scroll_integrity_score} />
+              {petition && (
+                <>
+                  <StatusBadge status={petition.status} />
+                  <IntegrityScoreBadge score={petition.scroll_integrity_score || 0} />
+                </>
+              )}
             </div>
           </div>
         </CardHeader>

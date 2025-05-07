@@ -44,6 +44,7 @@ export const PetitionForm = ({
   }, [title, description, integrityResult]);
 
   const handleIntegrityAnalysis = (result: any) => {
+    // Update to match the ContentAnalyzer return type (score and issues)
     setIntegrityResult(result);
   };
 
