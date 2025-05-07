@@ -15,7 +15,9 @@ const alertVariants = cva(
         success: 
           "border-green-500/50 text-green-500 dark:border-green-500 [&>svg]:text-green-500",
         warning:
-          "border-yellow-500/50 text-yellow-500 dark:border-yellow-500 [&>svg]:text-yellow-500"
+          "border-yellow-500/50 text-yellow-500 dark:border-yellow-500 [&>svg]:text-yellow-500",
+        outline: "border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80"
       },
     },
     defaultVariants: {

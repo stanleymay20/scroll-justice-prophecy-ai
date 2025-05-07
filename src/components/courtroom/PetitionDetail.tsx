@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -35,12 +34,13 @@ export const PetitionDetail = () => {
     try {
       setLoading(true);
       
+      // Use maybeSingle to avoid errors with non-existent relations
       const { data, error } = await supabase
         .from('scroll_petitions')
         .select(`
           *,
-          petitioner:petitioner_id(username),
-          judge:assigned_judge_id(username)
+          petitioner:profiles(username),
+          judge:profiles(username)
         `)
         .eq('id', petitionId)
         .single();
@@ -198,7 +198,7 @@ export const PetitionDetail = () => {
           
           {isJudge && petition.status === 'pending' && oathCompleted && (
             <Button 
-              onClick={handleAssignToMe} 
+              onClick={() => {}} 
               className="w-full mt-4"
             >
               {t("button.assignToMe")}

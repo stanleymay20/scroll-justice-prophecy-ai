@@ -1,12 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { PlusCircle, RefreshCw } from 'lucide-react';
+import { PlusCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { PostCard } from './PostCard';
 import { CommunityPost, PostType } from '@/types/community';
+import { useLanguage } from '@/contexts/language';
 
 interface CommunityFeedProps {
   initialFilter?: PostType;
@@ -22,6 +24,7 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   const [filteredPosts, setFilteredPosts] = useState<CommunityPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<PostType>(initialFilter);
+  const { t } = useLanguage();
 
   const fetchPosts = async () => {
     setIsLoading(true);

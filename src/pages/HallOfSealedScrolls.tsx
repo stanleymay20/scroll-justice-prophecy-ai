@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,14 +6,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search, FileText, User, Shield, Calendar } from "lucide-react";
-import { ScrollPetition } from "@/types/petition";
+import { ScrollPetition, PetitionStatus } from "@/types/scroll-petition";
 import { useToast } from "@/components/ui/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { useLanguage } from "@/contexts/language";
 
+// Create an enhanced version of ScrollPetition for this page
+interface EnhancedSealedPetition extends ScrollPetition {
+  petitionerName: string;
+  judgeName: string;
+  timeAgo: string;
+}
+
 const HallOfSealedScrolls = () => {
-  const [petitions, setPetitions] = useState<ScrollPetition[]>([]);
-  const [filteredPetitions, setFilteredPetitions] = useState<ScrollPetition[]>([]);
+  const [petitions, setPetitions] = useState<EnhancedSealedPetition[]>([]);
+  const [filteredPetitions, setFilteredPetitions] = useState<EnhancedSealedPetition[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -30,8 +36,8 @@ const HallOfSealedScrolls = () => {
           .from('scroll_petitions')
           .select(`
             *,
-            petitioner:petitioner_id(id, username),
-            judge:assigned_judge_id(id, username)
+            petitioner:profiles(id, username),
+            judge:profiles(id, username)
           `)
           .eq('is_sealed', true)
           .order('created_at', { ascending: false });
@@ -46,6 +52,7 @@ const HallOfSealedScrolls = () => {
           petitionerName: petition.petitioner?.username || 'Anonymous Petitioner',
           judgeName: petition.judge?.username || 'Unassigned',
           timeAgo: formatDistanceToNow(new Date(petition.created_at), { addSuffix: true }),
+          status: petition.status as PetitionStatus,
         }));
         
         setPetitions(enhancedData);

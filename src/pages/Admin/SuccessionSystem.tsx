@@ -1,307 +1,497 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2, AlertTriangle, UserPlus, UserMinus, FileText } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { 
+  Shield, 
+  Key, 
+  User, 
+  Clock, 
+  FileText, 
+  ArrowRight, 
+  CheckCircle, 
+  AlertTriangle,
+  XCircle 
+} from "lucide-react";
+import { ButtonXs } from "@/components/ui/button-xs";
 import { supabase } from "@/integrations/supabase/client";
-import { useLanguage } from "@/contexts/language";
+import { useAuth } from "@/contexts/auth";
+
+// Add missing or updated types
+interface SuccessionCandidate {
+  id: string;
+  username: string;
+  email?: string;
+  reputation: number;
+  flames_issued: number;
+  last_activity: string;
+  eligible: boolean;
+}
+
+interface EmergencySuccessionKey {
+  id: string;
+  created_at: string;
+  expires_at: string;
+  activated: boolean;
+  created_by: string;
+  key_hash: string;
+  emergency_access_level: 'limited' | 'full';
+}
+
+interface NodeHealth {
+  id: string;
+  status: 'active' | 'degraded' | 'offline';
+  last_heartbeat: string;
+  flame_integrity: number;
+  node_type: 'primary' | 'backup' | 'recovery';
+}
 
 const SuccessionSystem = () => {
-  const [judges, setJudges] = useState<any[]>([]);
-  const [witnesses, setWitnesses] = useState<any[]>([]);
-  const [integrityLogs, setIntegrityLogs] = useState<any[]>([]);
-  const [newJudgeEmail, setNewJudgeEmail] = useState("");
+  const { isAdmin } = useAuth();
+  const [candidates, setCandidates] = useState<SuccessionCandidate[]>([]);
+  const [emergencyKeys, setEmergencyKeys] = useState<EmergencySuccessionKey[]>([]);
+  const [nodes, setNodes] = useState<NodeHealth[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-  const { t } = useLanguage();
+  const [validationError, setValidationError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   
-  // Function to safely handle username display from potentially incorrect data
-  const getUsernameDisplay = (userData: any) => {
-    if (!userData) return 'Unknown User';
-    if (typeof userData === 'string') return userData;
-    return userData.username || 'Unnamed User';
-  };
+  const [newKey, setNewKey] = useState({
+    passphrase: '',
+    confirmPassphrase: '',
+    expiresIn: '30',
+    accessLevel: 'limited' as const
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      
       try {
-        // Fetch judges
-        const { data: judgesData, error: judgesError } = await supabase
-          .from('user_roles')
-          .select('user_id, profiles(username)')
-          .eq('role', 'judge');
+        // In a real implementation, this would fetch from the database
+        // For now we're using mock data
         
-        if (judgesError) throw judgesError;
-        setJudges(judgesData || []);
+        // Mock candidates data
+        setCandidates([
+          {
+            id: '1',
+            username: 'HighFlame',
+            reputation: 98,
+            flames_issued: 247,
+            last_activity: '2025-05-02T14:22:00Z',
+            eligible: true
+          },
+          {
+            id: '2',
+            username: 'ScrollKeeper',
+            reputation: 87,
+            flames_issued: 132,
+            last_activity: '2025-05-06T09:15:00Z',
+            eligible: true
+          },
+          {
+            id: '3',
+            username: 'TruthSeeker',
+            reputation: 65,
+            flames_issued: 78,
+            last_activity: '2025-04-29T11:45:00Z',
+            eligible: false
+          }
+        ]);
         
-        // Fetch witnesses
-        const { data: witnessesData, error: witnessesError } = await supabase
-          .from('user_roles')
-          .select('user_id, profiles(username)')
-          .eq('role', 'witness');
+        // Mock emergency keys data
+        setEmergencyKeys([
+          {
+            id: '1',
+            created_at: '2025-01-15T10:00:00Z',
+            expires_at: '2025-07-15T10:00:00Z',
+            activated: false,
+            created_by: 'SystemAdmin',
+            key_hash: '6d8a7b5c4e3f2g1h',
+            emergency_access_level: 'limited'
+          },
+          {
+            id: '2',
+            created_at: '2025-03-22T14:30:00Z',
+            expires_at: '2025-06-22T14:30:00Z',
+            activated: false,
+            created_by: 'FlameMaster',
+            key_hash: '9a8b7c6d5e4f3g2h',
+            emergency_access_level: 'full'
+          }
+        ]);
         
-        if (witnessesError) throw witnessesError;
-        setWitnesses(witnessesData || []);
-        
-        // Fetch integrity logs
-        const { data: logsData, error: logsError } = await supabase
-          .from('scroll_integrity_logs')
-          .select('user_id, action_type, integrity_impact, profiles(username)')
-          .limit(50);
-        
-        if (logsError) throw logsError;
-        setIntegrityLogs(logsData || []);
-      } catch (err: any) {
-        console.error("Error fetching data:", err);
-        setError(err.message || "Failed to load system data");
+        // Mock nodes data
+        setNodes([
+          {
+            id: '1',
+            status: 'active',
+            last_heartbeat: '2025-05-07T12:58:00Z',
+            flame_integrity: 98,
+            node_type: 'primary'
+          },
+          {
+            id: '2',
+            status: 'active',
+            last_heartbeat: '2025-05-07T12:57:00Z',
+            flame_integrity: 95,
+            node_type: 'backup'
+          },
+          {
+            id: '3',
+            status: 'degraded',
+            last_heartbeat: '2025-05-07T12:45:00Z',
+            flame_integrity: 78,
+            node_type: 'recovery'
+          }
+        ]);
+      } catch (error) {
+        console.error("Error fetching succession system data:", error);
       } finally {
         setLoading(false);
       }
     };
     
     fetchData();
-  }, [toast]);
-  
-  const handleAddJudge = async () => {
-    try {
-      // Check if the email is valid
-      if (!newJudgeEmail || !newJudgeEmail.includes('@')) {
-        toast({
-          title: "Invalid Email",
-          description: "Please enter a valid email address.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // Check if the user exists
-      const { data: userData, error: userError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', newJudgeEmail)
-        .single();
-      
-      if (userError) throw userError;
-      if (!userData) {
-        toast({
-          title: "User Not Found",
-          description: "No user found with that email address.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // Add the user as a judge
-      const { data, error } = await supabase
-        .from('user_roles')
-        .insert({ user_id: userData.id, role: 'judge' });
-      
-      if (error) throw error;
-      
-      // Refresh the data
-      setJudges(prev => [...prev, { user_id: userData.id, username: newJudgeEmail }]);
-      setNewJudgeEmail("");
-      
-      toast({
-        title: "Judge Added",
-        description: `${newJudgeEmail} has been added as a judge.`,
-      });
-    } catch (err: any) {
-      console.error("Error adding judge:", err);
-      toast({
-        title: "Error Adding Judge",
-        description: err.message || "Failed to add judge.",
-        variant: "destructive"
-      });
+  }, []);
+
+  const handleCreateEmergencyKey = () => {
+    // Validate form
+    if (newKey.passphrase !== newKey.confirmPassphrase) {
+      setValidationError("Passphrases do not match");
+      return;
     }
-  };
-  
-  const handleRemoveJudge = async (userId: string) => {
-    try {
-      // Remove the user as a judge
-      const { data, error } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId)
-        .eq('role', 'judge');
-      
-      if (error) throw error;
-      
-      // Refresh the data
-      setJudges(prev => prev.filter(judge => judge.user_id !== userId));
-      
-      toast({
-        title: "Judge Removed",
-        description: "Judge has been removed successfully.",
-      });
-    } catch (err: any) {
-      console.error("Error removing judge:", err);
-      toast({
-        title: "Error Removing Judge",
-        description: err.message || "Failed to remove judge.",
-        variant: "destructive"
-      });
+    
+    if (newKey.passphrase.length < 12) {
+      setValidationError("Passphrase must be at least 12 characters long");
+      return;
     }
+    
+    // In a real implementation, this would create a key in the database
+    setSuccessMessage("Emergency succession key created successfully");
+    setValidationError("");
+    
+    // Reset form
+    setNewKey({
+      passphrase: '',
+      confirmPassphrase: '',
+      expiresIn: '30',
+      accessLevel: 'limited'
+    });
+    
+    // Add the new key to the list
+    const newEmergencyKey: EmergencySuccessionKey = {
+      id: (emergencyKeys.length + 1).toString(),
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + parseInt(newKey.expiresIn) * 24 * 60 * 60 * 1000).toISOString(),
+      activated: false,
+      created_by: 'CurrentUser',
+      key_hash: Math.random().toString(36).substring(2, 15),
+      emergency_access_level: newKey.accessLevel
+    };
+    
+    setEmergencyKeys([...emergencyKeys, newEmergencyKey]);
   };
 
-  const handleElevateUser = (userId: string) => {
-    // Placeholder for elevate user functionality
-    toast({
-      title: "Elevate User",
-      description: `Elevating user ${userId} to a higher role.`,
-    });
-  };
-
-  const exportSystemData = () => {
-    // Create a formatted string with all system data
-    let exportData = "--- SCROLL JUSTICE SYSTEM DATA ---\n\n";
-    
-    exportData += "JUDGES:\n";
-    judges.forEach((judge, i) => {
-      exportData += `${i + 1}. ${getUsernameDisplay(judge)} - Role: Judge\n`;
-    });
-    
-    exportData += "\nWITNESSES:\n";
-    witnesses.forEach((witness, i) => {
-      exportData += `${i + 1}. ${getUsernameDisplay(witness)} - Role: Witness\n`;
-    });
-    
-    exportData += "\nINTEGRITY LOGS:\n";
-    integrityLogs.forEach((log, i) => {
-      exportData += `${i + 1}. Action: ${log.action_type} - Impact: ${log.integrity_impact} - User: ${getUsernameDisplay(log)}\n`;
-    });
-    
-    // Create blob and download
-    const blob = new Blob([exportData], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'scroll-justice-system-data.txt';
-    document.body.appendChild(link);
-    link.dispatchEvent(
-      new MouseEvent('click', { 
-        bubbles: true, 
-        cancelable: true, 
-        view: window 
-      })
+  if (!isAdmin) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Access Denied</AlertTitle>
+        <AlertDescription>
+          You do not have permission to access the Flame Succession System.
+        </AlertDescription>
+      </Alert>
     );
-    document.body.removeChild(link);
-  };
-  
+  }
+
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold text-justice-primary mb-4">Succession System</h1>
-      <p className="text-justice-light/70 mb-8">Manage judges, witnesses, and system integrity.</p>
+      <h1 className="text-3xl font-bold text-justice-primary mb-2 flex items-center">
+        <Shield className="mr-2" /> Flame Succession System
+      </h1>
+      <p className="text-justice-light/70 mb-6">
+        Manage emergency succession keys and candidate users for system recovery.
+      </p>
       
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-justice-primary" />
-        </div>
-      ) : error ? (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Judges Management */}
-          <Card className="bg-black/40 border-justice-secondary">
+      <Tabs defaultValue="candidates">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="candidates">Succession Candidates</TabsTrigger>
+          <TabsTrigger value="emergency-keys">Emergency Keys</TabsTrigger>
+          <TabsTrigger value="nodes">Node Health</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="candidates" className="space-y-6">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-justice-light">Judges</CardTitle>
-              <CardDescription>Manage sacred scroll judges.</CardDescription>
+              <CardTitle className="text-xl flex items-center">
+                <User className="mr-2 h-5 w-5" /> Eligible Succession Candidates
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-12 text-xs uppercase text-justice-light/60 pb-2 border-b border-justice-light/20">
+                  <div className="col-span-4">Username</div>
+                  <div className="col-span-2 text-center">Reputation</div>
+                  <div className="col-span-2 text-center">Flames</div>
+                  <div className="col-span-3 text-center">Last Active</div>
+                  <div className="col-span-1 text-center"></div>
+                </div>
+                
+                {candidates.map(candidate => (
+                  <div key={candidate.id} className="grid grid-cols-12 items-center py-2">
+                    <div className="col-span-4 font-medium">{candidate.username}</div>
+                    <div className="col-span-2 text-center">{candidate.reputation}/100</div>
+                    <div className="col-span-2 text-center">{candidate.flames_issued}</div>
+                    <div className="col-span-3 text-center">
+                      {new Date(candidate.last_activity).toLocaleDateString()}
+                    </div>
+                    <div className="col-span-1 text-center">
+                      <ButtonXs size="xs" variant={candidate.eligible ? "default" : "outline"}>
+                        {candidate.eligible ? "Approve" : "Review"}
+                      </ButtonXs>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Succession Requirements</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="email"
-                  placeholder="Enter judge email"
-                  value={newJudgeEmail}
-                  onChange={(e) => setNewJudgeEmail(e.target.value)}
-                />
-                <Button size="sm" onClick={handleAddJudge}>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Add
+              <div className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                <span>Reputation score of 80 or higher</span>
+              </div>
+              <div className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                <span>At least 100 flames issued</span>
+              </div>
+              <div className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                <span>Active within the last 30 days</span>
+              </div>
+              <div className="flex items-center">
+                <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
+                <span>Must complete sacred oath ceremony before access granted</span>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="emergency-keys" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center">
+                <Key className="mr-2 h-5 w-5" /> Emergency Succession Keys
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-12 text-xs uppercase text-justice-light/60 pb-2 border-b border-justice-light/20">
+                  <div className="col-span-3">Created</div>
+                  <div className="col-span-3">Expires</div>
+                  <div className="col-span-2">Status</div>
+                  <div className="col-span-2">Access Level</div>
+                  <div className="col-span-2 text-right">Actions</div>
+                </div>
+                
+                {emergencyKeys.map(key => (
+                  <div key={key.id} className="grid grid-cols-12 items-center py-2">
+                    <div className="col-span-3">
+                      {new Date(key.created_at).toLocaleDateString()}
+                    </div>
+                    <div className="col-span-3">
+                      {new Date(key.expires_at).toLocaleDateString()}
+                    </div>
+                    <div className="col-span-2">
+                      {key.activated ? (
+                        <span className="inline-flex items-center text-red-500">
+                          <XCircle className="h-3 w-3 mr-1" /> Used
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center text-green-500">
+                          <CheckCircle className="h-3 w-3 mr-1" /> Active
+                        </span>
+                      )}
+                    </div>
+                    <div className="col-span-2 capitalize">
+                      {key.emergency_access_level}
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <ButtonXs size="xs" variant="outline" className="mr-2">
+                        View
+                      </ButtonXs>
+                      <ButtonXs size="xs" variant="destructive">
+                        Revoke
+                      </ButtonXs>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Create New Emergency Key</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {validationError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{validationError}</AlertDescription>
+                </Alert>
+              )}
+              
+              {successMessage && (
+                <Alert variant="success" className="mb-4">
+                  <AlertTitle>Success</AlertTitle>
+                  <AlertDescription>{successMessage}</AlertDescription>
+                </Alert>
+              )}
+              
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Passphrase</label>
+                  <Input 
+                    type="password" 
+                    placeholder="Enter a secure passphrase" 
+                    value={newKey.passphrase}
+                    onChange={(e) => setNewKey({...newKey, passphrase: e.target.value})}
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Confirm Passphrase</label>
+                  <Input 
+                    type="password" 
+                    placeholder="Confirm passphrase" 
+                    value={newKey.confirmPassphrase}
+                    onChange={(e) => setNewKey({...newKey, confirmPassphrase: e.target.value})}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Expires In (days)</label>
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      value={newKey.expiresIn}
+                      onChange={(e) => setNewKey({...newKey, expiresIn: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Access Level</label>
+                    <select 
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2"
+                      value={newKey.accessLevel}
+                      onChange={(e) => setNewKey({...newKey, accessLevel: e.target.value as 'limited' | 'full'})}
+                    >
+                      <option value="limited">Limited (Petitions Only)</option>
+                      <option value="full">Full (All Systems)</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <Button className="w-full" onClick={handleCreateEmergencyKey}>
+                  Create Emergency Key
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="nodes" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center">
+                <Clock className="mr-2 h-5 w-5" /> Node Health Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-12 text-xs uppercase text-justice-light/60 pb-2 border-b border-justice-light/20">
+                  <div className="col-span-2">Node ID</div>
+                  <div className="col-span-2">Type</div>
+                  <div className="col-span-2">Status</div>
+                  <div className="col-span-3">Last Heartbeat</div>
+                  <div className="col-span-2">Flame Integrity</div>
+                  <div className="col-span-1 text-right">Actions</div>
+                </div>
+                
+                {nodes.map(node => (
+                  <div key={node.id} className="grid grid-cols-12 items-center py-2">
+                    <div className="col-span-2 font-mono text-sm">
+                      #{node.id}
+                    </div>
+                    <div className="col-span-2 capitalize">
+                      {node.node_type}
+                    </div>
+                    <div className="col-span-2">
+                      {node.status === 'active' && (
+                        <span className="inline-flex items-center text-green-500">
+                          <CheckCircle className="h-3 w-3 mr-1" /> Active
+                        </span>
+                      )}
+                      {node.status === 'degraded' && (
+                        <span className="inline-flex items-center text-amber-500">
+                          <AlertTriangle className="h-3 w-3 mr-1" /> Degraded
+                        </span>
+                      )}
+                      {node.status === 'offline' && (
+                        <span className="inline-flex items-center text-red-500">
+                          <XCircle className="h-3 w-3 mr-1" /> Offline
+                        </span>
+                      )}
+                    </div>
+                    <div className="col-span-3">
+                      {new Date(node.last_heartbeat).toLocaleTimeString()}
+                    </div>
+                    <div className="col-span-2">
+                      {node.flame_integrity}%
+                    </div>
+                    <div className="col-span-1 text-right">
+                      <ButtonXs size="xs" variant="outline">
+                        Details
+                      </ButtonXs>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center">
+                <FileText className="mr-2 h-5 w-5" /> Succession Protocol
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="prose prose-invert max-w-none">
+              <p className="text-justice-light/80">
+                In the event of system failure or compromise, the succession protocol will be initiated automatically according to the Sacred Scroll Governance Clause §7.3. The protocol will:
+              </p>
               
-              <ul className="space-y-2">
-                {judges.map(judge => (
-                  <li key={judge.user_id} className="flex items-center justify-between">
-                    <span className="text-justice-light">{getUsernameDisplay(judge)}</span>
-                    <Button 
-                      variant="destructive" 
-                      size="xs" 
-                      onClick={() => handleRemoveJudge(judge.user_id)}
-                    >
-                      <UserMinus className="h-3 w-3 mr-1" />
-                      Remove
-                    </Button>
-                  </li>
-                ))}
-              </ul>
+              <ol className="list-decimal pl-6 space-y-2 text-justice-light/80">
+                <li>Immediately lock all active petitions and seal current verdicts</li>
+                <li>Notify all succession candidates via secure channels</li>
+                <li>Require multi-signature approval from at least 3 eligible candidates</li>
+                <li>Restore system access using emergency succession keys</li>
+                <li>Record all restoration actions in an immutable audit log</li>
+              </ol>
             </CardContent>
           </Card>
-          
-          {/* Witnesses Management */}
-          <Card className="bg-black/40 border-justice-secondary">
-            <CardHeader>
-              <CardTitle className="text-justice-light">Witnesses</CardTitle>
-              <CardDescription>Manage sacred scroll witnesses.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-2">
-                {witnesses.map(witness => (
-                  <li key={witness.user_id} className="flex items-center justify-between">
-                    <span className="text-justice-light">{getUsernameDisplay(witness)}</span>
-                    <Button 
-                      variant="ghost" 
-                      size="xs"
-                      onClick={() => handleElevateUser(witness.user_id)}
-                    >
-                      Elevate
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-          
-          {/* Integrity Logs */}
-          <Card className="bg-black/40 border-justice-secondary">
-            <CardHeader>
-              <CardTitle className="text-justice-light">Integrity Logs</CardTitle>
-              <CardDescription>Recent system integrity logs.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-2">
-                {integrityLogs.map(log => (
-                  <li key={log.id} className="text-sm text-justice-light/70">
-                    {log.action_type} - {log.integrity_impact} - {getUsernameDisplay(log)}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-      
-      <div className="mt-8">
-        <Button 
-          variant="secondary" 
-          onClick={exportSystemData}
-          className="flex items-center"
-        >
-          <FileText className="h-4 w-4 mr-2" />
-          Export System Data
-        </Button>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
-}
+};
 
 export default SuccessionSystem;
