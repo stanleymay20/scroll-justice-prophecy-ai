@@ -12,9 +12,10 @@ import {
 import { useLanguage } from "@/contexts/language";
 import { useAuth } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { Globe } from "lucide-react";
 
 export function MobileMenu() {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const location = useLocation();
   const { user, isAdmin } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -63,6 +64,14 @@ export function MobileMenu() {
     if (item.isAdmin && !isAdmin) return false;
     return true;
   });
+  
+  // Language options with flags
+  const languages = [
+    { code: "en", name: "English", flag: "🇺🇸" },
+    { code: "fr", name: "Français", flag: "🇫🇷" },
+    { code: "es", name: "Español", flag: "🇪🇸" },
+    { code: "de", name: "Deutsch", flag: "🇩🇪" },
+  ];
 
   return (
     <div className="block md:hidden">
@@ -80,6 +89,35 @@ export function MobileMenu() {
               asChild
             >
               <Link to={href}>{title}</Link>
+            </DropdownMenuItem>
+          ))}
+          
+          <DropdownMenuSeparator />
+          
+          {/* Language selection */}
+          <DropdownMenuItem>
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              <span>{t("nav.language")}</span>
+            </div>
+          </DropdownMenuItem>
+          
+          {languages.map((lang) => (
+            <DropdownMenuItem
+              key={lang.code}
+              className="pl-8"
+              onClick={() => {
+                setLanguage(lang.code);
+                setIsMenuOpen(false);
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <span>{lang.flag}</span>
+                <span>{lang.name}</span>
+                {language === lang.code && (
+                  <span className="ml-auto text-xs">✓</span>
+                )}
+              </div>
             </DropdownMenuItem>
           ))}
           
