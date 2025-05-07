@@ -22,7 +22,7 @@ export const useLanguage = () => {
       formatNumber(num, context.language as LanguageCode, options),
     
     // Is the current language RTL?
-    isRtl: ["ar", "he"].includes(context.language),
+    isRtl: context.rtl,
     
     // Return localized language name
     getLanguageName: (code: LanguageCode) => {
