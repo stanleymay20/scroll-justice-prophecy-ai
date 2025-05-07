@@ -1,46 +1,67 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/language";
+import { supabase } from "@/integrations/supabase/client";
 
-interface AiSuggestionButtonProps {
-  onGetSuggestion: () => Promise<void>;
-  disabled: boolean;
+export interface AiSuggestionButtonProps {
+  petitionId: string;
+  setVerdict: (verdict: string) => void;
+  setReasoning: (reasoning: string) => void;
 }
 
-export const AiSuggestionButton = ({ 
-  onGetSuggestion, 
-  disabled 
-}: AiSuggestionButtonProps) => {
-  const [loading, setLoading] = useState(false);
+export const AiSuggestionButton: React.FC<AiSuggestionButtonProps> = ({ 
+  petitionId, 
+  setVerdict, 
+  setReasoning 
+}) => {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   
-  const handleClick = async () => {
-    setLoading(true);
+  const fetchAiSuggestion = async () => {
+    setIsLoading(true);
     try {
-      await onGetSuggestion();
+      const { data, error } = await supabase.functions.invoke("get-ai-verdict", {
+        body: { petitionId }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.verdict && data?.reasoning) {
+        setVerdict(data.verdict);
+        setReasoning(data.reasoning);
+        
+        toast({
+          title: t("ai.suggestionReceived"),
+          description: t("ai.suggestionApplied"),
+        });
+      }
+    } catch (error) {
+      console.error("Error getting AI verdict suggestion:", error);
+      toast({
+        title: t("ai.suggestionFailed"),
+        description: t("ai.tryAgain"),
+        variant: "destructive"
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
   
   return (
     <Button
+      type="button"
       variant="outline"
-      onClick={handleClick}
-      disabled={loading || disabled}
-      className="flex-1"
+      size="sm"
+      disabled={isLoading}
+      onClick={fetchAiSuggestion}
+      className="flex items-center gap-1"
     >
-      {loading ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("verdict.consultingAi")}
-        </>
-      ) : (
-        <>
-          <Sparkles className="mr-2 h-4 w-4" /> {t("verdict.getAiSuggestion")}
-        </>
-      )}
+      <Sparkles className="h-4 w-4" />
+      {isLoading ? t("ai.generating") : t("ai.suggestVerdict")}
     </Button>
   );
 };

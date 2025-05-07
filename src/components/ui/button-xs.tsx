@@ -3,7 +3,7 @@ import React from "react";
 import { Button, ButtonProps } from "./button";
 import { cn } from "@/lib/utils";
 
-interface ButtonXsProps extends ButtonProps {
+interface ButtonXsProps extends Omit<ButtonProps, 'size'> {
   size?: "xs" | "default" | "sm" | "lg" | "icon";
 }
 

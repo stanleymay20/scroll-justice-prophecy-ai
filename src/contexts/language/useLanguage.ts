@@ -15,11 +15,11 @@ export const useLanguage = () => {
     ...context,
     // Format a date according to the current language
     formatDate: (date: Date, options?: Intl.DateTimeFormatOptions) => 
-      formatDate(date, context.language, options),
+      formatDate(date, context.language as LanguageCode, options),
     
     // Format a number according to the current language
     formatNumber: (num: number, options?: Intl.NumberFormatOptions) => 
-      formatNumber(num, context.language, options),
+      formatNumber(num, context.language as LanguageCode, options),
     
     // Is the current language RTL?
     isRtl: ["ar", "he"].includes(context.language),

@@ -56,7 +56,8 @@ export const PetitionDetail = () => {
         timeAgo,
         petitionerName,
         judgeName,
-        status: data.status as PetitionStatus
+        status: data.status as PetitionStatus,
+        reasoning: data.verdict_reasoning
       });
     } catch (error) {
       console.error("Error fetching petition:", error);

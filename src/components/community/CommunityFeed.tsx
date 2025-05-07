@@ -1,85 +1,88 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { PlusCircle, RefreshCw } from 'lucide-react';
+import { PostCard } from './PostCard';
+import { CommunityPost, PostType } from '@/types/community';
 
-import React, { useState, useEffect } from "react";
-import { PostCard } from "./PostCard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
-import { CommunityPost, PostType } from "@/types/community";
-import { useLanguage } from "@/contexts/language";
+interface CommunityFeedProps {
+  initialFilter?: PostType;
+  showCreateButton?: boolean;
+}
 
-export const CommunityFeed = () => {
+export const CommunityFeed: React.FC<CommunityFeedProps> = ({
+  initialFilter = 'all',
+  showCreateButton = true,
+}) => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<CommunityPost[]>([]);
-  const [activeTab, setActiveTab] = useState<PostType>("all");
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
-  const { t } = useLanguage();
+  const [activeFilter, setActiveFilter] = useState<PostType>(initialFilter);
+
+  const fetchPosts = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles:user_id(username, avatar_url)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching posts:', error);
+        setIsLoading(false);
+        return;
+      }
+
+      if (data) {
+        const mappedPosts: CommunityPost[] = data.map((post) => ({
+          id: post.id,
+          user_id: post.user_id,
+          username: post.profiles?.username || 'Anonymous',
+          avatar_url: post.profiles?.avatar_url || undefined,
+          title: post.title,
+          content: post.content,
+          category: post.category as PostType,
+          created_at: post.created_at || new Date().toISOString(),
+          updated_at: post.updated_at || new Date().toISOString(),
+          likes: post.likes || 0,
+          comments_count: post.comments_count || 0,
+        }));
+
+        setPosts(mappedPosts);
+        filterPosts(mappedPosts, activeFilter);
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching posts:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filterPosts = (allPosts: CommunityPost[], filter: PostType) => {
+    if (filter === 'all') {
+      setFilteredPosts(allPosts);
+    } else {
+      setFilteredPosts(allPosts.filter((post) => post.category === filter));
+    }
+  };
 
   useEffect(() => {
     fetchPosts();
   }, []);
 
   useEffect(() => {
-    filterPosts(activeTab);
-  }, [posts, activeTab]);
+    filterPosts(posts, activeFilter);
+  }, [activeFilter, posts]);
 
-  const fetchPosts = async () => {
-    try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase
-        .from("posts")
-        .select(`
-          *,
-          profiles:user_id(username, avatar_url)
-        `)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        // Map the data to include the username and avatar from the profiles relation
-        const formattedPosts = data.map(post => {
-          const username = post.profiles?.username || "Anonymous";
-          const avatar_url = post.profiles?.avatar_url || null;
-          
-          return {
-            ...post,
-            username,
-            avatar_url,
-          } as unknown as CommunityPost;
-        });
-
-        setPosts(formattedPosts);
-        setFilteredPosts(formattedPosts);
-      }
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-      toast({
-        title: t("feed.fetchError"),
-        description: t("feed.tryAgain"),
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const filterPosts = (category: PostType) => {
-    if (category === "all") {
-      setFilteredPosts(posts);
-      return;
-    }
-    
-    const filtered = posts.filter(post => post.category === category);
-    setFilteredPosts(filtered);
-  };
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value as PostType);
+  const handleFilterChange = (value: string) => {
+    setActiveFilter(value as PostType);
   };
 
   if (isLoading) {
@@ -92,7 +95,7 @@ export const CommunityFeed = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="all" onValueChange={handleTabChange}>
+      <Tabs defaultValue="all" onValueChange={handleFilterChange}>
         <TabsList className="grid grid-cols-3 md:grid-cols-6">
           <TabsTrigger value="all">{t("categories.all")}</TabsTrigger>
           <TabsTrigger value="testimony">{t("categories.testimony")}</TabsTrigger>

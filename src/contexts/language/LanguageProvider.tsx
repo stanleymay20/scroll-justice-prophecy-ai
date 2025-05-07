@@ -40,13 +40,13 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     const savedLanguage = getSavedLanguagePreference();
     if (savedLanguage) {
       console.log(`Language set from localStorage: ${savedLanguage}`);
-      return savedLanguage;
+      return savedLanguage as LanguageCode;
     }
     
     // Try to detect browser language if no saved preference
     const browserLang = getBrowserLanguage();
     console.log(`Language set from browser: ${browserLang}`);
-    return browserLang;
+    return browserLang as LanguageCode;
   });
 
   const [translations, setTranslations] = useState<Record<string, any>>({});
@@ -84,7 +84,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
         // Fall back to in-memory translations
-        setTranslations(fallbackTranslations[language] || fallbackTranslations.en);
+        setTranslations(fallbackTranslations[language as keyof typeof fallbackTranslations] || fallbackTranslations.en);
       } finally {
         setIsLoading(false);
       }
@@ -123,7 +123,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     
     // Fallback to in-memory translations for current language
-    const fallbackTranslation = getNestedValue(fallbackTranslations[language] || {}, key);
+    const fallbackTranslation = getNestedValue(fallbackTranslations[language as keyof typeof fallbackTranslations] || {}, key);
     if (fallbackTranslation !== key) {
       return formatTranslation(fallbackTranslation, args);
     }
@@ -145,8 +145,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const loadedTranslations = await loadTranslations(language);
       setTranslations(loadedTranslations);
+      return Promise.resolve();
     } catch (error) {
       console.error(`Failed to reload translations for ${language}:`, error);
+      return Promise.resolve();
     } finally {
       setIsLoading(false);
     }
@@ -162,14 +164,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }
 
+  const availableLanguages = getSupportedLanguages() as LanguageCode[];
+
   return (
     <LanguageContext.Provider value={{ 
       language, 
       setLanguage: changeLanguage, 
       t, 
       rtl,
-      isLoading, 
-      reloadTranslations 
+      isLoading,
+      reloadTranslations,
+      availableLanguages
     }}>
       {children}
     </LanguageContext.Provider>

@@ -19,9 +19,11 @@ export type LanguageCode =
  * Language context types
  */
 export interface LanguageContextType {
-  language: string;
-  setLanguage: (language: string) => void;
+  language: LanguageCode;
+  setLanguage: (language: LanguageCode) => void;
   t: (key: string, ...args: any[]) => string;
-  availableLanguages: string[];
+  availableLanguages: LanguageCode[];
   reloadTranslations: () => Promise<void>;
+  rtl: boolean;
+  isLoading: boolean;
 }

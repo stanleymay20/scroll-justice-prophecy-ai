@@ -1,26 +1,26 @@
 
+import React from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/contexts/language";
 
-interface ReasoningFieldProps {
-  value: string;
-  onChange: (value: string) => void;
+export interface ReasoningFieldProps {
+  reasoning: string;
+  setReasoning: (reasoning: string) => void;
 }
 
-export const ReasoningField = ({
-  value,
-  onChange
-}: ReasoningFieldProps) => {
+export const ReasoningField: React.FC<ReasoningFieldProps> = ({ reasoning, setReasoning }) => {
   const { t } = useLanguage();
   
   return (
-    <div>
-      <label className="text-sm text-justice-light">{t("verdict.reasoning")}</label>
+    <div className="space-y-1">
+      <Label htmlFor="reasoning">{t("verdict.reasoning")}</Label>
       <Textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        id="reasoning"
+        value={reasoning}
+        onChange={(e) => setReasoning(e.target.value)}
         placeholder={t("verdict.reasoningPlaceholder")}
-        className="mt-1 h-32"
+        className="h-32"
       />
     </div>
   );

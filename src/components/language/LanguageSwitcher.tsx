@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, Globe } from "lucide-react";
 import { useLanguage } from "@/contexts/language";
-import type { LanguageCode } from "@/contexts/language/types";
+import { LanguageCode } from "@/contexts/language/types";
 import { getLanguageDisplayName, isRtlLanguage } from "@/utils/languageUtils";
 import { LanguageGroup } from "./LanguageGroup";
 import { LanguageItem } from "./LanguageGroup";
@@ -35,17 +35,17 @@ export const LanguageSwitcher = ({
 
   // Language data with flags and groups
   const languages: LanguageItem[] = [
-    { code: "en", name: "English", flag: "🇺🇸", group: "primary" },
-    { code: "fr", name: "Français", flag: "🇫🇷", group: "primary" },
-    { code: "es", name: "Español", flag: "🇪🇸", group: "primary" },
-    { code: "de", name: "Deutsch", flag: "🇩🇪", group: "primary" },
-    { code: "zh", name: "中文", flag: "🇨🇳", group: "extended" },
-    { code: "ar", name: "العربية", flag: "🇦🇪", group: "extended" },
-    { code: "pt", name: "Português", flag: "🇵🇹", group: "extended" },
-    { code: "hi", name: "हिन्दी", flag: "🇮🇳", group: "extended" },
-    { code: "sw", name: "Kiswahili", flag: "🇹🇿", group: "sacred" },
-    { code: "he", name: "עברית", flag: "🇮🇱", group: "sacred" },
-    { code: "am", name: "አማርኛ", flag: "🇪🇹", group: "sacred" },
+    { code: "en" as LanguageCode, name: "English", flag: "🇺🇸", group: "primary" },
+    { code: "fr" as LanguageCode, name: "Français", flag: "🇫🇷", group: "primary" },
+    { code: "es" as LanguageCode, name: "Español", flag: "🇪🇸", group: "primary" },
+    { code: "de" as LanguageCode, name: "Deutsch", flag: "🇩🇪", group: "primary" },
+    { code: "zh" as LanguageCode, name: "中文", flag: "🇨🇳", group: "extended" },
+    { code: "ar" as LanguageCode, name: "العربية", flag: "🇦🇪", group: "extended" },
+    { code: "pt" as LanguageCode, name: "Português", flag: "🇵🇹", group: "extended" },
+    { code: "hi" as LanguageCode, name: "हिन्दी", flag: "🇮🇳", group: "extended" },
+    { code: "sw" as LanguageCode, name: "Kiswahili", flag: "🇹🇿", group: "sacred" },
+    { code: "he" as LanguageCode, name: "עברית", flag: "🇮🇱", group: "sacred" },
+    { code: "am" as LanguageCode, name: "አማርኛ", flag: "🇪🇹", group: "sacred" },
   ];
 
   const primaryLanguages = languages.filter(lang => lang.group === "primary");
@@ -67,7 +67,7 @@ export const LanguageSwitcher = ({
           size={size}
           className={cn(
             "flex items-center gap-2", 
-            isRtlLanguage(language) && "flex-row-reverse",
+            isRtlLanguage(language as LanguageCode) && "flex-row-reverse",
             className
           )}
         >
@@ -76,7 +76,7 @@ export const LanguageSwitcher = ({
           )}
           {showLabel && (
             <span>
-              {size === "sm" ? currentLanguage?.code.toUpperCase() : getLanguageDisplayName(language)}
+              {size === "sm" ? currentLanguage?.code.toUpperCase() : getLanguageDisplayName(language as LanguageCode)}
             </span>
           )}
           {!showFlags && !showLabel && <Globe className="h-4 w-4" />}
@@ -87,7 +87,7 @@ export const LanguageSwitcher = ({
         <LanguageGroup 
           title={t("language.select")} 
           languages={primaryLanguages} 
-          currentLanguage={language}
+          currentLanguage={language as LanguageCode}
           onLanguageSelect={handleLanguageSelect}
         />
         
@@ -96,7 +96,7 @@ export const LanguageSwitcher = ({
         <LanguageGroup 
           title={t("language.extended")} 
           languages={extendedLanguages}
-          currentLanguage={language}
+          currentLanguage={language as LanguageCode}
           onLanguageSelect={handleLanguageSelect}
         />
         
@@ -105,7 +105,7 @@ export const LanguageSwitcher = ({
         <LanguageGroup 
           title={t("language.sacred")} 
           languages={sacredLanguages}
-          currentLanguage={language}
+          currentLanguage={language as LanguageCode}
           onLanguageSelect={handleLanguageSelect}
         />
       </DropdownMenuContent>
