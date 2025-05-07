@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from "lucide-react";
 import { useLanguage } from "@/contexts/language";
 
 export const AIDisclosureBanner = () => {
