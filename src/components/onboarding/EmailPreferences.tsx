@@ -8,12 +8,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { updateOnboardingPreferences, optOutOfOnboarding } from '@/services/onboardingService';
 import { useToast } from '@/hooks/use-toast';
 
+// Define interface for email preferences
+interface EmailPreferencesType {
+  receiveWelcome: boolean;
+  receivePetition: boolean;
+  receiveSubscription: boolean;
+  receivePrivacy: boolean;
+  receiveCommunity: boolean;
+}
+
 const EmailPreferences = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [preferences, setPreferences] = useState({
+  const [preferences, setPreferences] = useState<EmailPreferencesType>({
     receiveWelcome: true,
     receivePetition: true,
     receiveSubscription: true,
@@ -36,13 +45,16 @@ const EmailPreferences = () => {
           .eq('user_email', user.email)
           .maybeSingle();
         
-        if (data?.preferences) {
+        if (data?.preferences && typeof data.preferences === 'object') {
+          // Type assertion to safely access properties
+          const prefs = data.preferences as Record<string, boolean>;
+          
           setPreferences({
-            receiveWelcome: !!data.preferences.receiveWelcome,
-            receivePetition: !!data.preferences.receivePetition,
-            receiveSubscription: !!data.preferences.receiveSubscription,
-            receivePrivacy: !!data.preferences.receivePrivacy,
-            receiveCommunity: !!data.preferences.receiveCommunity,
+            receiveWelcome: prefs.receiveWelcome ?? true,
+            receivePetition: prefs.receivePetition ?? true,
+            receiveSubscription: prefs.receiveSubscription ?? true,
+            receivePrivacy: prefs.receivePrivacy ?? true,
+            receiveCommunity: prefs.receiveCommunity ?? true,
           });
         }
       } catch (err) {
@@ -55,7 +67,7 @@ const EmailPreferences = () => {
     loadPreferences();
   }, [user]);
   
-  const handleTogglePreference = (key: keyof typeof preferences) => {
+  const handleTogglePreference = (key: keyof EmailPreferencesType) => {
     setPreferences(prev => ({
       ...prev,
       [key]: !prev[key]
