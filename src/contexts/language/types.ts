@@ -23,7 +23,7 @@ export interface LanguageContextType {
   setLanguage: (language: LanguageCode) => void;
   t: (key: string, ...args: any[]) => string;
   availableLanguages: LanguageCode[];
-  reloadTranslations: () => Promise<void>;
   rtl: boolean;
   isLoading: boolean;
+  reloadTranslations?: () => Promise<void>;
 }

@@ -1,11 +1,13 @@
 
+import { LanguageCode } from './types';
+
 // Define a type for our translations object
 interface TranslationsMap {
   [key: string]: Record<string, any>;
 }
 
 // Fallback translations - these are used if the JSON files fail to load
-const fallbackTranslations: TranslationsMap = {
+const translations: TranslationsMap = {
   en: {
     app: {
       title: "ScrollJustice.AI",
@@ -177,4 +179,4 @@ const fallbackTranslations: TranslationsMap = {
   // Additional languages can be added here
 };
 
-export default fallbackTranslations;
+export default translations;

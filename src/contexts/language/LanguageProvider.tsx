@@ -2,8 +2,8 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/contexts/auth';
 import { LanguageCode, LanguageContextType } from './types';
-import { translations } from './translations';
-import { minimalTranslations } from './translations/minimal-translations';
+import translations from './translations';
+import minimalTranslations from './translations/minimal-translations';
 
 // Helper to get saved language preference
 const getSavedLanguagePreference = (): LanguageCode => {
@@ -31,7 +31,8 @@ export const LanguageContext = createContext<LanguageContextType>({
   language: 'en',
   setLanguage: () => {},
   t: () => '',
-  translations: {},
+  rtl: false,
+  isLoading: false,
   availableLanguages: [],
 });
 
@@ -114,7 +115,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         language, 
         setLanguage, 
         t, 
-        translations: currentTranslations,
+        rtl: false,
+        isLoading: isLoaded,
         availableLanguages
       }}
     >
