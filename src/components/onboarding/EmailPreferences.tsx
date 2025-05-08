@@ -1,20 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth';
 import { useLanguage } from '@/contexts/language';
 import { supabase } from '@/integrations/supabase/client';
 import { updateOnboardingPreferences, optOutOfOnboarding } from '@/services/onboardingService';
+import { useToast } from '@/hooks/use-toast';
 
 const EmailPreferences = () => {
-  const { user } = useAuth();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  
   const [preferences, setPreferences] = useState({
     receiveWelcome: true,
     receivePetition: true,
@@ -23,227 +21,196 @@ const EmailPreferences = () => {
     receiveCommunity: true,
   });
   
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  
   useEffect(() => {
-    if (user) {
-      loadPreferences();
-    }
+    const loadPreferences = async () => {
+      if (!user?.email) return;
+      
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('user_onboarding')
+          .select('preferences')
+          .eq('user_email', user.email)
+          .maybeSingle();
+        
+        if (data?.preferences) {
+          setPreferences({
+            receiveWelcome: !!data.preferences.receiveWelcome,
+            receivePetition: !!data.preferences.receivePetition,
+            receiveSubscription: !!data.preferences.receiveSubscription,
+            receivePrivacy: !!data.preferences.receivePrivacy,
+            receiveCommunity: !!data.preferences.receiveCommunity,
+          });
+        }
+      } catch (err) {
+        console.error('Error loading email preferences:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadPreferences();
   }, [user]);
   
-  const loadPreferences = async () => {
-    if (!user?.email) return;
-    
-    try {
-      setLoading(true);
-      
-      const { data, error } = await supabase
-        .from('user_onboarding')
-        .select('preferences')
-        .eq('user_email', user.email)
-        .maybeSingle();
-        
-      if (!error && data?.preferences) {
-        const prefs = data.preferences as {
-          receiveWelcome?: boolean;
-          receivePetition?: boolean;
-          receiveSubscription?: boolean;
-          receivePrivacy?: boolean;
-          receiveCommunity?: boolean;
-        };
-        
-        setPreferences({
-          receiveWelcome: prefs.receiveWelcome ?? true,
-          receivePetition: prefs.receivePetition ?? true,
-          receiveSubscription: prefs.receiveSubscription ?? true,
-          receivePrivacy: prefs.receivePrivacy ?? true,
-          receiveCommunity: prefs.receiveCommunity ?? true,
-        });
-      }
-    } catch (error) {
-      console.error("Error loading email preferences:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const handlePreferenceChange = (key: string, value: boolean) => {
+  const handleTogglePreference = (key: keyof typeof preferences) => {
     setPreferences(prev => ({
       ...prev,
-      [key]: value
+      [key]: !prev[key]
     }));
   };
   
   const handleSave = async () => {
     if (!user?.email) return;
     
-    setLoading(true);
-    const success = await updateOnboardingPreferences(user.email, preferences);
-    setLoading(false);
-    
-    if (success) {
+    setSaving(true);
+    try {
+      const success = await updateOnboardingPreferences(user.email, preferences);
+      
+      if (success) {
+        toast({
+          title: t('preferences.updated'),
+          description: t('preferences.email.savedSuccess') || 'Your email preferences have been saved.',
+        });
+      } else {
+        throw new Error('Failed to save preferences');
+      }
+    } catch (err) {
+      console.error('Error saving email preferences:', err);
       toast({
-        title: "Preferences Updated",
-        description: "Your sacred scroll communication preferences have been saved.",
-        duration: 3000,
+        variant: 'destructive',
+        title: t('error.title'),
+        description: t('error.preferences.save') || 'Failed to save preferences. Please try again.',
       });
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Update Failed",
-        description: "Could not update your scroll preferences.",
-        duration: 5000,
-      });
+    } finally {
+      setSaving(false);
     }
   };
   
-  const handleUnsubscribe = async () => {
+  const handleOptOut = async () => {
     if (!user?.email) return;
     
-    setLoading(true);
-    const success = await optOutOfOnboarding(user.email);
-    setLoading(false);
-    
-    if (success) {
-      setPreferences({
-        receiveWelcome: false,
-        receivePetition: false,
-        receiveSubscription: false,
-        receivePrivacy: false,
-        receiveCommunity: false,
-      });
+    setSaving(true);
+    try {
+      const success = await optOutOfOnboarding(user.email);
       
+      if (success) {
+        toast({
+          title: t('preferences.optedOut'),
+          description: t('preferences.email.optOutSuccess') || 'You have been opted out of all onboarding emails.',
+        });
+        
+        // Update local state to reflect opt-out
+        setPreferences({
+          receiveWelcome: false,
+          receivePetition: false,
+          receiveSubscription: false,
+          receivePrivacy: false,
+          receiveCommunity: false,
+        });
+      } else {
+        throw new Error('Failed to opt out');
+      }
+    } catch (err) {
+      console.error('Error opting out of emails:', err);
       toast({
-        title: "Unsubscribed",
-        description: "You have been unsubscribed from all scroll communications.",
-        duration: 3000,
+        variant: 'destructive',
+        title: t('error.title'),
+        description: t('error.preferences.optOut') || 'Failed to opt out. Please try again.',
       });
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Unsubscribe Failed",
-        description: "Could not unsubscribe you from scroll communications.",
-        duration: 5000,
-      });
+    } finally {
+      setSaving(false);
     }
   };
   
-  if (!user) {
+  if (loading) {
     return (
-      <Card className="border-justice-secondary/30 bg-black/40">
-        <CardHeader>
-          <CardTitle className="text-justice-light">Sacred Communication Preferences</CardTitle>
-          <CardDescription>
-            You must be signed in to manage your scroll communication preferences.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="py-4 text-justice-light">
+        {t('common.loading') || 'Loading...'}
+      </div>
     );
   }
   
   return (
-    <Card className="border-justice-secondary/30 bg-black/40">
-      <CardHeader>
-        <CardTitle className="text-justice-light">Sacred Communication Preferences</CardTitle>
-        <CardDescription>
-          Control how the scrolls communicate with you on your journey.
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-6">
+      <p className="text-justice-light">
+        {t('preferences.email.description') || 
+          'Manage which types of emails you receive during your onboarding journey.'}
+      </p>
       
-      <CardContent className="space-y-4">
-        <div className="grid gap-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="welcome">Welcome Message</Label>
-              <p className="text-xs text-muted-foreground">
-                Initial greeting from the Chief Scroll Keeper
-              </p>
-            </div>
-            <Switch
-              id="welcome"
-              checked={preferences.receiveWelcome}
-              disabled={loading}
-              onCheckedChange={(checked) => handlePreferenceChange('receiveWelcome', checked)}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="petition">Petition Instructions</Label>
-              <p className="text-xs text-muted-foreground">
-                Guidance on filing your first sacred petition
-              </p>
-            </div>
-            <Switch
-              id="petition"
-              checked={preferences.receivePetition}
-              disabled={loading} 
-              onCheckedChange={(checked) => handlePreferenceChange('receivePetition', checked)}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="subscription">Subscription Benefits</Label>
-              <p className="text-xs text-muted-foreground">
-                Sacred tiers and their exclusive privileges
-              </p>
-            </div>
-            <Switch
-              id="subscription"
-              checked={preferences.receiveSubscription}
-              disabled={loading}
-              onCheckedChange={(checked) => handlePreferenceChange('receiveSubscription', checked)}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="privacy">Privacy & AI Covenant</Label>
-              <p className="text-xs text-muted-foreground">
-                Our sacred promises regarding your data
-              </p>
-            </div>
-            <Switch
-              id="privacy"
-              checked={preferences.receivePrivacy}
-              disabled={loading}
-              onCheckedChange={(checked) => handlePreferenceChange('receivePrivacy', checked)}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="community">Community Invitations</Label>
-              <p className="text-xs text-muted-foreground">
-                Gather with fellow seekers in sacred assemblies
-              </p>
-            </div>
-            <Switch
-              id="community"
-              checked={preferences.receiveCommunity}
-              disabled={loading}
-              onCheckedChange={(checked) => handlePreferenceChange('receiveCommunity', checked)}
-            />
-          </div>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <label className="text-justice-light">
+            {t('preferences.email.welcome') || 'Welcome emails'}
+          </label>
+          <Switch 
+            checked={preferences.receiveWelcome}
+            onCheckedChange={() => handleTogglePreference('receiveWelcome')}
+          />
         </div>
-      </CardContent>
+        
+        <div className="flex items-center justify-between">
+          <label className="text-justice-light">
+            {t('preferences.email.petition') || 'Petition guidance'}
+          </label>
+          <Switch 
+            checked={preferences.receivePetition}
+            onCheckedChange={() => handleTogglePreference('receivePetition')}
+          />
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <label className="text-justice-light">
+            {t('preferences.email.subscription') || 'Subscription information'}
+          </label>
+          <Switch 
+            checked={preferences.receiveSubscription}
+            onCheckedChange={() => handleTogglePreference('receiveSubscription')}
+          />
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <label className="text-justice-light">
+            {t('preferences.email.privacy') || 'Privacy updates'}
+          </label>
+          <Switch 
+            checked={preferences.receivePrivacy}
+            onCheckedChange={() => handleTogglePreference('receivePrivacy')}
+          />
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <label className="text-justice-light">
+            {t('preferences.email.community') || 'Community events'}
+          </label>
+          <Switch 
+            checked={preferences.receiveCommunity}
+            onCheckedChange={() => handleTogglePreference('receiveCommunity')}
+          />
+        </div>
+      </div>
       
-      <CardFooter className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={handleUnsubscribe}
-          disabled={loading}
+      <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3 pt-4">
+        <Button 
+          onClick={handleSave} 
+          disabled={saving}
+          className="bg-justice-accent hover:bg-justice-accent-hover"
         >
-          Unsubscribe from All
+          {saving ? (t('common.saving') || 'Saving...') : (t('common.save') || 'Save Preferences')}
         </Button>
-        <Button
-          onClick={handleSave}
-          disabled={loading}
-          className="bg-justice-tertiary hover:bg-justice-tertiary/80"
+        
+        <Button 
+          variant="outline" 
+          onClick={handleOptOut}
+          disabled={saving}
+          className="border-justice-accent text-justice-accent hover:bg-justice-accent/10"
         >
-          Save Preferences
+          {t('preferences.email.optOut') || 'Opt out of all emails'}
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 };
 

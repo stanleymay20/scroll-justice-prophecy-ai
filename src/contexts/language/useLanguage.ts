@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { LanguageContext } from "./LanguageProvider";
 import { formatDate, formatNumber } from "@/services/i18n/i18nService";
 import { LanguageCode } from "./types";
-import fallbackTranslations from "./translations";
+import translations from "./translations";
 
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
@@ -20,7 +20,7 @@ export const useLanguage = () => {
         
         // Try to get from fallback translations
         const parts = key.split('.');
-        let value = fallbackTranslations.en;
+        let value = translations.en;
         
         for (const part of parts) {
           if (value && typeof value === 'object' && part in value) {
@@ -73,8 +73,8 @@ export const useLanguage = () => {
     isRtl: context.rtl,
     
     // Return localized language name
-    getLanguageName: (code: LanguageCode) => {
-      const names: Record<LanguageCode, string> = {
+    getLanguageName: (code: LanguageCode): string => {
+      const languageNames: Record<string, string> = {
         'en': 'English',
         'fr': 'Français',
         'es': 'Español',
@@ -87,7 +87,7 @@ export const useLanguage = () => {
         'sw': 'Kiswahili',
         'am': 'አማርኛ'
       };
-      return names[code] || code;
+      return languageNames[code] || code;
     }
   };
 };
