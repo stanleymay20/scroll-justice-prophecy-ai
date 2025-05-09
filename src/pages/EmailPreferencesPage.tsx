@@ -13,7 +13,7 @@ const EmailPreferencesPage = () => {
       <MetaTags title={t("preferences.email") || "Email Preferences"} />
       <NavBar />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pt-20">
         <div className="max-w-2xl mx-auto bg-black/60 p-6 rounded-md shadow-lg border border-justice-accent/30">
           <h1 className="text-2xl font-semibold text-justice-light mb-6">
             {t("preferences.email.title") || "Email Preferences"}
