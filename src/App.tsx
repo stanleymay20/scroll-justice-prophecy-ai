@@ -20,7 +20,7 @@ import CaseSearch from "@/pages/CaseSearch";
 import Courtroom from "@/pages/Courtroom";
 import HallOfSealedScrolls from "@/pages/HallOfSealedScrolls";
 import Witness from "@/pages/Witness";
-import EmailPreferencesPage from "@/pages/EmailPreferences";
+import EmailPreferencesPage from "@/pages/EmailPreferencesPage";
 import Unsubscribe from "@/pages/Unsubscribe";
 import Plans from "@/pages/Subscription/Plans";
 import Manage from "@/pages/Subscription/Manage";
