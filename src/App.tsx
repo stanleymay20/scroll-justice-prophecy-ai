@@ -79,7 +79,7 @@ function App() {
         <Route path="/courtroom" element={<Courtroom />} />
         <Route path="/sealed-scrolls" element={<HallOfSealedScrolls />} />
         <Route path="/witness" element={<Witness />} />
-        <Route path="/preferences" element={<EmailPreferencesPage />} />
+        <Route path="/email-preferences" element={<EmailPreferencesPage />} />
         <Route path="/unsubscribe" element={<Unsubscribe />} />
         <Route path="/subscription/plans" element={<Plans />} />
         <Route path="/subscription/manage" element={<ProtectedRoute><Manage /></ProtectedRoute>} />
