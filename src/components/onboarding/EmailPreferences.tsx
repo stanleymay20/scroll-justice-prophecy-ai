@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/language';
 import { useEmailPreferences } from '@/hooks/useEmailPreferences';
-import PreferenceToggle from './PreferenceToggle';
+import EmailPreferencesList from './EmailPreferencesList';
+import EmailPreferencesActions from './EmailPreferencesActions';
 
 const EmailPreferences = () => {
   const { t } = useLanguage();
@@ -31,56 +31,17 @@ const EmailPreferences = () => {
           'Manage which types of emails you receive during your onboarding journey.'}
       </p>
       
-      <div className="space-y-4">
-        <PreferenceToggle
-          label={t('preferences.email.welcome') || 'Welcome emails'}
-          checked={preferences.receiveWelcome}
-          onChange={() => handleTogglePreference('receiveWelcome')}
-        />
-        
-        <PreferenceToggle
-          label={t('preferences.email.petition') || 'Petition guidance'}
-          checked={preferences.receivePetition}
-          onChange={() => handleTogglePreference('receivePetition')}
-        />
-        
-        <PreferenceToggle
-          label={t('preferences.email.subscription') || 'Subscription information'}
-          checked={preferences.receiveSubscription}
-          onChange={() => handleTogglePreference('receiveSubscription')}
-        />
-        
-        <PreferenceToggle
-          label={t('preferences.email.privacy') || 'Privacy updates'}
-          checked={preferences.receivePrivacy}
-          onChange={() => handleTogglePreference('receivePrivacy')}
-        />
-        
-        <PreferenceToggle
-          label={t('preferences.email.community') || 'Community events'}
-          checked={preferences.receiveCommunity}
-          onChange={() => handleTogglePreference('receiveCommunity')}
-        />
-      </div>
+      <EmailPreferencesList
+        preferences={preferences}
+        saving={saving}
+        onTogglePreference={handleTogglePreference}
+      />
       
-      <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3 pt-4">
-        <Button 
-          onClick={handleSave} 
-          disabled={saving}
-          className="bg-justice-accent hover:bg-justice-accent-hover"
-        >
-          {saving ? (t('common.saving') || 'Saving...') : (t('common.save') || 'Save Preferences')}
-        </Button>
-        
-        <Button 
-          variant="outline" 
-          onClick={handleOptOut}
-          disabled={saving}
-          className="border-justice-accent text-justice-accent hover:bg-justice-accent/10"
-        >
-          {t('preferences.email.optOut') || 'Opt out of all emails'}
-        </Button>
-      </div>
+      <EmailPreferencesActions
+        saving={saving}
+        onSave={handleSave}
+        onOptOut={handleOptOut}
+      />
     </div>
   );
 };

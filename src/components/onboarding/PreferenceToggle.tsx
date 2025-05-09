@@ -6,9 +6,15 @@ interface PreferenceToggleProps {
   label: string;
   checked: boolean;
   onChange: () => void;
+  disabled?: boolean;
 }
 
-const PreferenceToggle = ({ label, checked, onChange }: PreferenceToggleProps) => {
+const PreferenceToggle = ({ 
+  label, 
+  checked, 
+  onChange,
+  disabled = false 
+}: PreferenceToggleProps) => {
   return (
     <div className="flex items-center justify-between">
       <label className="text-justice-light">
@@ -17,6 +23,7 @@ const PreferenceToggle = ({ label, checked, onChange }: PreferenceToggleProps) =
       <Switch 
         checked={checked}
         onCheckedChange={onChange}
+        disabled={disabled}
       />
     </div>
   );

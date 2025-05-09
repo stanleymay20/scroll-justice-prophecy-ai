@@ -1,19 +1,16 @@
 
 import React from 'react';
 import { NavBar } from '@/components/layout/NavBar';
-import { useAuth } from '@/contexts/auth';
 import { useLanguage } from '@/contexts/language';
 import EmailPreferences from '@/components/onboarding/EmailPreferences';
 import { MetaTags } from '@/components/MetaTags';
-import { X } from 'lucide-react';
 
 const EmailPreferencesPage = () => {
-  const { user } = useAuth();
   const { t } = useLanguage();
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
-      <MetaTags title={t("preferences.email")} />
+      <MetaTags title={t("preferences.email") || "Email Preferences"} />
       <NavBar />
       
       <div className="container mx-auto px-4 py-8">

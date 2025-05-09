@@ -29,6 +29,7 @@ import Blessing from "@/pages/Blessing";
 import HallOfSealedScrolls from "@/pages/HallOfSealedScrolls";
 import RecoveryPage from "@/pages/Recovery";
 import PlanetPage from "@/pages/Planet";
+import EmailPreferencesPage from "@/pages/EmailPreferencesPage";
 
 // Auth Pages
 import SignIn from "@/pages/Auth/SignIn";
@@ -60,6 +61,16 @@ export const AppRoutes = () => {
         
         {/* Policy Routes */}
         <Route path="/policy/ai-usage" element={<AIUsagePolicy />} />
+        
+        {/* Email Preferences Route */}
+        <Route 
+          path="/email-preferences" 
+          element={
+            <ProtectedRoute>
+              <EmailPreferencesPage />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* Subscription Routes */}
         <Route path="/subscription/plans" element={<SubscriptionPlans />} />
