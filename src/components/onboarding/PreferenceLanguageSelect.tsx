@@ -27,7 +27,7 @@ const PreferenceLanguageSelect = ({
     }
   };
 
-  // Define language options with explicit mapping between code and display name
+  // Define language options
   const languageOptions = [
     { code: 'en', name: 'English' },
     { code: 'fr', name: 'Français' },
