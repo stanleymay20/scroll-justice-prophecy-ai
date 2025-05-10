@@ -23,7 +23,7 @@ const EmailPreferences = () => {
     return (
       <div className="flex flex-col items-center py-8 text-justice-light">
         <Loader2 className="h-8 w-8 animate-spin text-justice-accent mb-4" />
-        <p>{language ? (t('common.loading') || 'Loading...') : 'Loading preferences...'}</p>
+        <p>{language ? (t('common.loading') || 'Loading preferences...') : 'Loading preferences...'}</p>
       </div>
     );
   }

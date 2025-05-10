@@ -27,19 +27,19 @@ const PreferenceLanguageSelect = ({
     }
   };
 
-  // Define language options with proper typing and explicit string values
+  // Define language options with explicit mapping between code and display name
   const languageOptions = [
-    { code: 'en' as LanguageCode, name: 'English', value: 'en' },
-    { code: 'fr' as LanguageCode, name: 'Français', value: 'fr' },
-    { code: 'es' as LanguageCode, name: 'Español', value: 'es' },
-    { code: 'de' as LanguageCode, name: 'Deutsch', value: 'de' },
-    { code: 'zh' as LanguageCode, name: '中文', value: 'zh' },
-    { code: 'ar' as LanguageCode, name: 'العربية', value: 'ar' },
-    { code: 'pt' as LanguageCode, name: 'Português', value: 'pt' },
-    { code: 'hi' as LanguageCode, name: 'हिन्दी', value: 'hi' },
-    { code: 'sw' as LanguageCode, name: 'Kiswahili', value: 'sw' },
-    { code: 'he' as LanguageCode, name: 'עברית', value: 'he' },
-    { code: 'am' as LanguageCode, name: 'አማርኛ', value: 'am' }
+    { code: 'en', name: 'English' },
+    { code: 'fr', name: 'Français' },
+    { code: 'es', name: 'Español' },
+    { code: 'de', name: 'Deutsch' },
+    { code: 'zh', name: '中文' },
+    { code: 'ar', name: 'العربية' },
+    { code: 'pt', name: 'Português' },
+    { code: 'hi', name: 'हिन्दी' },
+    { code: 'sw', name: 'Kiswahili' },
+    { code: 'he', name: 'עברית' },
+    { code: 'am', name: 'አማርኛ' }
   ];
 
   return (
@@ -49,7 +49,7 @@ const PreferenceLanguageSelect = ({
       </label>
       <Select 
         value={language || 'en'} 
-        onValueChange={handleLanguageChange} 
+        onValueChange={handleLanguageChange}
         defaultValue="en"
       >
         <SelectTrigger className="w-full bg-black/30 text-justice-light border-justice-accent/30">
@@ -59,7 +59,7 @@ const PreferenceLanguageSelect = ({
           {languageOptions.map(option => (
             <SelectItem 
               key={option.code} 
-              value={option.value}
+              value={option.code}
             >
               {option.name}
             </SelectItem>
