@@ -27,26 +27,31 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   children 
 }) => {
   const [language, setLanguage] = useState<LanguageCode>(() => {
-    // Try to get language from URL first
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlLang = normalizeLanguageCode(urlParams.get('lang') || '') as LanguageCode | null;
-    
-    if (urlLang && getSupportedLanguages().includes(urlLang)) {
-      console.log(`Language set from URL: ${urlLang}`);
-      return urlLang;
-    }
+    try {
+      // Try to get language from URL first
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlLang = normalizeLanguageCode(urlParams.get('lang') || '') as LanguageCode | null;
+      
+      if (urlLang && getSupportedLanguages().includes(urlLang)) {
+        console.log(`Language set from URL: ${urlLang}`);
+        return urlLang;
+      }
 
-    // Try to get language from localStorage next
-    const savedLanguage = getSavedLanguagePreference();
-    if (savedLanguage) {
-      console.log(`Language set from localStorage: ${savedLanguage}`);
-      return savedLanguage;
+      // Try to get language from localStorage next
+      const savedLanguage = getSavedLanguagePreference();
+      if (savedLanguage) {
+        console.log(`Language set from localStorage: ${savedLanguage}`);
+        return savedLanguage;
+      }
+      
+      // Try to detect browser language if no saved preference
+      const browserLang = getBrowserLanguage();
+      console.log(`Language set from browser: ${browserLang}`);
+      return browserLang;
+    } catch (error) {
+      console.error("Error determining initial language:", error);
+      return defaultLanguage;
     }
-    
-    // Try to detect browser language if no saved preference
-    const browserLang = getBrowserLanguage();
-    console.log(`Language set from browser: ${browserLang}`);
-    return browserLang;
   });
 
   const [translations, setTranslations] = useState<Record<string, any>>({});
@@ -65,7 +70,11 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
         // Load English translations as fallback
         let englishTranslations = {};
         if (language !== 'en') {
-          englishTranslations = await loadTranslations('en');
+          try {
+            englishTranslations = await loadTranslations('en');
+          } catch (error) {
+            console.warn("Failed to load English fallback translations:", error);
+          }
         }
         
         // Merge translations with fallbacks for missing keys
@@ -83,7 +92,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
         // Fall back to in-memory translations
-        setTranslations(fallbackTranslations[language] || fallbackTranslations.en);
+        const fallback = fallbackTranslations[language] || fallbackTranslations.en || {};
+        console.log(`Using in-memory fallback translations for ${language}`);
+        setTranslations(fallback);
       } finally {
         setIsLoading(false);
       }
@@ -94,48 +105,57 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Apply language effects when language changes
   useEffect(() => {
-    // Save language preference to localStorage
-    saveLanguagePreference(language);
-    
-    // Sync language with URL
-    syncLanguageWithRouter(language);
-    
-    // Update document language attributes for accessibility and RTL
-    applyLanguageDirection(language);
+    try {
+      // Save language preference to localStorage
+      saveLanguagePreference(language);
+      
+      // Sync language with URL
+      syncLanguageWithRouter(language);
+      
+      // Update document language attributes for accessibility and RTL
+      applyLanguageDirection(language);
 
-    // Dispatch a custom event that components can listen for
-    window.dispatchEvent(new CustomEvent('languageChanged', { detail: language }));
-    
-    console.log(`Language set to: ${language}`);
+      // Dispatch a custom event that components can listen for
+      window.dispatchEvent(new CustomEvent('languageChanged', { detail: language }));
+      
+      console.log(`Language set to: ${language}`);
+    } catch (error) {
+      console.error("Error applying language effects:", error);
+    }
   }, [language]);
   
   // Enhanced translation function with better fallbacks
   const t = (key: string, ...args: any[]): string => {
-    // Try to get the translation from loaded translations
-    if (translations && Object.keys(translations).length > 0) {
-      const translation = getNestedValue(translations, key);
-      
-      // If we found a valid translation (not the key itself)
-      if (translation !== key) {
-        return formatTranslation(translation, args);
+    try {
+      // Try to get the translation from loaded translations
+      if (translations && Object.keys(translations).length > 0) {
+        const translation = getNestedValue(translations, key);
+        
+        // If we found a valid translation (not the key itself)
+        if (translation !== key) {
+          return formatTranslation(translation, args);
+        }
       }
+      
+      // Fallback to in-memory translations for current language
+      const fallbackTranslation = getNestedValue(fallbackTranslations[language] || {}, key);
+      if (fallbackTranslation !== key) {
+        return formatTranslation(fallbackTranslation, args);
+      }
+      
+      // Fallback to English if translation doesn't exist in current language
+      const englishTranslation = getNestedValue(fallbackTranslations.en || {}, key);
+      if (englishTranslation !== key) {
+        return formatTranslation(englishTranslation, args);
+      }
+      
+      // Last resort: return the key itself with formatting applied
+      console.warn(`Missing translation for key: ${key} in language: ${language}`);
+      return formatTranslation(key, args);
+    } catch (error) {
+      console.error(`Error translating key ${key}:`, error);
+      return key; // Return key as ultimate fallback
     }
-    
-    // Fallback to in-memory translations for current language
-    const fallbackTranslation = getNestedValue(fallbackTranslations[language] || {}, key);
-    if (fallbackTranslation !== key) {
-      return formatTranslation(fallbackTranslation, args);
-    }
-    
-    // Fallback to English if translation doesn't exist in current language
-    const englishTranslation = getNestedValue(fallbackTranslations.en || {}, key);
-    if (englishTranslation !== key) {
-      return formatTranslation(englishTranslation, args);
-    }
-    
-    // Last resort: return the key itself with formatting applied
-    console.warn(`Missing translation for key: ${key} in language: ${language}`);
-    return formatTranslation(key, args);
   };
   
   // Method to reload translations manually
@@ -153,13 +173,18 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Method to change language with validation
   const changeLanguage = (newLanguage: LanguageCode) => {
-    if (getSupportedLanguages().includes(newLanguage)) {
-      setLanguage(newLanguage);
-    } else {
-      console.error(`Unsupported language: ${newLanguage}`);
-      setLanguage(defaultLanguage); // Fallback to default language
+    try {
+      if (getSupportedLanguages().includes(newLanguage)) {
+        setLanguage(newLanguage);
+      } else {
+        console.error(`Unsupported language: ${newLanguage}`);
+        setLanguage(defaultLanguage); // Fallback to default language
+      }
+    } catch (error) {
+      console.error(`Error changing language to ${newLanguage}:`, error);
+      setLanguage(defaultLanguage); // Fallback to default language on error
     }
-  }
+  };
 
   return (
     <LanguageContext.Provider value={{ 

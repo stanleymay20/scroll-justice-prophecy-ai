@@ -36,40 +36,50 @@ export const loadTranslations = async (lang: LanguageCode): Promise<Record<strin
 
 // Get a nested key from an object using dot notation
 export const getNestedValue = (obj: Record<string, any>, path: string): string => {
-  if (!obj || typeof obj !== 'object') {
-    return path;
-  }
-
-  // Handle dot notation for nested objects
-  const keys = path.split('.');
-  let result = obj;
-
-  for (const key of keys) {
-    if (result && typeof result === 'object' && key in result) {
-      result = result[key];
-    } else {
-      // If at any point the path doesn't exist, return the original path
+  try {
+    if (!obj || typeof obj !== 'object') {
       return path;
     }
-  }
 
-  return typeof result === 'string' ? result : path;
+    // Handle dot notation for nested objects
+    const keys = path.split('.');
+    let result = obj;
+
+    for (const key of keys) {
+      if (result && typeof result === 'object' && key in result) {
+        result = result[key];
+      } else {
+        // If at any point the path doesn't exist, return the original path
+        return path;
+      }
+    }
+
+    return typeof result === 'string' ? result : path;
+  } catch (error) {
+    console.error(`Error getting nested value for path ${path}:`, error);
+    return path;
+  }
 };
 
 // Format a translation string with dynamic values
 export const formatTranslation = (text: string, args: any[]): string => {
-  if (!args || args.length === 0) return text;
-  
-  return args.reduce((str, arg, index) => {
-    const placeholder = new RegExp(`\\{${index}\\}`, 'g');
-    return str.replace(placeholder, String(arg));
-  }, text);
+  try {
+    if (!args || args.length === 0) return text;
+    
+    return args.reduce((str, arg, index) => {
+      const placeholder = new RegExp(`\\{${index}\\}`, 'g');
+      return str.replace(placeholder, String(arg));
+    }, text);
+  } catch (error) {
+    console.error(`Error formatting translation for "${text}":`, error);
+    return text;
+  }
 };
 
 // Sync language with localStorage and URL
 export const syncLanguageWithRouter = (lang: LanguageCode): void => {
-  // Update URL if supported by the router
   try {
+    // Update URL if supported by the router
     const url = new URL(window.location.href);
     url.searchParams.set('lang', lang);
     window.history.replaceState({}, '', url.toString());
@@ -80,49 +90,69 @@ export const syncLanguageWithRouter = (lang: LanguageCode): void => {
 
 // Format dates based on the current locale
 export const formatDate = (date: Date, lang: LanguageCode, options?: Intl.DateTimeFormatOptions): string => {
-  return new Intl.DateTimeFormat(lang, options).format(date);
+  try {
+    return new Intl.DateTimeFormat(lang, options).format(date);
+  } catch (error) {
+    console.error(`Error formatting date for language ${lang}:`, error);
+    return date.toISOString();
+  }
 };
 
 // Format numbers based on the current locale
 export const formatNumber = (num: number, lang: LanguageCode, options?: Intl.NumberFormatOptions): string => {
-  return new Intl.NumberFormat(lang, options).format(num);
+  try {
+    return new Intl.NumberFormat(lang, options).format(num);
+  } catch (error) {
+    console.error(`Error formatting number for language ${lang}:`, error);
+    return num.toString();
+  }
 };
 
 // Convert nested object to flattened dot notation for translation export
 export const flattenTranslations = (obj: Record<string, any>, prefix = ''): Record<string, string> => {
-  return Object.keys(obj).reduce((acc: Record<string, string>, key: string) => {
-    const prefixedKey = prefix ? `${prefix}.${key}` : key;
-    
-    if (typeof obj[key] === 'object' && obj[key] !== null) {
-      Object.assign(acc, flattenTranslations(obj[key], prefixedKey));
-    } else {
-      acc[prefixedKey] = String(obj[key]);
-    }
-    
-    return acc;
-  }, {});
+  try {
+    return Object.keys(obj).reduce((acc: Record<string, string>, key: string) => {
+      const prefixedKey = prefix ? `${prefix}.${key}` : key;
+      
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        Object.assign(acc, flattenTranslations(obj[key], prefixedKey));
+      } else {
+        acc[prefixedKey] = String(obj[key]);
+      }
+      
+      return acc;
+    }, {});
+  } catch (error) {
+    console.error("Error flattening translations:", error);
+    return {};
+  }
 };
 
 // Create a translation object from flattened dot notation
 export const unflattenTranslations = (flat: Record<string, string>): Record<string, any> => {
-  const result: Record<string, any> = {};
-  
-  for (const key in flat) {
-    const keys = key.split('.');
-    let current = result;
+  try {
+    const result: Record<string, any> = {};
     
-    for (let i = 0; i < keys.length; i++) {
-      const k = keys[i];
-      if (i === keys.length - 1) {
-        current[k] = flat[key];
-      } else {
-        current[k] = current[k] || {};
-        current = current[k];
+    for (const key in flat) {
+      const keys = key.split('.');
+      let current = result;
+      
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        if (i === keys.length - 1) {
+          current[k] = flat[key];
+        } else {
+          current[k] = current[k] || {};
+          current = current[k];
+        }
       }
     }
+    
+    return result;
+  } catch (error) {
+    console.error("Error unflattening translations:", error);
+    return {};
   }
-  
-  return result;
 };
 
 // Compare two translation objects to find missing keys
@@ -130,10 +160,15 @@ export const findMissingTranslationKeys = (
   source: Record<string, any>, 
   target: Record<string, any>
 ): string[] => {
-  const flatSource = flattenTranslations(source);
-  const flatTarget = flattenTranslations(target);
-  
-  return Object.keys(flatSource).filter(key => !flatTarget[key]);
+  try {
+    const flatSource = flattenTranslations(source);
+    const flatTarget = flattenTranslations(target);
+    
+    return Object.keys(flatSource).filter(key => !flatTarget[key]);
+  } catch (error) {
+    console.error("Error finding missing translation keys:", error);
+    return [];
+  }
 };
 
 // Merge translations with fallback for missing keys
@@ -141,25 +176,34 @@ export const mergeWithFallback = (
   target: Record<string, any>,
   fallback: Record<string, any>
 ): Record<string, any> => {
-  const merged = { ...target };
-  const flatTarget = flattenTranslations(target);
-  const flatFallback = flattenTranslations(fallback);
-  
-  // Add missing keys from fallback
-  Object.keys(flatFallback).forEach(key => {
-    if (!flatTarget[key]) {
-      const keys = key.split('.');
-      let current = merged;
-      
-      for (let i = 0; i < keys.length - 1; i++) {
-        const k = keys[i];
-        current[k] = current[k] || {};
-        current = current[k];
-      }
-      
-      current[keys[keys.length - 1]] = flatFallback[key];
+  try {
+    if (!target || Object.keys(target).length === 0) {
+      return fallback || {};
     }
-  });
-  
-  return merged;
+    
+    const merged = { ...target };
+    const flatTarget = flattenTranslations(target);
+    const flatFallback = flattenTranslations(fallback);
+    
+    // Add missing keys from fallback
+    Object.keys(flatFallback).forEach(key => {
+      if (!flatTarget[key]) {
+        const keys = key.split('.');
+        let current = merged;
+        
+        for (let i = 0; i < keys.length - 1; i++) {
+          const k = keys[i];
+          current[k] = current[k] || {};
+          current = current[k];
+        }
+        
+        current[keys[keys.length - 1]] = flatFallback[key];
+      }
+    });
+    
+    return merged;
+  } catch (error) {
+    console.error("Error merging translations with fallback:", error);
+    return target || fallback || {};
+  }
 };

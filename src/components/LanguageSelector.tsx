@@ -12,35 +12,52 @@ import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 import type { LanguageCode } from "@/contexts/language";
 import { getLanguageGroups, getLanguageDisplayName } from "@/utils/languageUtils";
 import { LanguageGroup, LanguageItem } from "./language/LanguageGroup";
+import { useState, useEffect } from "react";
 
 export function LanguageSelector() {
   const { language, setLanguage, t } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+  
+  // Generate language groups and items
   const languageGroups = getLanguageGroups();
-
+  
   // Generate the language list with metadata
-  const allLanguages: LanguageItem[] = [
-    // Primary languages
-    { code: "en" as LanguageCode, name: getLanguageDisplayName("en"), flag: "🇬🇧", group: "primary" },
-    { code: "fr" as LanguageCode, name: getLanguageDisplayName("fr"), flag: "🇫🇷", group: "primary" },
-    { code: "es" as LanguageCode, name: getLanguageDisplayName("es"), flag: "🇪🇸", group: "primary" },
-    { code: "de" as LanguageCode, name: getLanguageDisplayName("de"), flag: "🇩🇪", group: "primary" },
-    
-    // Extended languages
-    { code: "zh" as LanguageCode, name: getLanguageDisplayName("zh"), flag: "🇨🇳", group: "extended" },
-    { code: "ar" as LanguageCode, name: getLanguageDisplayName("ar"), flag: "🇸🇦", group: "extended" },
-    { code: "hi" as LanguageCode, name: getLanguageDisplayName("hi"), flag: "🇮🇳", group: "extended" },
-    { code: "pt" as LanguageCode, name: getLanguageDisplayName("pt"), flag: "🇧🇷", group: "extended" },
-    
-    // Sacred languages
-    { code: "he" as LanguageCode, name: getLanguageDisplayName("he"), flag: "🇮🇱", group: "sacred" },
-    { code: "sw" as LanguageCode, name: getLanguageDisplayName("sw"), flag: "🇰🇪", group: "sacred" },
-    { code: "am" as LanguageCode, name: getLanguageDisplayName("am"), flag: "🇪🇹", group: "sacred" },
-  ];
+  const generateLanguageList = (): LanguageItem[] => {
+    try {
+      return [
+        // Primary languages
+        { code: "en" as LanguageCode, name: getLanguageDisplayName("en"), flag: "🇬🇧", group: "primary" },
+        { code: "fr" as LanguageCode, name: getLanguageDisplayName("fr"), flag: "🇫🇷", group: "primary" },
+        { code: "es" as LanguageCode, name: getLanguageDisplayName("es"), flag: "🇪🇸", group: "primary" },
+        { code: "de" as LanguageCode, name: getLanguageDisplayName("de"), flag: "🇩🇪", group: "primary" },
+        
+        // Extended languages
+        { code: "zh" as LanguageCode, name: getLanguageDisplayName("zh"), flag: "🇨🇳", group: "extended" },
+        { code: "ar" as LanguageCode, name: getLanguageDisplayName("ar"), flag: "🇸🇦", group: "extended" },
+        { code: "hi" as LanguageCode, name: getLanguageDisplayName("hi"), flag: "🇮🇳", group: "extended" },
+        { code: "pt" as LanguageCode, name: getLanguageDisplayName("pt"), flag: "🇧🇷", group: "extended" },
+        
+        // Sacred languages
+        { code: "he" as LanguageCode, name: getLanguageDisplayName("he"), flag: "🇮🇱", group: "sacred" },
+        { code: "sw" as LanguageCode, name: getLanguageDisplayName("sw"), flag: "🇰🇪", group: "sacred" },
+        { code: "am" as LanguageCode, name: getLanguageDisplayName("am"), flag: "🇪🇹", group: "sacred" },
+      ];
+    } catch (error) {
+      console.error("Error generating language list:", error);
+      // Return minimal fallback
+      return [
+        { code: "en" as LanguageCode, name: "English", flag: "🇬🇧", group: "primary" }
+      ];
+    }
+  };
+  
+  const allLanguages = generateLanguageList();
 
   const handleLanguageChange = (lang: LanguageCode) => {
-    console.log("Changing language to:", lang);
     try {
+      console.log("Changing language to:", lang);
       setLanguage(lang);
+      setIsOpen(false);
     } catch (error) {
       console.error("Failed to change language:", error);
     }
@@ -52,7 +69,7 @@ export function LanguageSelector() {
   const sacredLanguages = allLanguages.filter(lang => lang.group === 'sacred');
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="h-8 gap-1.5">
           <Globe className="h-4 w-4" />
@@ -62,7 +79,7 @@ export function LanguageSelector() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-justice-dark border-justice-light/20">
+      <DropdownMenuContent align="end" className="bg-justice-dark border-justice-light/20 z-50">
         <LanguageGroup
           title={t("language.select")}
           languages={primaryLanguages}
