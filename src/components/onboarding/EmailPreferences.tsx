@@ -5,6 +5,7 @@ import { useEmailPreferences } from '@/hooks/useEmailPreferences';
 import EmailPreferencesList from './EmailPreferencesList';
 import EmailPreferencesActions from './EmailPreferencesActions';
 import PreferenceLanguageSelect from './PreferenceLanguageSelect';
+import { Loader2 } from 'lucide-react';
 
 const EmailPreferences = () => {
   const { t, language } = useLanguage();
@@ -17,11 +18,12 @@ const EmailPreferences = () => {
     handleOptOut
   } = useEmailPreferences();
   
-  // Enhanced loading state with fallback for language
+  // Enhanced loading state with animation and fallback for language
   if (loading) {
     return (
-      <div className="py-4 text-justice-light">
-        {language ? (t('common.loading') || 'Loading...') : 'Loading...'}
+      <div className="flex flex-col items-center py-8 text-justice-light">
+        <Loader2 className="h-8 w-8 animate-spin text-justice-accent mb-4" />
+        <p>{language ? (t('common.loading') || 'Loading...') : 'Loading preferences...'}</p>
       </div>
     );
   }

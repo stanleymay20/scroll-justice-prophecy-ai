@@ -17,11 +17,14 @@ export const useLanguage = () => {
       language: "en" as LanguageCode,
       setLanguage: (lang: LanguageCode) => {
         console.warn("Language provider not found, but tried to set language to:", lang);
+        // Try to persist in localStorage as fallback
+        try {
+          localStorage.setItem('preferred_language', lang);
+        } catch (e) {
+          // Silent fail
+        }
       },
       t: (key: string) => {
-        console.warn(`Translation attempted outside provider: ${key}`);
-        
-        // Try to get from fallback translations
         if (!key) return '';
         
         try {
