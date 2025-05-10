@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/language';
 import { useEmailPreferences } from '@/hooks/useEmailPreferences';
 import EmailPreferencesList from './EmailPreferencesList';
 import EmailPreferencesActions from './EmailPreferencesActions';
+import PreferenceLanguageSelect from './PreferenceLanguageSelect';
 
 const EmailPreferences = () => {
   const { t } = useLanguage();
@@ -30,6 +31,8 @@ const EmailPreferences = () => {
         {t('preferences.email.description') || 
           'Manage which types of emails you receive during your onboarding journey.'}
       </p>
+      
+      <PreferenceLanguageSelect />
       
       <EmailPreferencesList
         preferences={preferences}

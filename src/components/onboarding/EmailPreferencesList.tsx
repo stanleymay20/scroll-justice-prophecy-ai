@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { useLanguage } from '@/contexts/language';
-import PreferenceToggle from './PreferenceToggle';
 import { EmailPreferencesType } from '@/types/onboarding';
+import PreferenceToggle from './PreferenceToggle';
 
 interface EmailPreferencesListProps {
   preferences: EmailPreferencesType;
@@ -16,43 +16,45 @@ const EmailPreferencesList = ({
   onTogglePreference
 }: EmailPreferencesListProps) => {
   const { t } = useLanguage();
-
+  
+  const preferenceItems = [
+    {
+      key: 'receiveWelcome' as keyof EmailPreferencesType,
+      label: t('preferences.email.welcomeEmail') || 'Welcome Email'
+    },
+    {
+      key: 'receivePetition' as keyof EmailPreferencesType,
+      label: t('preferences.email.petitionEmail') || 'Petition Filing Guide'
+    },
+    {
+      key: 'receiveSubscription' as keyof EmailPreferencesType,
+      label: t('preferences.email.subscriptionEmail') || 'Subscription Information'
+    },
+    {
+      key: 'receivePrivacy' as keyof EmailPreferencesType,
+      label: t('preferences.email.privacyEmail') || 'Privacy Policy Updates'
+    },
+    {
+      key: 'receiveCommunity' as keyof EmailPreferencesType,
+      label: t('preferences.email.communityEmail') || 'Community Announcements'
+    }
+  ];
+  
   return (
     <div className="space-y-4">
-      <PreferenceToggle
-        label={t('preferences.email.welcome') || 'Welcome emails'}
-        checked={preferences.receiveWelcome}
-        onChange={() => onTogglePreference('receiveWelcome')}
-        disabled={saving}
-      />
+      <h2 className="text-lg font-medium text-justice-light">
+        {t('preferences.email.preferences') || 'Email Preferences'}
+      </h2>
       
-      <PreferenceToggle
-        label={t('preferences.email.petition') || 'Petition guidance'}
-        checked={preferences.receivePetition}
-        onChange={() => onTogglePreference('receivePetition')}
-        disabled={saving}
-      />
-      
-      <PreferenceToggle
-        label={t('preferences.email.subscription') || 'Subscription information'}
-        checked={preferences.receiveSubscription}
-        onChange={() => onTogglePreference('receiveSubscription')}
-        disabled={saving}
-      />
-      
-      <PreferenceToggle
-        label={t('preferences.email.privacy') || 'Privacy updates'}
-        checked={preferences.receivePrivacy}
-        onChange={() => onTogglePreference('receivePrivacy')}
-        disabled={saving}
-      />
-      
-      <PreferenceToggle
-        label={t('preferences.email.community') || 'Community events'}
-        checked={preferences.receiveCommunity}
-        onChange={() => onTogglePreference('receiveCommunity')}
-        disabled={saving}
-      />
+      {preferenceItems.map((item) => (
+        <PreferenceToggle
+          key={item.key}
+          label={item.label}
+          checked={preferences[item.key]}
+          onChange={() => onTogglePreference(item.key)}
+          disabled={saving}
+        />
+      ))}
     </div>
   );
 };
