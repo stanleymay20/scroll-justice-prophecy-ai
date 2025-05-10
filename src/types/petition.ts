@@ -18,9 +18,6 @@ export type ScrollPetition = {
   verdict_transcription?: string;
   flame_signature_hash?: string;
   scroll_seal_timestamp?: string;
-  timeAgo?: string;
-  petitionerName?: string;
-  judgeName?: string;
 };
 
 export type ScrollEvidence = {

@@ -1,59 +1,90 @@
 
-import { useState } from 'react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useLanguage } from '@/contexts/language';
+import { useState, useEffect } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Info } from "lucide-react";
+import { useLanguage } from "@/contexts/language";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-interface AIConsentToggleProps {
-  userRole?: string;
-  onConsentChange: (consent: boolean) => void;
-  defaultConsent?: boolean;
+export interface AIConsentToggleProps {
+  userRole: "judge" | "petitioner" | string;
+  defaultChecked?: boolean;
+  onConsentChange: (consented: boolean) => void;
+  disabled?: boolean;
 }
 
-export const AIConsentToggle = ({ 
-  userRole = "user", 
-  onConsentChange, 
-  defaultConsent = true 
+export const AIConsentToggle = ({
+  userRole,
+  defaultChecked = true,
+  onConsentChange,
+  disabled = false
 }: AIConsentToggleProps) => {
-  const [hasConsented, setHasConsented] = useState(defaultConsent);
   const { t } = useLanguage();
+  const [checked, setChecked] = useState(defaultChecked);
   
-  const handleConsentChange = (checked: boolean) => {
-    setHasConsented(checked);
+  useEffect(() => {
+    // Load saved preference if available
+    const savedPreference = localStorage.getItem(`ai-consent-${userRole}`);
+    if (savedPreference !== null) {
+      setChecked(savedPreference === "true");
+    }
+  }, [userRole]);
+  
+  const handleChange = (checked: boolean) => {
+    setChecked(checked);
+    localStorage.setItem(`ai-consent-${userRole}`, checked.toString());
     onConsentChange(checked);
   };
   
+  const getConsentText = () => {
+    switch (userRole) {
+      case "judge":
+        return t("ai.consent.judge");
+      case "petitioner":
+        return t("ai.consent.petitioner");
+      default:
+        return t("ai.consent.general");
+    }
+  };
+  
+  const getTooltipText = () => {
+    switch (userRole) {
+      case "judge":
+        return t("ai.consent.judgeTooltip");
+      case "petitioner":
+        return t("ai.consent.petitionerTooltip");
+      default:
+        return t("ai.consent.generalTooltip");
+    }
+  };
+  
   return (
-    <div className="flex items-center justify-between space-x-2 p-3 border border-justice-tertiary/20 rounded-md bg-black/20">
+    <div className="flex items-center gap-2">
       <div className="flex items-center space-x-2">
-        <Label htmlFor="ai-consent" className="text-sm flex items-center">
-          {t('ai.consentLabel')}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <InfoCircledIcon className="h-3.5 w-3.5 ml-1 text-justice-light/50" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>
-                  {t('ai.consentTooltip')}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <Checkbox 
+          id={`ai-consent-${userRole}`} 
+          checked={checked} 
+          onCheckedChange={handleChange} 
+          disabled={disabled}
+        />
+        <Label 
+          htmlFor={`ai-consent-${userRole}`}
+          className="text-sm text-justice-light cursor-pointer"
+        >
+          {getConsentText()}
         </Label>
       </div>
-      <Switch 
-        id="ai-consent" 
-        checked={hasConsented} 
-        onCheckedChange={handleConsentChange}
-      />
+      
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info className="h-4 w-4 text-justice-light/70 cursor-help" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="max-w-xs text-sm">{getTooltipText()}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };

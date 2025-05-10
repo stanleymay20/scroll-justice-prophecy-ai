@@ -10,8 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, ScrollText, Shield, Users, Mail } from "lucide-react";
-import { useAuth } from "@/contexts/auth";
+import { User, LogOut, ScrollText, Shield, Users } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/language";
 
 interface UserMenuProps {
@@ -57,10 +57,6 @@ export const UserMenu = ({ isAdmin }: UserMenuProps) => {
           <DropdownMenuItem onClick={() => navigate("/community")}>
             <Users className="mr-2 h-4 w-4" />
             <span>{t("nav.community")}</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate("/email-preferences")}>
-            <Mail className="mr-2 h-4 w-4" />
-            <span>{t("preferences.email") || "Email Preferences"}</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate("/subscription/manage")}>
             <ScrollText className="mr-2 h-4 w-4" />

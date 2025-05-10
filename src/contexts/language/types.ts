@@ -1,29 +1,25 @@
 
-/**
- * Available language codes for the application
- */
 export type LanguageCode = 
   | "en" 
-  | "es" 
   | "fr" 
+  | "es" 
   | "de" 
   | "zh" 
   | "ar" 
-  | "pt" 
   | "hi" 
+  | "pt" 
+  | "he" 
   | "sw" 
-  | "am" 
-  | "he";
+  | "am";
 
-/**
- * Language context types
- */
 export interface LanguageContextType {
   language: LanguageCode;
   setLanguage: (language: LanguageCode) => void;
   t: (key: string, ...args: any[]) => string;
-  availableLanguages: LanguageCode[];
-  rtl: boolean;
   isLoading: boolean;
   reloadTranslations?: () => Promise<void>;
 }
+
+export type TranslationsType = {
+  [key in LanguageCode]?: Record<string, string>;
+};

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, User, LogOut, Settings, CreditCard } from "lucide-react";
-import { useAuth } from "@/contexts/auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import {
   DropdownMenu,

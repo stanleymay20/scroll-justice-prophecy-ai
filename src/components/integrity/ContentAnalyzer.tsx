@@ -1,197 +1,141 @@
-import { useState, useEffect } from "react";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, CheckCircle2, AlertCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, AlertTriangle, Shield, Check } from "lucide-react";
+import { analyzeContent } from "@/services/integrityService";
+import { AIConsentToggle } from "@/components/compliance/AIConsentToggle";
+import { logAIInteraction } from "@/services/aiAuditService";
+import { useLanguage } from "@/contexts/language";
 
 interface ContentAnalyzerProps {
-  initialContent: string;
-  autoAnalyze?: boolean;
-  threshold?: number;
-  onAnalysisComplete?: (result: { score: number, issues: string[] }) => void;
+  initialContent?: string;
+  onAnalysisComplete?: (result: any) => void;
 }
 
-export const ContentAnalyzer = ({
-  initialContent,
-  autoAnalyze = true,
-  threshold = 50,
-  onAnalysisComplete
-}: ContentAnalyzerProps) => {
+export const ContentAnalyzer = ({ initialContent = "", onAnalysisComplete }: ContentAnalyzerProps) => {
+  const { t } = useLanguage();
   const [content, setContent] = useState(initialContent);
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<{ score: number; issues: string[] } | null>(null);
+  const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [aiConsent, setAiConsent] = useState(true);
 
-  useEffect(() => {
-    setContent(initialContent);
-    
-    // Auto analyze if enabled and content changes
-    if (autoAnalyze && initialContent) {
-      analyzeContent();
+  const handleAnalyze = async () => {
+    if (!content.trim()) {
+      setError(t("analyzer.noContent"));
+      return;
     }
-  }, [initialContent, autoAnalyze]);
 
-  const analyzeContent = async () => {
-    if (!content || content.trim().length < 10) {
-      setError("Content is too short to analyze");
+    if (!aiConsent) {
+      setError(t("analyzer.requireConsent"));
       return;
     }
 
     setAnalyzing(true);
     setError(null);
-    
+    setResult(null);
+
     try {
-      // Simulate analysis (Replace with actual API call)
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const analysisResult = await analyzeContent(content);
+      setResult(analysisResult);
       
-      // Get proper score for content based on some metrics
-      // In a real implementation, this would call an AI service
-      const contentLower = content.toLowerCase();
-      const wordCount = content.split(/\s+/).length;
-      
-      // Sample issues detection
-      const issues: string[] = [];
-      const flaggedTerms: { term: string; severity: number }[] = [];
-      
-      // Sample flagged terms (in reality, this would be a much more comprehensive list)
-      if (contentLower.includes('urgent') || contentLower.includes('immediately')) {
-        issues.push("Urgent language may indicate rushed judgment");
-        flaggedTerms.push({ term: 'urgent/immediately', severity: 3 });
-      }
-      
-      if (contentLower.includes('never') || contentLower.includes('always')) {
-        issues.push("Absolute terms may indicate oversimplification");
-        flaggedTerms.push({ term: 'never/always', severity: 2 });
-      }
-      
-      if (wordCount < 50) {
-        issues.push("Content may be too brief for thorough consideration");
-      }
-      
-      // Calculate a score based on issues
-      let score = 100;
-      
-      // Reduce score based on flagged terms
-      flaggedTerms.forEach(term => {
-        score -= term.severity * 5;
-      });
-      
-      // Reduce score if content is too short
-      if (wordCount < 50) {
-        score -= (50 - wordCount);
-      }
-      
-      // Ensure score stays within bounds
-      score = Math.max(0, Math.min(100, score));
-      
-      const result = { score, issues };
-      setAnalysisResult(result);
-      
-      // Call the callback with the result
       if (onAnalysisComplete) {
-        onAnalysisComplete(result);
+        onAnalysisComplete(analysisResult);
       }
+
+      // Log the AI interaction
+      await logAIInteraction({
+        action_type: "CONTENT_ANALYSIS",
+        ai_model: "scroll-integrity-analyzer-1.0",
+        input_summary: content.substring(0, 100) + (content.length > 100 ? "..." : ""),
+        output_summary: `Integrity Score: ${analysisResult.integrity_score}%`
+      });
     } catch (err) {
-      console.error('Error analyzing content:', err);
-      setError("Failed to analyze content");
+      console.error("Error analyzing content:", err);
+      setError(t("analyzer.error") + (err instanceof Error ? err.message : String(err)));
     } finally {
       setAnalyzing(false);
     }
   };
 
-  if (analyzing) {
-    return (
-      <div className="space-y-4 border border-justice-tertiary/30 rounded-md p-4 bg-black/20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Skeleton className="h-4 w-4" />
-            <Skeleton className="h-4 w-40" />
-          </div>
-          <Skeleton className="h-6 w-16" />
-        </div>
-        <Skeleton className="h-2 w-full" />
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-5/6" />
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Analysis Error</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (!analysisResult) {
-    return null;
-  }
-
-  // Get severity based on score
-  const getSeverity = () => {
-    if (analysisResult.score >= 80) return { color: "success", icon: <CheckCircle2 className="h-4 w-4" /> };
-    if (analysisResult.score >= threshold) return { color: "warning", icon: <AlertCircle className="h-4 w-4" /> };
-    return { color: "destructive", icon: <AlertTriangle className="h-4 w-4" /> };
+  const getIntegrityColor = (score: number) => {
+    if (score >= 80) return "text-green-500";
+    if (score >= 50) return "text-yellow-500";
+    return "text-red-500";
   };
-  
-  const severity = getSeverity();
-  // Fix: Use destructive as fallback for success/warning variants
-  const variantColor = (severity.color === "success" || severity.color === "warning") 
-    ? "default" 
-    : (severity.color as "destructive" | "default");
 
   return (
-    <div className={`border rounded-md p-4 ${
-      analysisResult.score >= 80 
-        ? "border-green-500/30 bg-green-500/10"
-        : analysisResult.score >= threshold
-          ? "border-yellow-500/30 bg-yellow-500/10"
-          : "border-red-500/30 bg-red-500/10"
-    }`}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center space-x-2">
-          {severity.icon}
-          <span className="font-medium">Content Integrity Score</span>
-        </div>
-        <Badge variant={variantColor}>{analysisResult.score}%</Badge>
-      </div>
-      
-      <Progress 
-        value={analysisResult.score} 
-        className={`h-2 mb-4 ${
-          analysisResult.score >= 80 
-            ? "bg-green-950 [&>div]:bg-green-500" 
-            : analysisResult.score >= threshold
-              ? "bg-yellow-950 [&>div]:bg-yellow-500"
-              : "bg-red-950 [&>div]:bg-red-500"
-        }`}
-      />
-      
-      {analysisResult.issues.length > 0 && (
-        <div className="space-y-1 text-sm">
-          <p className="font-medium mb-1">Potential Integrity Issues:</p>
-          <ul className="list-disc pl-5 space-y-1">
-            {analysisResult.issues.map((issue, index) => (
-              <li key={index}>{issue}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      
-      {analysisResult.score < threshold && (
-        <Alert variant="destructive" className="mt-3">
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium text-white">{t("analyzer.sacredIntegrity")}</h3>
+
+      {error && (
+        <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Integrity Warning</AlertTitle>
-          <AlertDescription>
-            This content may not meet the integrity requirements of the ScrollCourt system.
-          </AlertDescription>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
+      )}
+
+      <div>
+        <Textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder={t("analyzer.placeholder")}
+          className="h-32"
+        />
+      </div>
+
+      <AIConsentToggle 
+        userRole="petitioner"
+        onConsentChange={setAiConsent}
+      />
+
+      <Button
+        onClick={handleAnalyze}
+        disabled={analyzing || !content.trim() || !aiConsent}
+      >
+        {analyzing ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("analyzer.analyzing")}
+          </>
+        ) : (
+          <>
+            <Shield className="mr-2 h-4 w-4" /> {t("analyzer.analyze")}
+          </>
+        )}
+      </Button>
+
+      {result && (
+        <div className="rounded-md bg-black/30 p-4 border border-justice-tertiary/30">
+          <h4 className="font-medium text-white mb-2">{t("analyzer.results")}</h4>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-justice-light/70">{t("analyzer.score")}:</span>
+              <span className={getIntegrityColor(result.integrity_score)}>
+                {result.integrity_score}%
+              </span>
+            </div>
+            
+            {result.flagged_terms && result.flagged_terms.length > 0 ? (
+              <div>
+                <p className="text-sm text-justice-light/70 mb-1">{t("analyzer.issues")}:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  {result.flagged_terms.map((issue: string, index: number) => (
+                    <li key={index} className="text-sm text-justice-light">
+                      {issue}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="flex items-center text-green-500">
+                <Check className="h-4 w-4 mr-2" />
+                <span>{t("analyzer.noIssues")}</span>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

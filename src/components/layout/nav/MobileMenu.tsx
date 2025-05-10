@@ -1,152 +1,103 @@
 
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Menu, X, User, LogOut, ScrollText, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/language";
-import { useAuth } from "@/contexts/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { Globe } from "lucide-react";
-import { LanguageCode } from "@/contexts/language/types";
+import { NavLinks } from "./NavLinks";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
-export function MobileMenu() {
-  const { t, language, setLanguage } = useLanguage();
-  const location = useLocation();
-  const { user, isAdmin } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+// Admin user IDs with access to developer dashboard
+const ADMIN_USER_IDS = ['f7d71f55-ae04-491e-87d0-df4a10e1f669'];
+
+export const MobileMenu = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { t } = useLanguage();
+  const isAdmin = user && ADMIN_USER_IDS.includes(user.id);
+
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
+    setIsOpen(false);
   };
-  
-  const navItems = [
-    {
-      title: t("nav.home"),
-      href: "/",
-    },
-    {
-      title: t("nav.dashboard"),
-      href: "/dashboard",
-      requireAuth: true,
-    },
-    {
-      title: t("nav.precedent"),
-      href: "/precedent",
-    },
-    {
-      title: t("nav.community"),
-      href: "/community",
-    },
-    {
-      title: "Jurisdictions",
-      href: "/jurisdictions",
-    },
-    {
-      title: "Planet",
-      href: "/planet",
-    },
-    {
-      title: "Admin",
-      href: "/admin",
-      requireAuth: true,
-      isAdmin: true
-    },
-  ];
-  
-  // Filter nav items based on authentication state
-  const filteredNavItems = navItems.filter(item => {
-    if (item.requireAuth && !user) return false;
-    if (item.isAdmin && !isAdmin) return false;
-    return true;
-  });
-  
-  // Language options with flags
-  const languages = [
-    { code: "en" as LanguageCode, name: "English", flag: "🇺🇸" },
-    { code: "fr" as LanguageCode, name: "Français", flag: "🇫🇷" },
-    { code: "es" as LanguageCode, name: "Español", flag: "🇪🇸" },
-    { code: "de" as LanguageCode, name: "Deutsch", flag: "🇩🇪" },
-  ];
+
+  const handleNavigation = () => setIsOpen(false);
 
   return (
-    <div className="block md:hidden">
-      <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon">
-            {isMenuOpen ? "✕" : "≡"}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-52">
-          {filteredNavItems.map(({ title, href }) => (
-            <DropdownMenuItem
-              key={href}
-              onClick={() => setIsMenuOpen(false)}
-              asChild
-            >
-              <Link to={href}>{title}</Link>
-            </DropdownMenuItem>
-          ))}
-          
-          <DropdownMenuSeparator />
-          
-          {/* Language selection */}
-          <DropdownMenuItem>
-            <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              <span>{t("nav.language")}</span>
+    <div className="flex md:hidden items-center space-x-2">
+      <LanguageSelector />
+      <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)}>
+        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </Button>
+
+      {isOpen && (
+        <div className="md:hidden fixed top-16 left-0 right-0 bg-justice-dark/90 backdrop-blur-md p-4 pt-2 animate-in slide-in-from-top-5 z-40">
+          <div className="space-y-2">
+            <NavLinks 
+              className="block px-3 py-2" 
+              onClick={handleNavigation}
+            />
+            
+            <div className="pt-2 border-t border-justice-light/10 mt-2">
+              {user ? (
+                <>
+                  <div className="px-3 py-2 text-sm text-justice-light/70">
+                    {user.email}
+                  </div>
+                  <Link
+                    to="/profile"
+                    className="flex items-center px-3 py-2 rounded-md text-base font-medium text-justice-light hover:text-white hover:bg-justice-primary/20 transition"
+                    onClick={handleNavigation}
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    {t("nav.profile")}
+                  </Link>
+                  <Link
+                    to="/subscription/manage"
+                    className="flex items-center px-3 py-2 rounded-md text-base font-medium text-justice-light hover:text-white hover:bg-justice-primary/20 transition"
+                    onClick={handleNavigation}
+                  >
+                    <ScrollText className="h-4 w-4 mr-2" />
+                    <span>{t("subscription.manage")}</span>
+                  </Link>
+                  
+                  {isAdmin && (
+                    <Link
+                      to="/admin/dashboard"
+                      className="flex items-center px-3 py-2 rounded-md text-base font-medium text-justice-light hover:text-white hover:bg-justice-primary/20 transition"
+                      onClick={handleNavigation}
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      {t("dashboard.masterControlPanel")}
+                    </Link>
+                  )}
+                  
+                  <Button
+                    variant="ghost"
+                    className="flex items-center w-full justify-start px-3 py-2 rounded-md text-base font-medium text-justice-light hover:text-white hover:bg-justice-primary/20 transition"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {t("nav.signout")}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="default"
+                  className="w-full"
+                  onClick={() => {
+                    setIsOpen(false);
+                    window.location.href = "/signin";
+                  }}
+                >
+                  {t("nav.signin")}
+                </Button>
+              )}
             </div>
-          </DropdownMenuItem>
-          
-          {languages.map((lang) => (
-            <DropdownMenuItem
-              key={lang.code}
-              className="pl-8"
-              onClick={() => {
-                setLanguage(lang.code);
-                setIsMenuOpen(false);
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <span>{lang.flag}</span>
-                <span>{lang.name}</span>
-                {language === lang.code && (
-                  <span className="ml-auto text-xs">✓</span>
-                )}
-              </div>
-            </DropdownMenuItem>
-          ))}
-          
-          <DropdownMenuSeparator />
-          
-          {user ? (
-            <>
-              <DropdownMenuItem asChild>
-                <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
-                  {t("nav.profile")}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                handleSignOut();
-                setIsMenuOpen(false);
-              }}>
-                {t("nav.signout")}
-              </DropdownMenuItem>
-            </>
-          ) : (
-            <DropdownMenuItem asChild>
-              <Link to="/signin" onClick={() => setIsMenuOpen(false)}>
-                {t("nav.signin")}
-              </Link>
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};

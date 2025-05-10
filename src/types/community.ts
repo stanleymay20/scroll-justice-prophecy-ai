@@ -1,8 +1,6 @@
 
 export type PostCategory = "testimony" | "prayer_request" | "legal_question" | "righteous_insight" | "announcement";
 
-export type PostType = "testimony" | "prayer_request" | "legal_question" | "righteous_insight" | "announcement" | "all";
-
 export interface Post {
   id: string;
   user_id: string;
@@ -24,18 +22,4 @@ export interface Comment {
   content: string;
   created_at: string;
   likes: number;
-}
-
-export interface CommunityPost {
-  id: string;
-  user_id: string;
-  username: string;
-  avatar_url?: string;
-  title: string;
-  content: string;
-  category: PostType;
-  created_at: string;
-  updated_at: string;
-  likes: number;
-  comments_count: number;
 }

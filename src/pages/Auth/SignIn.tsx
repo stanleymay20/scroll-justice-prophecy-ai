@@ -4,8 +4,8 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
-import { useAuth } from "@/contexts/auth";
-import { useLanguage } from "@/contexts/language";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { NavBar } from "@/components/layout/NavBar";
 import { Loader2 } from "lucide-react";
 

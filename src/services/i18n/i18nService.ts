@@ -1,55 +1,36 @@
 
 import { LanguageCode } from '@/contexts/language/types';
-import fallbackTranslations from '@/contexts/language/translations';
 
 // Function to load translations from public/locales/{lang}/common.json
 export const loadTranslations = async (lang: LanguageCode): Promise<Record<string, any>> => {
   try {
-    console.info(`Attempting to load translations for ${lang} from /locales/${lang}/common.json`);
-    
     // First, try to load the requested language
     const response = await fetch(`/locales/${lang}/common.json`);
     if (!response.ok) {
-      console.warn(`Failed to load translations for ${lang} from file system, status: ${response.status}`);
-      
+      console.error(`Failed to load translations for ${lang}`);
       // Fall back to English if requested language loading fails
-      if (lang !== 'en') {
-        console.info('Falling back to English translations file');
-        const fallbackResponse = await fetch(`/locales/en/common.json`);
-        if (fallbackResponse.ok) {
-          const englishData = await fallbackResponse.json();
-          console.info(`Successfully loaded English fallback with ${Object.keys(englishData).length} keys`);
-          return englishData;
-        }
+      const fallbackResponse = await fetch(`/locales/en/common.json`);
+      if (fallbackResponse.ok) {
+        console.log(`Falling back to English translations for ${lang}`);
+        return await fallbackResponse.json();
       }
-      
-      // If even English file fails, return in-memory fallbacks
-      console.info('Using in-memory fallbacks');
-      return fallbackTranslations[lang as keyof typeof fallbackTranslations] || fallbackTranslations.en || {};
+      // If even English fails, return empty object
+      return {};
     }
-    
-    const data = await response.json();
-    console.info(`Successfully loaded ${lang} translations with ${Object.keys(data).length} keys`);
-    return data;
+    return await response.json();
   } catch (error) {
     console.error(`Error loading translations for ${lang}:`, error);
-    
-    // Try loading English from file system as fallback
+    // Try loading English as fallback
     try {
-      if (lang !== 'en') {
-        const fallbackResponse = await fetch(`/locales/en/common.json`);
-        if (fallbackResponse.ok) {
-          const englishData = await fallbackResponse.json();
-          console.info(`Falling back to English translations after error, loaded ${Object.keys(englishData).length} keys`);
-          return englishData;
-        }
+      const fallbackResponse = await fetch(`/locales/en/common.json`);
+      if (fallbackResponse.ok) {
+        console.log(`Falling back to English translations after error for ${lang}`);
+        return await fallbackResponse.json();
       }
     } catch (fallbackError) {
-      console.error('Failed to load even fallback translations from file:', fallbackError);
+      console.error('Failed to load even fallback translations:', fallbackError);
     }
-    
-    // Last resort: return in-memory fallbacks
-    return fallbackTranslations[lang as keyof typeof fallbackTranslations] || fallbackTranslations.en || {};
+    return {};
   }
 };
 
@@ -79,15 +60,10 @@ export const getNestedValue = (obj: Record<string, any>, path: string): string =
 export const formatTranslation = (text: string, args: any[]): string => {
   if (!args || args.length === 0) return text;
   
-  try {
-    return args.reduce((str, arg, index) => {
-      const placeholder = new RegExp(`\\{${index}\\}`, 'g');
-      return str.replace(placeholder, String(arg));
-    }, text);
-  } catch (error) {
-    console.error('Error formatting translation:', error);
-    return text;
-  }
+  return args.reduce((str, arg, index) => {
+    const placeholder = new RegExp(`\\{${index}\\}`, 'g');
+    return str.replace(placeholder, String(arg));
+  }, text);
 };
 
 // Sync language with localStorage and URL
@@ -104,22 +80,12 @@ export const syncLanguageWithRouter = (lang: LanguageCode): void => {
 
 // Format dates based on the current locale
 export const formatDate = (date: Date, lang: LanguageCode, options?: Intl.DateTimeFormatOptions): string => {
-  try {
-    return new Intl.DateTimeFormat(lang, options).format(date);
-  } catch (error) {
-    console.error(`Error formatting date for language ${lang}:`, error);
-    return date.toLocaleDateString();
-  }
+  return new Intl.DateTimeFormat(lang, options).format(date);
 };
 
 // Format numbers based on the current locale
 export const formatNumber = (num: number, lang: LanguageCode, options?: Intl.NumberFormatOptions): string => {
-  try {
-    return new Intl.NumberFormat(lang, options).format(num);
-  } catch (error) {
-    console.error(`Error formatting number for language ${lang}:`, error);
-    return num.toString();
-  }
+  return new Intl.NumberFormat(lang, options).format(num);
 };
 
 // Convert nested object to flattened dot notation for translation export
@@ -175,31 +141,25 @@ export const mergeWithFallback = (
   target: Record<string, any>,
   fallback: Record<string, any>
 ): Record<string, any> => {
-  if (!target || Object.keys(target).length === 0) {
-    return fallback || {};
-  }
+  const merged = { ...target };
+  const flatTarget = flattenTranslations(target);
+  const flatFallback = flattenTranslations(fallback);
   
-  if (!fallback || Object.keys(fallback).length === 0) {
-    return target || {};
-  }
-  
-  try {
-    // First try to merge flattened versions
-    const flatTarget = flattenTranslations(target);
-    const flatFallback = flattenTranslations(fallback);
-    
-    // Add missing keys from fallback
-    Object.keys(flatFallback).forEach(key => {
-      if (!flatTarget[key]) {
-        flatTarget[key] = flatFallback[key];
+  // Add missing keys from fallback
+  Object.keys(flatFallback).forEach(key => {
+    if (!flatTarget[key]) {
+      const keys = key.split('.');
+      let current = merged;
+      
+      for (let i = 0; i < keys.length - 1; i++) {
+        const k = keys[i];
+        current[k] = current[k] || {};
+        current = current[k];
       }
-    });
-    
-    // Convert back to nested structure
-    return unflattenTranslations(flatTarget);
-  } catch (error) {
-    console.error('Error merging translations with fallback:', error);
-    // If the merge fails, return target with fallback as the backup
-    return { ...fallback, ...target };
-  }
+      
+      current[keys[keys.length - 1]] = flatFallback[key];
+    }
+  });
+  
+  return merged;
 };

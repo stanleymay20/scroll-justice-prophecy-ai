@@ -1,5 +1,5 @@
 
-import { useAuth } from "@/contexts/auth"; // Updated import path
+import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/language";
 
 export const DashboardHeader = () => {

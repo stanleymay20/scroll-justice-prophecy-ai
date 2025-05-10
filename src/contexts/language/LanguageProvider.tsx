@@ -1,125 +1,174 @@
 
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { useAuth } from '@/contexts/auth';
-import { LanguageCode, LanguageContextType } from './types';
-import translations from './translations';
-import minimalTranslations from './translations/minimal-translations';
+import React, { createContext, useState, useEffect } from "react";
+import { 
+  normalizeLanguageCode, 
+  isRtlLanguage, 
+  getSavedLanguagePreference, 
+  getBrowserLanguage, 
+  applyLanguageDirection, 
+  saveLanguagePreference,
+  getSupportedLanguages
+} from "@/utils/languageUtils";
+import { 
+  loadTranslations, 
+  getNestedValue, 
+  formatTranslation, 
+  syncLanguageWithRouter,
+  mergeWithFallback
+} from "@/services/i18n/i18nService";
+import type { LanguageCode, LanguageContextType } from "./types";
+import fallbackTranslations from "./translations";
 
-// Helper to get saved language preference
-const getSavedLanguagePreference = (): LanguageCode => {
-  try {
-    const savedLanguage = localStorage.getItem('language');
-    if (savedLanguage && Object.keys(translations).includes(savedLanguage)) {
-      return savedLanguage as LanguageCode;
+const defaultLanguage: LanguageCode = "en";
+
+export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ 
+  children 
+}) => {
+  const [language, setLanguage] = useState<LanguageCode>(() => {
+    // Try to get language from URL first
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = normalizeLanguageCode(urlParams.get('lang') || '') as LanguageCode | null;
+    
+    if (urlLang && getSupportedLanguages().includes(urlLang)) {
+      console.log(`Language set from URL: ${urlLang}`);
+      return urlLang;
     }
-  } catch (e) {
-    console.warn('Error accessing localStorage:', e);
-  }
-  return 'en';
-};
 
-// Helper to save language preference
-const saveLanguagePreference = (language: LanguageCode): void => {
-  try {
-    localStorage.setItem('language', language);
-  } catch (e) {
-    console.warn('Error saving to localStorage:', e);
-  }
-};
+    // Try to get language from localStorage next
+    const savedLanguage = getSavedLanguagePreference();
+    if (savedLanguage) {
+      console.log(`Language set from localStorage: ${savedLanguage}`);
+      return savedLanguage;
+    }
+    
+    // Try to detect browser language if no saved preference
+    const browserLang = getBrowserLanguage();
+    console.log(`Language set from browser: ${browserLang}`);
+    return browserLang;
+  });
 
-export const LanguageContext = createContext<LanguageContextType>({
-  language: 'en',
-  setLanguage: () => {},
-  t: () => '',
-  rtl: false,
-  isLoading: false,
-  availableLanguages: [],
-});
+  const [translations, setTranslations] = useState<Record<string, any>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-interface LanguageProviderProps {
-  children: ReactNode;
-}
-
-export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguageState] = useState<LanguageCode>(getSavedLanguagePreference());
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [currentTranslations, setCurrentTranslations] = useState<Record<string, string>>({});
-  const { user } = useAuth();
-  
-  // Load translations
+  // Load translations when language changes
   useEffect(() => {
-    const loadTranslations = async () => {
+    const fetchTranslations = async () => {
+      setIsLoading(true);
       try {
-        // Start with minimal translations to avoid blank UI
-        setCurrentTranslations(minimalTranslations[language] || minimalTranslations.en);
-
-        // Load full translations
-        if (translations[language]) {
-          setCurrentTranslations(translations[language]);
-        } else {
-          console.warn(`Translations for ${language} not found, using English as fallback`);
-          setCurrentTranslations(translations.en);
+        console.log(`Loading translations for ${language}...`);
+        
+        // First try to load translations from JSON file
+        const loadedTranslations = await loadTranslations(language);
+        
+        // Load English translations as fallback
+        let englishTranslations = {};
+        if (language !== 'en') {
+          englishTranslations = await loadTranslations('en');
         }
         
-        setIsLoaded(true);
+        // Merge translations with fallbacks for missing keys
+        const mergedTranslations = language === 'en' ? 
+          loadedTranslations : 
+          mergeWithFallback(loadedTranslations, englishTranslations);
+        
+        console.log(`Loaded translations for ${language}:`, 
+          Object.keys(mergedTranslations).length > 0 ? 
+          `${Object.keys(mergedTranslations).length} keys found` : 
+          'No keys found, using fallback'
+        );
+        
+        setTranslations(mergedTranslations);
       } catch (error) {
-        console.error('Error loading translations:', error);
-        setCurrentTranslations(minimalTranslations.en);
-        setIsLoaded(true);
+        console.error(`Failed to load translations for ${language}:`, error);
+        // Fall back to in-memory translations
+        setTranslations(fallbackTranslations[language] || fallbackTranslations.en);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    loadTranslations();
+    fetchTranslations();
   }, [language]);
 
-  // Save user preference
+  // Apply language effects when language changes
   useEffect(() => {
-    if (user && isLoaded) {
-      // Update user preference in database
-      // This would typically update a user_preferences table
-      console.log(`Language preference for user ${user.id} set to ${language}`);
-    }
-  }, [user, language, isLoaded]);
+    // Save language preference to localStorage
+    saveLanguagePreference(language);
+    
+    // Sync language with URL
+    syncLanguageWithRouter(language);
+    
+    // Update document language attributes for accessibility and RTL
+    applyLanguageDirection(language);
 
-  const setLanguage = (newLanguage: LanguageCode) => {
-    setLanguageState(newLanguage);
-    saveLanguagePreference(newLanguage);
-  };
-
-  // Translation function with fallbacks
-  const t = (key: string): string => {
-    if (!key) return '';
+    // Dispatch a custom event that components can listen for
+    window.dispatchEvent(new CustomEvent('languageChanged', { detail: language }));
     
-    // Check if key exists in current language
-    if (currentTranslations && currentTranslations[key]) {
-      return currentTranslations[key];
+    console.log(`Language set to: ${language}`);
+  }, [language]);
+  
+  // Enhanced translation function with better fallbacks
+  const t = (key: string, ...args: any[]): string => {
+    // Try to get the translation from loaded translations
+    if (translations && Object.keys(translations).length > 0) {
+      const translation = getNestedValue(translations, key);
+      
+      // If we found a valid translation (not the key itself)
+      if (translation !== key) {
+        return formatTranslation(translation, args);
+      }
     }
     
-    // Try English as fallback
-    if (language !== 'en' && translations.en && translations.en[key]) {
-      console.warn(`Translation key "${key}" missing in ${language}, using English fallback`);
-      return translations.en[key];
+    // Fallback to in-memory translations for current language
+    const fallbackTranslation = getNestedValue(fallbackTranslations[language] || {}, key);
+    if (fallbackTranslation !== key) {
+      return formatTranslation(fallbackTranslation, args);
     }
     
-    // Return key as last resort
-    console.warn(`Translation key "${key}" not found in any language`);
-    return key;
+    // Fallback to English if translation doesn't exist in current language
+    const englishTranslation = getNestedValue(fallbackTranslations.en || {}, key);
+    if (englishTranslation !== key) {
+      return formatTranslation(englishTranslation, args);
+    }
+    
+    // Last resort: return the key itself with formatting applied
+    console.warn(`Missing translation for key: ${key} in language: ${language}`);
+    return formatTranslation(key, args);
   };
   
-  // Get list of available languages
-  const availableLanguages = Object.keys(translations) as LanguageCode[];
+  // Method to reload translations manually
+  const reloadTranslations = async () => {
+    setIsLoading(true);
+    try {
+      const loadedTranslations = await loadTranslations(language);
+      setTranslations(loadedTranslations);
+    } catch (error) {
+      console.error(`Failed to reload translations for ${language}:`, error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Method to change language with validation
+  const changeLanguage = (newLanguage: LanguageCode) => {
+    if (getSupportedLanguages().includes(newLanguage)) {
+      setLanguage(newLanguage);
+    } else {
+      console.error(`Unsupported language: ${newLanguage}`);
+      setLanguage(defaultLanguage); // Fallback to default language
+    }
+  }
 
   return (
-    <LanguageContext.Provider 
-      value={{ 
-        language, 
-        setLanguage, 
-        t, 
-        rtl: false,
-        isLoading: isLoaded,
-        availableLanguages
-      }}
-    >
+    <LanguageContext.Provider value={{ 
+      language, 
+      setLanguage: changeLanguage, 
+      t, 
+      isLoading, 
+      reloadTranslations 
+    }}>
       {children}
     </LanguageContext.Provider>
   );
