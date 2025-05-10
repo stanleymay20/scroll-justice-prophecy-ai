@@ -7,7 +7,7 @@ import EmailPreferencesActions from './EmailPreferencesActions';
 import PreferenceLanguageSelect from './PreferenceLanguageSelect';
 
 const EmailPreferences = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const {
     preferences,
     loading,
@@ -17,10 +17,11 @@ const EmailPreferences = () => {
     handleOptOut
   } = useEmailPreferences();
   
+  // Enhanced loading state with fallback for language
   if (loading) {
     return (
       <div className="py-4 text-justice-light">
-        {t('common.loading') || 'Loading...'}
+        {language ? (t('common.loading') || 'Loading...') : 'Loading...'}
       </div>
     );
   }

@@ -27,27 +27,40 @@ const PreferenceLanguageSelect = ({
     }
   };
 
+  // Define language options with proper typing
+  const languageOptions = [
+    { code: 'en' as LanguageCode, name: 'English' },
+    { code: 'fr' as LanguageCode, name: 'Français' },
+    { code: 'es' as LanguageCode, name: 'Español' },
+    { code: 'de' as LanguageCode, name: 'Deutsch' },
+    { code: 'zh' as LanguageCode, name: '中文' },
+    { code: 'ar' as LanguageCode, name: 'العربية' },
+    { code: 'pt' as LanguageCode, name: 'Português' },
+    { code: 'hi' as LanguageCode, name: 'हिन्दी' },
+    { code: 'sw' as LanguageCode, name: 'Kiswahili' },
+    { code: 'he' as LanguageCode, name: 'עברית' },
+    { code: 'am' as LanguageCode, name: 'አማርኛ' }
+  ];
+
   return (
     <div className="mb-4">
       <label className="block text-justice-light mb-2">
         {t('preferences.language') || 'Language Preference'}
       </label>
-      <Select value={language} onValueChange={handleLanguageChange}>
+      <Select 
+        value={language} 
+        onValueChange={handleLanguageChange} 
+        defaultValue="en"
+      >
         <SelectTrigger className="w-full bg-black/30 text-justice-light border-justice-accent/30">
           <SelectValue placeholder={t('preferences.selectLanguage') || 'Select Language'} />
         </SelectTrigger>
         <SelectContent className="bg-black/90 border-justice-accent/30">
-          <SelectItem value="en">English</SelectItem>
-          <SelectItem value="fr">Français</SelectItem>
-          <SelectItem value="es">Español</SelectItem>
-          <SelectItem value="de">Deutsch</SelectItem>
-          <SelectItem value="zh">中文</SelectItem>
-          <SelectItem value="ar">العربية</SelectItem>
-          <SelectItem value="pt">Português</SelectItem>
-          <SelectItem value="hi">हिन्दी</SelectItem>
-          <SelectItem value="sw">Kiswahili</SelectItem>
-          <SelectItem value="he">עברית</SelectItem>
-          <SelectItem value="am">አማርኛ</SelectItem>
+          {languageOptions.map(option => (
+            <SelectItem key={option.code} value={option.code}>
+              {option.name}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

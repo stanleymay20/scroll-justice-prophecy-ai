@@ -7,39 +7,60 @@ import translations from "./translations";
 
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
+  
+  // Enhanced error handling with more robust fallback
   if (context === undefined) {
     console.error("useLanguage must be used within a LanguageProvider");
     
-    // Instead of throwing an error, provide a minimal fallback context
-    // This prevents app crashes when used outside a provider
+    // Provide a minimal fallback context to prevent crashes
     return {
       language: "en" as LanguageCode,
-      setLanguage: () => console.warn("Language provider not found"),
+      setLanguage: (lang: LanguageCode) => {
+        console.warn("Language provider not found, but tried to set language to:", lang);
+      },
       t: (key: string) => {
         console.warn(`Translation attempted outside provider: ${key}`);
         
         // Try to get from fallback translations
-        const parts = key.split('.');
-        let value = translations.en;
+        if (!key) return '';
         
-        for (const part of parts) {
-          if (value && typeof value === 'object' && part in value) {
-            value = value[part];
-          } else {
-            return key; // Key not found in fallbacks
+        try {
+          const parts = key.split('.');
+          let value: any = translations.en;
+          
+          for (const part of parts) {
+            if (value && typeof value === 'object' && part in value) {
+              value = value[part];
+            } else {
+              return key; // Key not found in fallbacks
+            }
           }
+          
+          return typeof value === 'string' ? value : key;
+        } catch (error) {
+          console.error("Error in fallback translation:", error);
+          return key;
         }
-        
-        return typeof value === 'string' ? value : key;
       },
       rtl: false,
       isLoading: false,
-      reloadTranslations: () => Promise.resolve(),
       availableLanguages: ["en"] as LanguageCode[],
       
       // Extended utilities with safe fallbacks
-      formatDate: (date: Date) => date.toLocaleDateString(),
-      formatNumber: (num: number) => num.toString(),
+      formatDate: (date: Date) => {
+        try {
+          return date.toLocaleDateString();
+        } catch (e) {
+          return String(date);
+        }
+      },
+      formatNumber: (num: number) => {
+        try {
+          return num.toString();
+        } catch (e) {
+          return String(num);
+        }
+      },
       isRtl: false,
       getLanguageName: (code: LanguageCode) => code
     };
