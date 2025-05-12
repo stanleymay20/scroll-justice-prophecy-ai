@@ -23,15 +23,19 @@ export function PreferenceLanguageSelect({
   disabled = false
 }: PreferenceLanguageSelectProps) {
   const { language, setLanguage, t } = useLanguage();
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>(language);
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>(language || "en");
   
   // Update internal state when language context changes
   useEffect(() => {
-    setSelectedLanguage(language);
+    if (language) {
+      setSelectedLanguage(language);
+    }
   }, [language]);
   
   const handleValueChange = (value: string) => {
     try {
+      if (!value) return;
+      
       const langCode = value as LanguageCode;
       setSelectedLanguage(langCode);
       
@@ -51,17 +55,27 @@ export function PreferenceLanguageSelect({
 
   const supportedLanguages = getSupportedLanguages();
   
+  // Safely translate with fallback
+  const getLanguageSelectLabel = () => {
+    try {
+      const translated = t("language.select");
+      return translated === "language.select" ? "Select Language" : translated;
+    } catch (error) {
+      return "Select Language";
+    }
+  };
+  
   return (
     <Select
-      value={selectedLanguage}
+      value={selectedLanguage || "en"}
       onValueChange={handleValueChange}
       disabled={disabled}
     >
       <SelectTrigger className={`w-full ${className}`}>
-        <SelectValue placeholder={t("language.select")} />
+        <SelectValue placeholder={getLanguageSelectLabel()} />
       </SelectTrigger>
       <SelectContent className="max-h-[300px] overflow-y-auto z-50">
-        {supportedLanguages.map((code) => (
+        {Array.isArray(supportedLanguages) && supportedLanguages.map((code) => (
           <SelectItem key={code} value={code}>
             {getLanguageDisplayName(code)}
           </SelectItem>

@@ -20,6 +20,7 @@ export interface LanguageContextType {
   reloadTranslations?: () => Promise<void>;
 }
 
+// Updated to properly handle nested translation objects
 export type TranslationsType = {
-  [key in LanguageCode]?: Record<string, string>;
+  [key in LanguageCode]?: Record<string, any>;
 };

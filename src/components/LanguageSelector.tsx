@@ -55,6 +55,8 @@ export function LanguageSelector() {
 
   const handleLanguageChange = (lang: LanguageCode) => {
     try {
+      if (!lang) return;
+      
       console.log("Changing language to:", lang);
       setLanguage(lang);
       setIsOpen(false);
@@ -68,20 +70,32 @@ export function LanguageSelector() {
   const extendedLanguages = allLanguages.filter(lang => lang.group === 'extended');
   const sacredLanguages = allLanguages.filter(lang => lang.group === 'sacred');
 
+  // Safely translate with fallbacks
+  const safeTranslate = (key: string, fallback: string): string => {
+    try {
+      const translated = t(key);
+      return translated === key ? fallback : translated;
+    } catch (error) {
+      return fallback;
+    }
+  };
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="h-8 gap-1.5">
           <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline-block">{t("nav.language")}</span>
-          {language !== "en" && (
+          <span className="hidden sm:inline-block">
+            {safeTranslate("nav.language", "Language")}
+          </span>
+          {language !== "en" && language && (
             <PulseEffect size="sm" color="bg-justice-tertiary" />
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-justice-dark border-justice-light/20 z-50">
         <LanguageGroup
-          title={t("language.select")}
+          title={safeTranslate("language.select", "Select Language")}
           languages={primaryLanguages}
           currentLanguage={language}
           onLanguageSelect={handleLanguageChange}
@@ -90,7 +104,7 @@ export function LanguageSelector() {
         <DropdownMenuSeparator className="bg-justice-light/10" />
         
         <LanguageGroup
-          title={t("language.extended")}
+          title={safeTranslate("language.extended", "Extended Languages")}
           languages={extendedLanguages}
           currentLanguage={language}
           onLanguageSelect={handleLanguageChange}
@@ -99,7 +113,7 @@ export function LanguageSelector() {
         <DropdownMenuSeparator className="bg-justice-light/10" />
         
         <LanguageGroup
-          title={t("language.sacred")}
+          title={safeTranslate("language.sacred", "Sacred Languages")}
           languages={sacredLanguages}
           currentLanguage={language}
           onLanguageSelect={handleLanguageChange}

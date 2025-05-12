@@ -7,19 +7,42 @@ import { getLanguageDisplayName, isRtlLanguage } from "@/utils/languageUtils";
 
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
+  
+  // Provide a fallback implementation if context is undefined
   if (context === undefined) {
     console.error("useLanguage was used outside of LanguageProvider");
-    // Provide a fallback minimal implementation to prevent crashes
+    
+    // Robust fallback implementation to prevent crashes
     return {
       language: "en" as LanguageCode,
-      setLanguage: () => console.error("Language provider not available"),
-      t: (key: string) => key,
+      setLanguage: (lang: LanguageCode) => {
+        console.error("Language provider not available, can't set language to:", lang);
+      },
+      t: (key: string) => {
+        // Return the key as fallback
+        if (!key) return '';
+        return key;
+      },
       isLoading: false,
-      reloadTranslations: async () => {},
-      formatDate: (date: Date) => date.toISOString(),
-      formatNumber: (num: number) => num.toString(),
+      reloadTranslations: async () => {
+        console.error("Language provider not available, can't reload translations");
+      },
+      formatDate: (date: Date) => {
+        try {
+          return date?.toISOString() || '';
+        } catch (e) {
+          return '';
+        }
+      },
+      formatNumber: (num: number) => {
+        try {
+          return num?.toString() || '0';
+        } catch (e) {
+          return '0';
+        }
+      },
       isRtl: false,
-      getLanguageName: (code: LanguageCode) => code
+      getLanguageName: (code: LanguageCode) => code || 'en'
     };
   }
 
@@ -28,6 +51,8 @@ export const useLanguage = () => {
     ...context,
     // Format a date according to the current language
     formatDate: (date: Date, options?: Intl.DateTimeFormatOptions) => {
+      if (!date) return '';
+      
       try {
         return formatDate(date, context.language, options);
       } catch (error) {
@@ -38,6 +63,8 @@ export const useLanguage = () => {
     
     // Format a number according to the current language
     formatNumber: (num: number, options?: Intl.NumberFormatOptions) => {
+      if (num === null || num === undefined) return '0';
+      
       try {
         return formatNumber(num, context.language, options);
       } catch (error) {
@@ -51,6 +78,8 @@ export const useLanguage = () => {
     
     // Return localized language name
     getLanguageName: (code: LanguageCode) => {
+      if (!code) return '';
+      
       try {
         return getLanguageDisplayName(code);
       } catch (error) {

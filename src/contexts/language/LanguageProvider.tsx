@@ -29,25 +29,31 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   const [language, setLanguage] = useState<LanguageCode>(() => {
     try {
       // Try to get language from URL first
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlLang = normalizeLanguageCode(urlParams.get('lang') || '') as LanguageCode | null;
-      
-      if (urlLang && getSupportedLanguages().includes(urlLang)) {
-        console.log(`Language set from URL: ${urlLang}`);
-        return urlLang;
-      }
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlLang = normalizeLanguageCode(urlParams.get('lang') || '') as LanguageCode | null;
+        
+        // Get supported languages and ensure it's a valid one
+        const supportedLangs = getSupportedLanguages();
+        if (urlLang && supportedLangs.includes(urlLang)) {
+          console.log(`Language set from URL: ${urlLang}`);
+          return urlLang;
+        }
 
-      // Try to get language from localStorage next
-      const savedLanguage = getSavedLanguagePreference();
-      if (savedLanguage) {
-        console.log(`Language set from localStorage: ${savedLanguage}`);
-        return savedLanguage;
+        // Try to get language from localStorage next
+        const savedLanguage = getSavedLanguagePreference();
+        if (savedLanguage) {
+          console.log(`Language set from localStorage: ${savedLanguage}`);
+          return savedLanguage;
+        }
+        
+        // Try to detect browser language if no saved preference
+        const browserLang = getBrowserLanguage();
+        console.log(`Language set from browser: ${browserLang}`);
+        return browserLang;
       }
       
-      // Try to detect browser language if no saved preference
-      const browserLang = getBrowserLanguage();
-      console.log(`Language set from browser: ${browserLang}`);
-      return browserLang;
+      return defaultLanguage;
     } catch (error) {
       console.error("Error determining initial language:", error);
       return defaultLanguage;
@@ -106,6 +112,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   // Apply language effects when language changes
   useEffect(() => {
     try {
+      if (typeof window === 'undefined') return;
+      
       // Save language preference to localStorage
       saveLanguagePreference(language);
       
@@ -126,6 +134,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   
   // Enhanced translation function with better fallbacks
   const t = (key: string, ...args: any[]): string => {
+    if (!key) return '';
+    
     try {
       // Try to get the translation from loaded translations
       if (translations && Object.keys(translations).length > 0) {
@@ -138,13 +148,13 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       
       // Fallback to in-memory translations for current language
-      const fallbackTranslation = getNestedValue(fallbackTranslations[language] || {}, key);
+      const fallbackTranslation = getNestedValue((fallbackTranslations[language] || {}), key);
       if (fallbackTranslation !== key) {
         return formatTranslation(fallbackTranslation, args);
       }
       
       // Fallback to English if translation doesn't exist in current language
-      const englishTranslation = getNestedValue(fallbackTranslations.en || {}, key);
+      const englishTranslation = getNestedValue((fallbackTranslations.en || {}), key);
       if (englishTranslation !== key) {
         return formatTranslation(englishTranslation, args);
       }
@@ -174,7 +184,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   // Method to change language with validation
   const changeLanguage = (newLanguage: LanguageCode) => {
     try {
-      if (getSupportedLanguages().includes(newLanguage)) {
+      // Ensure we have a valid supported languages array
+      const supportedLangs = getSupportedLanguages();
+      
+      if (Array.isArray(supportedLangs) && supportedLangs.includes(newLanguage)) {
         setLanguage(newLanguage);
       } else {
         console.error(`Unsupported language: ${newLanguage}`);
