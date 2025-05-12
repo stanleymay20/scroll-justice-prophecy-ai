@@ -1,114 +1,118 @@
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { LanguageProvider } from '@/contexts/language';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { SettingsProvider } from '@/contexts/SettingsContext';
+import { PrivateRoute } from '@/components/auth/PrivateRoute';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { LanguageProvider } from "@/contexts/language";
-import { MetaTags } from "@/components/MetaTags";
-import { AppRoutes } from "@/routes/AppRoutes";
-import { 
-  applyRlsPolicies, 
-  initializeAiAuditLog, 
-  setupWindowSizeLogger 
-} from "@/services/appInitService";
-import { ensureEvidenceBucketExists } from "@/services/evidenceService";
-import { supabase } from "@/lib/supabase";
+// Page imports
+import Home from '@/pages/Home';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import Dashboard from '@/pages/Dashboard';
+import Settings from '@/pages/Settings';
+import Courtroom from '@/pages/Courtroom';
+import Witness from '@/pages/Witness';
+import NotFound from '@/pages/NotFound';
+import Profile from '@/pages/Profile';
 
-// Create a client with safer defaults
+// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
       retry: 1,
-      // Add safety handlers
-      onError: (err) => {
-        console.error("Query error:", err);
-      }
+      refetchOnWindowFocus: false,
     },
   },
 });
 
-const App = () => {
-  const [isAppReady, setIsAppReady] = useState(false);
-  
-  // Initialize app services after render
+function App() {
+  const { toast } = useToast();
+  const [isInitialized, setIsInitialized] = useState(false);
+
   useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        console.log("info: App component mounted");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        toast({
+          title: "Welcome to the Sacred Scrolls",
+          description: "You have successfully signed in.",
+        });
+      } else if (event === 'SIGNED_OUT') {
+        toast({
+          title: "Signed Out",
+          description: "You have been signed out of the Sacred Scrolls.",
+        });
         
-        // Set up window size logger
-        const cleanupSizeLogger = setupWindowSizeLogger();
-        
-        // First, check if Supabase session is available
-        const { data } = await supabase.auth.getSession();
-        console.log("info: Supabase session initialized:", data.session ? "Found" : "Not found");
-        
-        // Only after auth is ready, try these operations
-        try {
-          // Ensure evidence bucket exists
-          const exists = await ensureEvidenceBucketExists();
-          console.log("info: Evidence bucket ready:", exists);
-        } catch (error) {
-          console.error("Error ensuring evidence bucket exists:", error);
-        }
-    
-        // Apply RLS policies to fix permission issues
-        try {
-          await applyRlsPolicies();
-        } catch (error) {
-          console.error("Error applying RLS policies:", error);
-        }
-        
-        // Initialize AI audit log table
-        try {
-          await initializeAiAuditLog();
-        } catch (error) {
-          console.error("Error initializing AI audit log:", error);
-        }
-        
-        // Mark app as ready once initialization is complete
-        setIsAppReady(true);
-        
-        return () => {
-          cleanupSizeLogger();
-        };
-      } catch (error) {
-        console.error("Error initializing app:", error);
-        // Still mark app as ready to avoid endless loading
-        setIsAppReady(true);
+        // Clear any cached data on sign out
+        queryClient.clear();
       }
+    });
+
+    setIsInitialized(true);
+
+    return () => {
+      subscription.unsubscribe();
     };
+  }, [toast]);
 
-    initializeApp();
-  }, []);
-
-  if (!isAppReady) {
-    // Show minimal loading state while initializing
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-justice-dark to-black">
-        <div className="text-white text-lg">Loading application...</div>
-      </div>
-    );
+  if (!isInitialized) {
+    return <div className="flex items-center justify-center h-screen bg-justice-dark">
+      <div className="animate-pulse text-justice-light">Loading the Sacred Scrolls...</div>
+    </div>;
   }
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <ThemeProvider>
         <LanguageProvider>
-          <AuthProvider>
-            {/* Add global meta tags */}
-            <MetaTags />
-            <AppRoutes />
-            <Toaster />
-            <Sonner />
-          </AuthProvider>
+          <SettingsProvider>
+            <AuthProvider>
+              <Router>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  
+                  {/* Protected routes */}
+                  <Route path="/dashboard" element={
+                    <PrivateRoute>
+                      <Dashboard />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <PrivateRoute>
+                      <Settings />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <PrivateRoute>
+                      <Profile />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/courtroom" element={<Courtroom />} />
+                  <Route path="/courtroom/:id" element={<Courtroom />} />
+                  <Route path="/witness/:id" element={<Witness />} />
+                  
+                  {/* Fallback routes */}
+                  <Route path="/404" element={<NotFound />} />
+                  <Route path="*" element={<Navigate to="/404" replace />} />
+                </Routes>
+                <Toaster />
+              </Router>
+            </AuthProvider>
+          </SettingsProvider>
         </LanguageProvider>
-      </BrowserRouter>
+      </ThemeProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
-};
+}
 
 export default App;
