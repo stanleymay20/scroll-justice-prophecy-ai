@@ -1,26 +1,25 @@
 
 export type LanguageCode = 
-  | "en" 
-  | "fr" 
-  | "es" 
-  | "de" 
-  | "zh" 
-  | "ar" 
-  | "hi" 
-  | "pt" 
-  | "he" 
-  | "sw" 
-  | "am";
+  | "en" // English
+  | "es" // Spanish
+  | "fr" // French
+  | "de" // German
+  | "zh" // Chinese
+  | "ar" // Arabic
+  | "hi" // Hindi
+  | "pt" // Portuguese
+  | "sw" // Swahili
+  | "he" // Hebrew
+  | "am"; // Amharic
 
 export interface LanguageContextType {
   language: LanguageCode;
   setLanguage: (language: LanguageCode) => void;
   t: (key: string, ...args: any[]) => string;
   isLoading: boolean;
-  reloadTranslations?: () => Promise<void>;
+  reloadTranslations: () => Promise<void>;
+  formatDate?: (date: Date, options?: Intl.DateTimeFormatOptions) => string;
+  formatNumber?: (num: number, options?: Intl.NumberFormatOptions) => string;
+  isRtl?: boolean;
+  getLanguageName?: (code: LanguageCode) => string;
 }
-
-// Updated to properly handle nested translation objects
-export type TranslationsType = {
-  [key in LanguageCode]?: Record<string, any>;
-};
