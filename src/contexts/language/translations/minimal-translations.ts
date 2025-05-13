@@ -1,44 +1,61 @@
 
-// This file defines minimal translations for languages other than en, fr, es, de
-// These are used as fallbacks for languages that don't have complete translation files
+import { LanguageCode } from '../types';
 
-// Define base translations for minimal language support
-const minimalTranslations = {
+type MinimalTranslations = {
+  [key in LanguageCode]?: Record<string, string | Record<string, any>>;
+};
+
+// Basic translations for languages without full translation files
+const minimalTranslations: MinimalTranslations = {
   zh: {
-    "app.title": "ScrollJustice.AI",
-    "nav.language": "语言",
-    "language.select": "选择语言"
+    app: {
+      title: "滚动公正",
+      loading: "加载中...",
+      error: "错误",
+    },
   },
   ar: {
-    "app.title": "ScrollJustice.AI",
-    "nav.language": "اللغة",
-    "language.select": "اختر اللغة"
+    app: {
+      title: "عدالة السكرول",
+      loading: "جار التحميل...",
+      error: "خطأ",
+    },
   },
   hi: {
-    "app.title": "ScrollJustice.AI",
-    "nav.language": "भाषा",
-    "language.select": "भाषा चुनें"
+    app: {
+      title: "स्क्रॉल जस्टिस",
+      loading: "लोड हो रहा है...",
+      error: "त्रुटि",
+    },
   },
   pt: {
-    "app.title": "ScrollJustice.AI",
-    "nav.language": "Idioma",
-    "language.select": "Selecionar idioma"
+    app: {
+      title: "Justiça de Rolagem",
+      loading: "Carregando...",
+      error: "Erro",
+    },
   },
   he: {
-    "app.title": "ScrollJustice.AI",
-    "nav.language": "שפה",
-    "language.select": "בחר שפה"
+    app: {
+      title: "צדק הגלילה",
+      loading: "טוען...",
+      error: "שגיאה",
+    },
   },
   sw: {
-    "app.title": "ScrollJustice.AI",
-    "nav.language": "Lugha",
-    "language.select": "Chagua lugha"
+    app: {
+      title: "Haki ya Scroll",
+      loading: "Inapakia...",
+      error: "Hitilafu",
+    },
   },
   am: {
-    "app.title": "ScrollJustice.AI",
-    "nav.language": "ቋንቋ",
-    "language.select": "ቋንቋ ይምረጡ"
-  }
+    app: {
+      title: "ስክሮል ፍትህ",
+      loading: "በመጫን ላይ...",
+      error: "ስህተት",
+    },
+  },
 };
 
 export default minimalTranslations;

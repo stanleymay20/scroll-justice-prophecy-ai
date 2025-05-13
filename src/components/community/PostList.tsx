@@ -24,7 +24,14 @@ export function PostList() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+      
+      // Process data to ensure all Post fields are present
+      const processedPosts = data?.map(post => ({
+        ...post,
+        username: post.username || "Anonymous Witness" // Ensure username exists
+      })) || [];
+      
+      setPosts(processedPosts);
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
