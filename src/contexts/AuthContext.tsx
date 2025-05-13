@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
@@ -32,6 +33,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>("flame_seeker"); // Default to flame_seeker
+  
+  // Get the navigate function from react-router-dom
+  // Since we've properly placed AuthProvider inside Router in App.tsx, this is now safe
   const navigate = useNavigate();
 
   useEffect(() => {

@@ -74,8 +74,8 @@ function App() {
       <ThemeProvider>
         <LanguageProvider>
           <SettingsProvider>
-            <AuthProvider>
-              <Router>
+            <Router>
+              <AuthProvider>
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
@@ -106,8 +106,8 @@ function App() {
                   <Route path="*" element={<Navigate to="/404" replace />} />
                 </Routes>
                 <Toaster />
-              </Router>
-            </AuthProvider>
+              </AuthProvider>
+            </Router>
           </SettingsProvider>
         </LanguageProvider>
       </ThemeProvider>
