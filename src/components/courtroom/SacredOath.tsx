@@ -29,6 +29,7 @@ export function SacredOath({ sessionId, userId, onOathComplete, oathStatus }: Sa
     
     setSubmitting(true);
     try {
+      // Update participant record with oath taken
       const { error } = await supabase
         .from('court_session_participants')
         .update({

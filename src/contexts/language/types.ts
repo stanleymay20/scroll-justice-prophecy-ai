@@ -12,6 +12,12 @@ export type LanguageCode =
   | "he" // Hebrew
   | "am"; // Amharic
 
+export interface TranslationsType {
+  [key: string]: {
+    [key: string]: string;
+  };
+}
+
 export interface LanguageContextType {
   language: LanguageCode;
   setLanguage: (language: LanguageCode) => void;
