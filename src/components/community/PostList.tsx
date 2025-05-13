@@ -20,7 +20,7 @@ export function PostList() {
       setLoading(true);
       const { data, error } = await supabase
         .from('posts')
-        .select('*')
+        .select('*, profiles(username)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -28,7 +28,7 @@ export function PostList() {
       // Process data to ensure all Post fields are present
       const processedPosts = data?.map(post => ({
         ...post,
-        username: post.username || "Anonymous Witness" // Ensure username exists
+        username: post.profiles?.username || "Anonymous Witness" // Get username from joined profiles table
       })) || [];
       
       setPosts(processedPosts);
