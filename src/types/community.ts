@@ -1,7 +1,5 @@
 
-import { Database } from "@/integrations/supabase/types";
-
-export type PostCategory = Database["public"]["Enums"]["post_category"];
+export type PostCategory = "testimony" | "prayer_request" | "legal_question" | "righteous_insight" | "announcement";
 
 export interface Post {
   id: string;
@@ -25,6 +23,3 @@ export interface Comment {
   created_at: string;
   likes: number;
 }
-
-export type PostInsert = Database["public"]["Tables"]["posts"]["Insert"];
-export type PostUpdate = Database["public"]["Tables"]["posts"]["Update"];

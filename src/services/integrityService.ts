@@ -1,278 +1,183 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import { logIntegrityAction } from './petitionQueries';
+import { generateFlameSignatureHash } from './utils/hashUtils';
 
-export const calculateIntegrityScore = async (userId: string, petitionId?: string): Promise<number> => {
+/**
+ * Flags an integrity violation
+ */
+export async function flagIntegrityViolation(
+  petitionId: string,
+  description: string
+): Promise<boolean> {
   try {
-    // Ensure we have a valid user ID
-    if (!userId) {
-      console.error("No user ID provided for integrity score calculation");
-      return 100; // Default integrity score
-    }
-
-    // Simplified implementation that returns a fixed score
-    // This avoids the TS errors with Supabase function calls
-    return 85; // Default integrity score for now
+    // Log a negative integrity impact
+    await logIntegrityAction(
+      'INTEGRITY_VIOLATION',
+      -10, // Significant negative impact
+      description,
+      petitionId
+    );
     
-    /*
-    // Original implementation commented out due to TS errors:
-    // This would require proper database function setup
-    const { data, error } = await supabase.rpc('calculate_integrity_score', {
-      p_user_id: userId,
-      p_petition_id: petitionId || null
-    });
-    
-    if (error) {
-      console.error('Error calculating integrity score:', error);
-      return 75; // Default on error
-    }
-    
-    return data || 100;
-    */
-  } catch (error) {
-    console.error("Error in calculateIntegrityScore:", error);
-    return 90; // Fallback integrity score
-  }
-};
-
-export const logIntegrityAction = async (
-  userId: string, 
-  actionType: string, 
-  description: string, 
-  integrityImpact: number,
-  petitionId?: string
-): Promise<boolean> => {
-  try {
-    // Validate inputs to prevent null/undefined values
-    if (!userId || !actionType || !description) {
-      console.error("Missing required parameters for logIntegrityAction");
-      return false;
-    }
-
-    const { data, error } = await supabase
-      .from('scroll_integrity_logs')
-      .insert({
-        user_id: userId,
-        action_type: actionType,
-        description: description,
-        integrity_impact: integrityImpact,
-        petition_id: petitionId || null
-      });
-    
-    if (error) {
-      console.error('Error logging integrity action:', error);
-      return false;
-    }
+    // Update the petition's integrity score
+    const { error } = await supabase
+      .from('scroll_petitions')
+      .update({
+        scroll_integrity_score: supabase.rpc('calculate_new_score', { 
+          current_score: 100, 
+          impact: -10 
+        })
+      })
+      .eq('id', petitionId);
+      
+    if (error) throw error;
     
     return true;
   } catch (error) {
-    console.error("Error in logIntegrityAction:", error);
+    console.error('Error flagging integrity violation:', error);
     return false;
   }
-};
+}
 
-// Helper function to check if the user's integrity score is acceptable
-export const checkIntegrityRequirement = async (
-  userId: string,
-  requiredScore: number = 50
-): Promise<boolean> => {
+/**
+ * Checks if the user has rendered a verdict on their own petition
+ */
+export async function checkSelfVerdict(petitionId: string): Promise<boolean> {
   try {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+    
     if (!userId) return false;
     
-    const userScore = await calculateIntegrityScore(userId);
-    return userScore >= requiredScore;
-  } catch (error) {
-    console.error("Error checking integrity requirement:", error);
-    return false; // Default to false on error for security
-  }
-};
-
-// Adding the missing functions that are being imported by other components
-
-// Function for analyzing content's integrity
-export const analyzeContent = async (text: string): Promise<{
-  integrity_score: number;
-  flagged_terms: string[] | null;
-}> => {
-  try {
-    // Basic content analysis logic
-    let score = 100;
-    const flaggedTerms: string[] = [];
+    const { data, error } = await supabase
+      .from('scroll_petitions')
+      .select('petitioner_id, assigned_judge_id')
+      .eq('id', petitionId)
+      .single();
+      
+    if (error) throw error;
     
-    // Simple analysis: lower score for potentially problematic terms
-    const lowIntegrityTerms = [
-      'hate', 'fraud', 'scam', 'illegal', 'violent', 'racist',
-      'conspiracy', 'propaganda', 'fake news'
+    // Check if user is both petitioner and judge
+    const isSelfVerdict = data.petitioner_id === userId && data.assigned_judge_id === userId;
+    return isSelfVerdict;
+  } catch (error) {
+    console.error('Error checking for self verdict:', error);
+    return false;
+  }
+}
+
+/**
+ * Gets an AI suggested verdict for a petition
+ */
+export async function getAiSuggestedVerdict(petitionId: string): Promise<string | null> {
+  try {
+    // In a real implementation, this would call an AI API
+    // For now, we'll generate a simple response
+    const suggestions = [
+      "Based on the evidence provided, the petition has merit.",
+      "The petition requires further evidence before a verdict can be reached.",
+      "The petition appears to lack sufficient grounds.",
+      "The submitted evidence supports the petitioner's claims.",
+      "This case should be referred to a higher court."
     ];
     
-    const textLower = text.toLowerCase();
+    // Randomly select a suggestion
+    const suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
     
-    // Check for problematic terms
-    lowIntegrityTerms.forEach(term => {
-      if (textLower.includes(term)) {
-        score -= 15; // Reduce score for each problematic term
-        flaggedTerms.push(`Potentially problematic term: "${term}"`);
+    // Update the petition with the AI suggestion
+    const { error } = await supabase
+      .from('scroll_petitions')
+      .update({
+        ai_suggested_verdict: suggestion
+      })
+      .eq('id', petitionId);
+      
+    if (error) throw error;
+    
+    // Log the AI interaction
+    await logIntegrityAction(
+      'AI_VERDICT_REQUESTED',
+      0, // Neutral impact
+      `AI verdict suggestion requested for petition #${petitionId.substring(0, 8)}`,
+      petitionId
+    );
+    
+    return suggestion;
+  } catch (error) {
+    console.error('Error getting AI suggested verdict:', error);
+    return null;
+  }
+}
+
+/**
+ * Gets a user's integrity score
+ */
+export async function getUserIntegrityScore(userId: string): Promise<number> {
+  try {
+    // Calculate average integrity score from user's petitions
+    const { data, error } = await supabase
+      .from('scroll_petitions')
+      .select('scroll_integrity_score')
+      .eq('petitioner_id', userId);
+      
+    if (error) throw error;
+    
+    if (data.length === 0) return 100; // Default score for new users
+    
+    // Calculate average
+    const total = data.reduce((sum, petition) => sum + petition.scroll_integrity_score, 0);
+    return Math.round(total / data.length);
+  } catch (error) {
+    console.error('Error getting user integrity score:', error);
+    return 75; // Default fallback score
+  }
+}
+
+/**
+ * Analyzes content for integrity issues
+ */
+export async function analyzeContent(content: string): Promise<{
+  integrity_score: number;
+  flagged_terms: string[];
+}> {
+  try {
+    // For demo purposes, we'll use a simple analysis
+    const flaggedTerms = [];
+    let integrityScore = 100;
+    
+    // Check for potentially problematic terms
+    const problematicTerms = [
+      "fraud", "deceive", "manipulate", "corrupt", "bribe", "false", 
+      "fake", "illegal", "unlawful", "mislead", "violate"
+    ];
+    
+    problematicTerms.forEach(term => {
+      if (content.toLowerCase().includes(term)) {
+        flaggedTerms.push(`Contains potentially concerning term: "${term}"`);
+        integrityScore -= 10; // Reduce score for each flagged term
       }
     });
     
-    // Check text length - very short texts might be less trustworthy
-    if (text.length < 20) {
-      score -= 10;
-      flaggedTerms.push("Very short content may lack sufficient detail");
+    // Check text length
+    if (content.length < 20) {
+      flaggedTerms.push("Content is too short for meaningful analysis");
+      integrityScore -= 15;
     }
     
-    // Ensure score stays within valid range
-    score = Math.max(0, Math.min(100, score));
+    // Ensure score stays within 0-100 range
+    integrityScore = Math.max(0, Math.min(100, integrityScore));
     
     return {
-      integrity_score: score,
-      flagged_terms: flaggedTerms.length > 0 ? flaggedTerms : null
+      integrity_score: integrityScore,
+      flagged_terms: flaggedTerms
     };
   } catch (error) {
-    console.error("Error in analyzeContent:", error);
-    return { 
-      integrity_score: 50, 
-      flagged_terms: ["Error analyzing content integrity"]
+    console.error('Error analyzing content:', error);
+    return {
+      integrity_score: 50,
+      flagged_terms: ["Error during analysis"]
     };
   }
-};
+}
 
-// Function to check if user is judging their own petition
-export const checkSelfVerdict = async (petitionId: string): Promise<boolean> => {
-  try {
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) return false;
-    
-    // Get petition's petitioner_id
-    const { data: petition, error } = await supabase
-      .from('scroll_petitions')
-      .select('petitioner_id')
-      .eq('id', petitionId)
-      .single();
-    
-    if (error || !petition) {
-      console.error("Error checking self verdict:", error);
-      return false;
-    }
-    
-    // Check if current user is the petitioner
-    const isSelfVerdict = user.id === petition.petitioner_id;
-    
-    // If it's a self verdict, log the integrity violation
-    if (isSelfVerdict) {
-      await logIntegrityAction(
-        user.id,
-        'INTEGRITY_VIOLATION',
-        'Attempted to judge own petition',
-        -20,
-        petitionId
-      );
-    }
-    
-    return isSelfVerdict;
-  } catch (error) {
-    console.error("Error in checkSelfVerdict:", error);
-    return false;
-  }
-};
-
-// Function to get AI-suggested verdict for a petition
-export const getAiSuggestedVerdict = async (petitionId: string): Promise<string> => {
-  try {
-    // Get petition details
-    const { data: petition, error } = await supabase
-      .from('scroll_petitions')
-      .select('title, description, scroll_integrity_score')
-      .eq('id', petitionId)
-      .single();
-    
-    if (error || !petition) {
-      throw new Error("Could not retrieve petition details");
-    }
-    
-    // Simple AI decision based on integrity score and content
-    const { integrity_score } = await analyzeContent(petition.description);
-    const combinedScore = (integrity_score + petition.scroll_integrity_score) / 2;
-    
-    // Log this AI suggestion
-    const currentUser = await supabase.auth.getUser();
-    if (currentUser.data.user) {
-      await logIntegrityAction(
-        currentUser.data.user.id,
-        'AI_VERDICT_REQUESTED',
-        `AI verdict requested for petition ${petitionId}`,
-        0,
-        petitionId
-      );
-    }
-    
-    if (combinedScore >= 75) {
-      return "APPROVED: The petition meets scroll integrity standards";
-    } else if (combinedScore >= 50) {
-      return "APPROVED WITH CAUTION: The petition meets minimum standards";
-    } else {
-      return "REJECTED: The petition does not meet scroll integrity standards";
-    }
-  } catch (error) {
-    console.error("Error in getAiSuggestedVerdict:", error);
-    return "INCONCLUSIVE: Unable to determine suggested verdict";
-  }
-};
-
-// Function to get user's integrity score
-export const getUserIntegrityScore = async (userId: string): Promise<number> => {
-  try {
-    return await calculateIntegrityScore(userId);
-  } catch (error) {
-    console.error("Error in getUserIntegrityScore:", error);
-    return 75; // Default integrity score
-  }
-};
-
-// Function to generate a flame signature hash for sealing petitions
-export const generateFlameSignatureHash = (petitionId: string, verdictText: string): string => {
-  try {
-    // Create a simple hash from the petition ID and verdict
-    const timestamp = Date.now().toString();
-    const combinedString = `${petitionId}::${verdictText}::${timestamp}`;
-    
-    // Simple base64 encoding (in a real app, use a proper cryptographic hash)
-    // Using btoa for demo purposes, though it's deprecated in Node.js environments
-    let hash;
-    try {
-      hash = btoa(combinedString);
-    } catch (e) {
-      // Fallback for environments where btoa is not available
-      hash = Buffer.from(combinedString).toString('base64');
-    }
-    
-    // Add a prefix to make it look like a special hash
-    return `FLAME-${hash.substring(0, 40)}`;
-  } catch (error) {
-    console.error("Error generating flame signature:", error);
-    return `FLAME-ERROR-${Date.now()}`;
-  }
-};
-
-// Function for flagging integrity violations (renamed from what other files expect)
-export const flagIntegrityViolation = async (
-  userId: string,
-  violationType: string,
-  description: string,
-  petitionId?: string
-): Promise<boolean> => {
-  try {
-    // Log the integrity violation with a negative impact
-    return await logIntegrityAction(
-      userId,
-      `VIOLATION_${violationType}`,
-      description,
-      -15, // Negative impact on integrity score
-      petitionId
-    );
-  } catch (error) {
-    console.error("Error flagging integrity violation:", error);
-    return false;
-  }
-};
+export { generateFlameSignatureHash };

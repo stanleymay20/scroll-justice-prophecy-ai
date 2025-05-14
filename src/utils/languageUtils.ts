@@ -2,154 +2,106 @@
 import type { LanguageCode } from "@/contexts/language/types";
 
 // Normalize language codes (e.g., 'en-US' -> 'en')
-export const normalizeLanguageCode = (code: string | null | undefined): string => {
-  try {
-    if (!code) return '';
-    return code.split('-')[0].toLowerCase();
-  } catch (error) {
-    console.error("Error normalizing language code:", error);
-    return '';
-  }
+export const normalizeLanguageCode = (code: string): string => {
+  if (!code) return '';
+  return code.split('-')[0].toLowerCase();
 };
 
 // Check if a language uses RTL writing
-export const isRtlLanguage = (code: LanguageCode | null | undefined): boolean => {
-  try {
-    if (!code) return false;
-    const rtlLanguages = ['ar', 'he', 'fa', 'ur', 'ps'];
-    return rtlLanguages.includes(code);
-  } catch (error) {
-    console.error("Error checking RTL language:", error);
-    return false;
-  }
+export const isRtlLanguage = (code: LanguageCode): boolean => {
+  const rtlLanguages = ['ar', 'he', 'fa', 'ur', 'ps'];
+  return rtlLanguages.includes(code);
 };
 
 // Group languages by category for UI organization
 export const getLanguageGroups = () => {
-  try {
-    return {
-      primary: ["en", "fr", "es", "de"],
-      extended: ["zh", "ar", "hi", "pt"],
-      sacred: ["he", "sw", "am"]
-    };
-  } catch (error) {
-    console.error("Error getting language groups:", error);
-    return { primary: ["en"], extended: [], sacred: [] };
-  }
+  return {
+    primary: ["en", "fr", "es", "de"],
+    extended: ["zh", "ar", "hi", "pt"],
+    sacred: ["he", "sw", "am"]
+  };
 };
 
 // Get all supported languages
 export const getSupportedLanguages = (): LanguageCode[] => {
-  try {
-    const groups = getLanguageGroups();
-    if (!groups) return ["en"] as LanguageCode[];
-    
-    return [
-      ...(groups.primary || []),
-      ...(groups.extended || []),
-      ...(groups.sacred || [])
-    ] as LanguageCode[];
-  } catch (error) {
-    console.error("Error getting supported languages:", error);
-    return ["en"] as LanguageCode[];
-  }
+  const groups = getLanguageGroups();
+  return [
+    ...groups.primary,
+    ...groups.extended,
+    ...groups.sacred
+  ] as LanguageCode[];
 };
 
 // Helper function to get the browser language and normalize it
 export const getBrowserLanguage = (): LanguageCode => {
-  try {
-    if (typeof navigator === 'undefined') return 'en' as LanguageCode;
-    
-    const browserLang = navigator.language || (navigator as any).userLanguage || 'en';
-    const normalizedLang = normalizeLanguageCode(browserLang);
-    
-    // Make sure the language is supported, default to 'en' if not
-    const supportedLanguages = getSupportedLanguages();
-    if (!supportedLanguages || !Array.isArray(supportedLanguages)) {
-      return 'en' as LanguageCode;
-    }
-    
-    return supportedLanguages.includes(normalizedLang as LanguageCode) ? normalizedLang as LanguageCode : 'en' as LanguageCode;
-  } catch (error) {
-    console.error("Error getting browser language:", error);
-    return 'en' as LanguageCode;
-  }
+  const browserLang = navigator.language || (navigator as any).userLanguage || 'en';
+  const normalizedLang = normalizeLanguageCode(browserLang);
+  
+  // Make sure the language is supported, default to 'en' if not
+  const supportedLanguages = getSupportedLanguages();
+  
+  return supportedLanguages.includes(normalizedLang as LanguageCode) ? normalizedLang as LanguageCode : 'en';
 };
 
 // Get language display name
-export const getLanguageDisplayName = (code: LanguageCode | null | undefined): string => {
-  try {
-    if (!code) return 'English';
-    
-    const languageNames: Record<string, string> = {
-      'en': 'English',
-      'fr': 'Français',
-      'es': 'Español',
-      'de': 'Deutsch',
-      'zh': '中文',
-      'ar': 'العربية',
-      'hi': 'हिन्दी',
-      'pt': 'Português',
-      'he': 'עברית',
-      'sw': 'Kiswahili',
-      'am': 'አማርኛ'
-    };
-    
-    return languageNames[code] || code;
-  } catch (error) {
-    console.error("Error getting language display name:", error);
-    return code || 'English';
-  }
+export const getLanguageDisplayName = (code: LanguageCode): string => {
+  const languageNames: Record<string, string> = {
+    'en': 'English',
+    'fr': 'Français',
+    'es': 'Español',
+    'de': 'Deutsch',
+    'zh': '中文',
+    'ar': 'العربية',
+    'hi': 'हिन्दी',
+    'pt': 'Português',
+    'he': 'עברית',
+    'sw': 'Kiswahili',
+    'am': 'አማርኛ'
+  };
+  
+  return languageNames[code] || code;
 };
 
 // Apply language direction to document
 export const applyLanguageDirection = (code: LanguageCode): void => {
-  try {
-    if (typeof document === 'undefined') return;
-    
-    document.documentElement.dir = isRtlLanguage(code) ? 'rtl' : 'ltr';
-    document.documentElement.lang = code;
-    
-    // Add a data attribute for CSS targeting
-    document.documentElement.setAttribute('data-language', code);
-    
-    // Apply RTL class to body for easier styling
-    if (isRtlLanguage(code)) {
-      document.body.classList.add('rtl');
-    } else {
-      document.body.classList.remove('rtl');
-    }
+  document.documentElement.dir = isRtlLanguage(code) ? 'rtl' : 'ltr';
+  document.documentElement.lang = code;
+  
+  // Add a data attribute for CSS targeting
+  document.documentElement.setAttribute('data-language', code);
+  
+  // Apply RTL class to body for easier styling
+  if (isRtlLanguage(code)) {
+    document.body.classList.add('rtl');
+  } else {
+    document.body.classList.remove('rtl');
+  }
 
-    // Add specific font families for languages like Arabic, Hebrew, Chinese
-    switch (code) {
-      case 'ar':
-        document.documentElement.style.setProperty('--font-family', '"Amiri", "Noto Sans Arabic", sans-serif');
-        break;
-      case 'he':
-        document.documentElement.style.setProperty('--font-family', '"Frank Ruhl Libre", "Noto Sans Hebrew", sans-serif');
-        break;
-      case 'zh':
-        document.documentElement.style.setProperty('--font-family', '"Noto Sans SC", sans-serif');
-        break;
-      case 'hi':
-        document.documentElement.style.setProperty('--font-family', '"Noto Sans Devanagari", sans-serif');
-        break;
-      case 'am':
-        document.documentElement.style.setProperty('--font-family', '"Noto Sans Ethiopic", sans-serif');
-        break;
-      default:
-        document.documentElement.style.setProperty('--font-family', 'system-ui, sans-serif');
-    }
-  } catch (error) {
-    console.error("Error applying language direction:", error);
+  // Add specific font families for languages like Arabic, Hebrew, Chinese
+  switch (code) {
+    case 'ar':
+      document.documentElement.style.setProperty('--font-family', '"Amiri", "Noto Sans Arabic", sans-serif');
+      break;
+    case 'he':
+      document.documentElement.style.setProperty('--font-family', '"Frank Ruhl Libre", "Noto Sans Hebrew", sans-serif');
+      break;
+    case 'zh':
+      document.documentElement.style.setProperty('--font-family', '"Noto Sans SC", sans-serif');
+      break;
+    case 'hi':
+      document.documentElement.style.setProperty('--font-family', '"Noto Sans Devanagari", sans-serif');
+      break;
+    case 'am':
+      document.documentElement.style.setProperty('--font-family', '"Noto Sans Ethiopic", sans-serif');
+      break;
+    default:
+      document.documentElement.style.setProperty('--font-family', 'system-ui, sans-serif');
   }
 };
 
 // Save language preference to localStorage with consistent key
 export const saveLanguagePreference = (code: LanguageCode): void => {
   try {
-    if (typeof localStorage === 'undefined') return;
-    
     localStorage.setItem('scrollJustice-language', code);
     console.log(`Language preference saved: ${code}`);
   } catch (error) {
@@ -160,12 +112,8 @@ export const saveLanguagePreference = (code: LanguageCode): void => {
 // Get saved language preference from localStorage with consistent key
 export const getSavedLanguagePreference = (): LanguageCode | null => {
   try {
-    if (typeof localStorage === 'undefined') return null;
-    
     const saved = localStorage.getItem('scrollJustice-language');
-    const supportedLangs = getSupportedLanguages();
-    
-    if (saved && Array.isArray(supportedLangs) && supportedLangs.includes(saved as LanguageCode)) {
+    if (saved && getSupportedLanguages().includes(saved as LanguageCode)) {
       console.log(`Saved language preference found: ${saved}`);
       return saved as LanguageCode;
     }
@@ -179,8 +127,6 @@ export const getSavedLanguagePreference = (): LanguageCode | null => {
 // Check if a language is available as a full translation
 export const isLanguageFullyTranslated = async (code: LanguageCode): Promise<boolean> => {
   try {
-    if (!code || typeof fetch === 'undefined') return false;
-    
     const response = await fetch(`/locales/${code}/common.json`);
     return response.ok;
   } catch (error) {
@@ -192,8 +138,6 @@ export const isLanguageFullyTranslated = async (code: LanguageCode): Promise<boo
 // Get the completion percentage of a translation compared to English
 export const getTranslationCompleteness = async (code: LanguageCode): Promise<number> => {
   try {
-    if (!code || typeof fetch === 'undefined') return 0;
-    
     // Load English as the reference
     const enResponse = await fetch('/locales/en/common.json');
     if (!enResponse.ok) return 0;
@@ -206,8 +150,6 @@ export const getTranslationCompleteness = async (code: LanguageCode): Promise<nu
     
     // Flatten both translation objects
     const flattenTranslations = (obj: Record<string, any>, prefix = ''): string[] => {
-      if (!obj || typeof obj !== 'object') return [];
-      
       return Object.keys(obj).reduce((acc: string[], key: string) => {
         const prefixedKey = prefix ? `${prefix}.${key}` : key;
         if (typeof obj[key] === 'object' && obj[key] !== null) {
@@ -218,10 +160,7 @@ export const getTranslationCompleteness = async (code: LanguageCode): Promise<nu
     };
     
     const enKeys = flattenTranslations(enTranslations);
-    if (!enKeys.length) return 0;
-    
     const langKeys = flattenTranslations(langTranslations);
-    if (!langKeys.length) return 0;
     
     return (langKeys.length / enKeys.length) * 100;
   } catch (error) {

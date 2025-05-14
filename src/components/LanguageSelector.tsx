@@ -12,54 +12,35 @@ import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 import type { LanguageCode } from "@/contexts/language";
 import { getLanguageGroups, getLanguageDisplayName } from "@/utils/languageUtils";
 import { LanguageGroup, LanguageItem } from "./language/LanguageGroup";
-import { useState, useEffect } from "react";
 
 export function LanguageSelector() {
   const { language, setLanguage, t } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
-  
-  // Generate language groups and items
   const languageGroups = getLanguageGroups();
-  
+
   // Generate the language list with metadata
-  const generateLanguageList = (): LanguageItem[] => {
-    try {
-      return [
-        // Primary languages
-        { code: "en" as LanguageCode, name: getLanguageDisplayName("en"), flag: "🇬🇧", group: "primary" },
-        { code: "fr" as LanguageCode, name: getLanguageDisplayName("fr"), flag: "🇫🇷", group: "primary" },
-        { code: "es" as LanguageCode, name: getLanguageDisplayName("es"), flag: "🇪🇸", group: "primary" },
-        { code: "de" as LanguageCode, name: getLanguageDisplayName("de"), flag: "🇩🇪", group: "primary" },
-        
-        // Extended languages
-        { code: "zh" as LanguageCode, name: getLanguageDisplayName("zh"), flag: "🇨🇳", group: "extended" },
-        { code: "ar" as LanguageCode, name: getLanguageDisplayName("ar"), flag: "🇸🇦", group: "extended" },
-        { code: "hi" as LanguageCode, name: getLanguageDisplayName("hi"), flag: "🇮🇳", group: "extended" },
-        { code: "pt" as LanguageCode, name: getLanguageDisplayName("pt"), flag: "🇧🇷", group: "extended" },
-        
-        // Sacred languages
-        { code: "he" as LanguageCode, name: getLanguageDisplayName("he"), flag: "🇮🇱", group: "sacred" },
-        { code: "sw" as LanguageCode, name: getLanguageDisplayName("sw"), flag: "🇰🇪", group: "sacred" },
-        { code: "am" as LanguageCode, name: getLanguageDisplayName("am"), flag: "🇪🇹", group: "sacred" },
-      ];
-    } catch (error) {
-      console.error("Error generating language list:", error);
-      // Return minimal fallback
-      return [
-        { code: "en" as LanguageCode, name: "English", flag: "🇬🇧", group: "primary" }
-      ];
-    }
-  };
-  
-  const allLanguages = generateLanguageList();
+  const allLanguages: LanguageItem[] = [
+    // Primary languages
+    { code: "en" as LanguageCode, name: getLanguageDisplayName("en"), flag: "🇬🇧", group: "primary" },
+    { code: "fr" as LanguageCode, name: getLanguageDisplayName("fr"), flag: "🇫🇷", group: "primary" },
+    { code: "es" as LanguageCode, name: getLanguageDisplayName("es"), flag: "🇪🇸", group: "primary" },
+    { code: "de" as LanguageCode, name: getLanguageDisplayName("de"), flag: "🇩🇪", group: "primary" },
+    
+    // Extended languages
+    { code: "zh" as LanguageCode, name: getLanguageDisplayName("zh"), flag: "🇨🇳", group: "extended" },
+    { code: "ar" as LanguageCode, name: getLanguageDisplayName("ar"), flag: "🇸🇦", group: "extended" },
+    { code: "hi" as LanguageCode, name: getLanguageDisplayName("hi"), flag: "🇮🇳", group: "extended" },
+    { code: "pt" as LanguageCode, name: getLanguageDisplayName("pt"), flag: "🇧🇷", group: "extended" },
+    
+    // Sacred languages
+    { code: "he" as LanguageCode, name: getLanguageDisplayName("he"), flag: "🇮🇱", group: "sacred" },
+    { code: "sw" as LanguageCode, name: getLanguageDisplayName("sw"), flag: "🇰🇪", group: "sacred" },
+    { code: "am" as LanguageCode, name: getLanguageDisplayName("am"), flag: "🇪🇹", group: "sacred" },
+  ];
 
   const handleLanguageChange = (lang: LanguageCode) => {
+    console.log("Changing language to:", lang);
     try {
-      if (!lang) return;
-      
-      console.log("Changing language to:", lang);
       setLanguage(lang);
-      setIsOpen(false);
     } catch (error) {
       console.error("Failed to change language:", error);
     }
@@ -70,32 +51,20 @@ export function LanguageSelector() {
   const extendedLanguages = allLanguages.filter(lang => lang.group === 'extended');
   const sacredLanguages = allLanguages.filter(lang => lang.group === 'sacred');
 
-  // Safely translate with fallbacks
-  const safeTranslate = (key: string, fallback: string): string => {
-    try {
-      const translated = t(key);
-      return translated === key ? fallback : translated;
-    } catch (error) {
-      return fallback;
-    }
-  };
-
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="h-8 gap-1.5">
           <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline-block">
-            {safeTranslate("nav.language", "Language")}
-          </span>
-          {language !== "en" && language && (
+          <span className="hidden sm:inline-block">{t("nav.language")}</span>
+          {language !== "en" && (
             <PulseEffect size="sm" color="bg-justice-tertiary" />
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-justice-dark border-justice-light/20 z-50">
+      <DropdownMenuContent align="end" className="bg-justice-dark border-justice-light/20">
         <LanguageGroup
-          title={safeTranslate("language.select", "Select Language")}
+          title={t("language.select")}
           languages={primaryLanguages}
           currentLanguage={language}
           onLanguageSelect={handleLanguageChange}
@@ -104,7 +73,7 @@ export function LanguageSelector() {
         <DropdownMenuSeparator className="bg-justice-light/10" />
         
         <LanguageGroup
-          title={safeTranslate("language.extended", "Extended Languages")}
+          title={t("language.extended")}
           languages={extendedLanguages}
           currentLanguage={language}
           onLanguageSelect={handleLanguageChange}
@@ -113,7 +82,7 @@ export function LanguageSelector() {
         <DropdownMenuSeparator className="bg-justice-light/10" />
         
         <LanguageGroup
-          title={safeTranslate("language.sacred", "Sacred Languages")}
+          title={t("language.sacred")}
           languages={sacredLanguages}
           currentLanguage={language}
           onLanguageSelect={handleLanguageChange}

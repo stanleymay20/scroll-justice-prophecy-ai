@@ -1,53 +1,59 @@
 
-export default {
-  app: {
-    title: "ScrollJustice.AI",
-    loading: "Loading...",
-    error: "An error occurred",
-    success: "Success!",
-    cancel: "Cancel",
-    save: "Save",
-    delete: "Delete",
-    confirm: "Confirm"
+// English translations
+const en = {
+  "app": {
+    "title": "ScrollJustice.AI",
+    "tagline": "Sacred justice through digital scrolls"
   },
-  nav: {
-    home: "Home",
-    dashboard: "Dashboard",
-    settings: "Settings",
-    profile: "Profile",
-    signin: "Sign In",
-    signup: "Sign Up",
-    signout: "Sign Out",
-    precedent: "Precedent Explorer",
-    community: "Community",
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "precedent": "Sacred Precedents",
+    "scroll-memory": "Scroll Memory",
+    "principles": "Principles",
+    "search": "Search",
+    "analytics": "Analytics",
+    "scroll-time": "Scroll Time",
+    "legal-systems": "Legal Systems",
+    "case-classification": "Case Classification",
+    "document-upload": "Document Upload",
+    "simulation-trial": "Simulation Trial",
+    "ai-training": "AI Training",
+    "profile": "Profile",
+    "signin": "Sign In",
+    "signup": "Sign Up",
+    "language": "Language"
   },
-  landing: {
-    title: "Welcome to ScrollJustice.AI",
-    subtitle: "The sacred scrolls of digital justice await",
-    getStarted: "Get Started",
-    learnMore: "Learn More"
+  "button": {
+    "register": "Register",
+    "login": "Login",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete"
   },
-  court: {
-    simulation: "Simulation Trial",
-    petitions: "Petitions",
-    witness: "Witness Stand",
-    verdict: "Verdict",
-    evidence: "Evidence"
+  "language": {
+    "select": "Select Language",
+    "extended": "Extended Languages",
+    "sacred": "Sacred Languages"
   },
-  subscription: {
-    manage: "Manage Subscription",
-    plans: "Subscription Plans",
-    active: "Active",
-    inactive: "Inactive",
-    expired: "Expired",
-    basic: "Basic",
-    professional: "Professional",
-    enterprise: "Enterprise"
+  "common": {
+    "dismiss": "Dismiss"
   },
-  dashboard: {
-    masterControlPanel: "Master Control Panel",
-    recentActivity: "Recent Activity",
-    metrics: "Metrics",
-    quickActions: "Quick Actions"
+  "ai": {
+    "disclosure": {
+      "banner": "This application uses AI technologies to assist in legal processes. All AI-generated content is subject to human review.",
+      "learnMore": "Learn more"
+    },
+    "consent": {
+      "judge": "Allow AI to assist with case drafting",
+      "petitioner": "Allow AI to analyze my petition",
+      "general": "Enable AI features",
+      "judgeTooltip": "AI will help draft initial responses but all decisions require human review",
+      "petitionerTooltip": "Your petition may be analyzed by AI to improve processing time",
+      "generalTooltip": "Enable AI-assisted features throughout the platform"
+    }
   }
 };
+
+export default en;

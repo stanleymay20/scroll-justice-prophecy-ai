@@ -1,61 +1,44 @@
 
-import { LanguageCode } from '../types';
+// This file defines minimal translations for languages other than en, fr, es, de
+// These are used as fallbacks for languages that don't have complete translation files
 
-type MinimalTranslations = {
-  [key in LanguageCode]?: Record<string, string | Record<string, any>>;
-};
-
-// Basic translations for languages without full translation files
-const minimalTranslations: MinimalTranslations = {
+// Define base translations for minimal language support
+const minimalTranslations = {
   zh: {
-    app: {
-      title: "滚动公正",
-      loading: "加载中...",
-      error: "错误",
-    },
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "语言",
+    "language.select": "选择语言"
   },
   ar: {
-    app: {
-      title: "عدالة السكرول",
-      loading: "جار التحميل...",
-      error: "خطأ",
-    },
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "اللغة",
+    "language.select": "اختر اللغة"
   },
   hi: {
-    app: {
-      title: "स्क्रॉल जस्टिस",
-      loading: "लोड हो रहा है...",
-      error: "त्रुटि",
-    },
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "भाषा",
+    "language.select": "भाषा चुनें"
   },
   pt: {
-    app: {
-      title: "Justiça de Rolagem",
-      loading: "Carregando...",
-      error: "Erro",
-    },
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "Idioma",
+    "language.select": "Selecionar idioma"
   },
   he: {
-    app: {
-      title: "צדק הגלילה",
-      loading: "טוען...",
-      error: "שגיאה",
-    },
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "שפה",
+    "language.select": "בחר שפה"
   },
   sw: {
-    app: {
-      title: "Haki ya Scroll",
-      loading: "Inapakia...",
-      error: "Hitilafu",
-    },
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "Lugha",
+    "language.select": "Chagua lugha"
   },
   am: {
-    app: {
-      title: "ስክሮል ፍትህ",
-      loading: "በመጫን ላይ...",
-      error: "ስህተት",
-    },
-  },
+    "app.title": "ScrollJustice.AI",
+    "nav.language": "ቋንቋ",
+    "language.select": "ቋንቋ ይምረጡ"
+  }
 };
 
 export default minimalTranslations;

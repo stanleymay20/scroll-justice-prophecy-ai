@@ -1,6 +1,4 @@
 
-import { Database } from "@/integrations/supabase/types";
-
 export type CourtSessionStatus = 
   | "scheduled" 
   | "in-progress" 
@@ -89,9 +87,3 @@ export type SessionFeedback = {
   created_at: string;
   is_anonymous: boolean;
 };
-
-// Add the Database-specific types
-export type CourtSessionParticipantInsert = Database["public"]["Tables"]["court_session_participants"]["Insert"];
-export type CourtSessionParticipantUpdate = Database["public"]["Tables"]["court_session_participants"]["Update"];
-export type ScrollWitnessLogInsert = Database["public"]["Tables"]["scroll_witness_logs"]["Insert"];
-export type EmergencyAlertInsert = Database["public"]["Tables"]["emergency_alerts"]["Insert"];
