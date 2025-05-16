@@ -18,8 +18,9 @@ export interface LanguageContextType {
   t: (key: string, ...args: any[]) => string;
   isLoading: boolean;
   reloadTranslations?: () => Promise<void>;
+  formatDate?: (date: Date | string, format?: string) => string;
 }
 
 export type TranslationsType = {
-  [key in LanguageCode]?: Record<string, string>;
+  [key in LanguageCode]?: Record<string, any>;
 };
