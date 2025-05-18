@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { useLanguage } from "@/contexts/language";
 import { LanguageCode } from "@/contexts/language/types";
 import {
@@ -11,8 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Define real language options with proper flag emojis and labels
 const LANGUAGE_OPTIONS: Record<LanguageCode, { label: string, flag: string }> = {
-  "en": { label: "English", flag: "🇺🇸" },
+  "en": { label: "English", flag: "🇬🇧" },
   "fr": { label: "Français", flag: "🇫🇷" },
   "es": { label: "Español", flag: "🇪🇸" },
   "de": { label: "Deutsch", flag: "🇩🇪" },
