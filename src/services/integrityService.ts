@@ -20,7 +20,6 @@ export async function flagIntegrityViolation(
     );
     
     // Update the petition's integrity score directly
-    // Instead of using RPC which is causing TypeScript errors
     const { data } = await supabase
       .from('scroll_petitions')
       .select('scroll_integrity_score')
@@ -64,6 +63,9 @@ export async function checkSelfVerdict(petitionId: string): Promise<boolean> {
       .single();
       
     if (error) throw error;
+    
+    // Type guard to ensure data exists before accessing properties
+    if (!data) return false;
     
     // Check if user is both petitioner and judge
     const isSelfVerdict = data.petitioner_id === userId && data.assigned_judge_id === userId;
@@ -130,10 +132,15 @@ export async function getUserIntegrityScore(userId: string): Promise<number> {
       
     if (error) throw error;
     
-    if (data.length === 0) return 100; // Default score for new users
+    if (!data || data.length === 0) return 100; // Default score for new users
     
     // Calculate average
-    const total = data.reduce((sum, petition) => sum + petition.scroll_integrity_score, 0);
+    const total = data.reduce((sum, petition) => {
+      // Type guard to ensure scroll_integrity_score exists
+      const score = petition.scroll_integrity_score || 0;
+      return sum + score;
+    }, 0);
+    
     return Math.round(total / data.length);
   } catch (error) {
     console.error('Error getting user integrity score:', error);
@@ -150,7 +157,7 @@ export async function analyzeContent(content: string): Promise<{
 }> {
   try {
     // For demo purposes, we'll use a simple analysis
-    const flaggedTerms = [];
+    const flaggedTerms: string[] = [];
     let integrityScore = 100;
     
     // Check for potentially problematic terms
