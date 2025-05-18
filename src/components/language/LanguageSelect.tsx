@@ -29,7 +29,10 @@ export function LanguageSelect() {
   const { language, setLanguage } = useLanguage();
   
   const handleValueChange = (value: string) => {
-    setLanguage(value as LanguageCode);
+    // Ensure we only set valid language codes
+    if (value && Object.keys(LANGUAGE_OPTIONS).includes(value)) {
+      setLanguage(value as LanguageCode);
+    }
   };
 
   return (
