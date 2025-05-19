@@ -103,24 +103,44 @@ serve(async (req) => {
         metadata: sessionMetadata
       });
       
-      logStep("Checkout session created", { sessionId: session.id, url: session.url });
+      logStep("Checkout session created", { 
+        sessionId: session.id, 
+        url: session.url,
+        status: 200,
+        responseBody: { url: session.url }
+      });
 
       return new Response(JSON.stringify({ url: session.url }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     } catch (stripeError) {
-      logStep("Stripe error", { error: stripeError.message, code: stripeError.code });
-      return new Response(JSON.stringify({ error: stripeError.message }), {
+      logStep("Stripe error", { 
+        error: stripeError.message, 
+        code: stripeError.code,
+        status: 500,
+        responseBody: { error: stripeError.message }
+      });
+      return new Response(JSON.stringify({ 
+        error: "Subscription could not be processed. Please try again later or contact support.",
+        details: stripeError.message
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
       });
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
+    logStep("ERROR", { 
+      message: errorMessage,
+      status: 500,
+      responseBody: { error: "Subscription could not be processed. Please try again later or contact support." }
+    });
     
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ 
+      error: "Subscription could not be processed. Please try again later or contact support.",
+      details: errorMessage
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

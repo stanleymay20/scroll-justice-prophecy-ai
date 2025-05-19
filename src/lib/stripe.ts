@@ -84,7 +84,13 @@ export const createCheckoutSession = async (priceId: string, returnUrl: string) 
 // Check subscription status
 export const checkSubscription = async () => {
   try {
+    console.log("Checking subscription status...");
+    const startTime = Date.now();
+    
     const { data, error } = await supabase.functions.invoke("check-subscription");
+    
+    const endTime = Date.now();
+    console.log(`Subscription check completed in ${endTime - startTime}ms:`, { data, error });
     
     if (error) throw error;
     return data;

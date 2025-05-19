@@ -23,15 +23,18 @@ const ProtectedRoute = ({
   const location = useLocation();
   const [verificationTimeout, setVerificationTimeout] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
 
   // Check subscription on mount and when changing routes
   useEffect(() => {
     if (user && requireSubscription) {
       console.log("Checking subscription status in ProtectedRoute");
       setIsVerifying(true);
+      setVerificationError(null);
       
       // Add timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
+        console.log("Verification timed out after 3 seconds");
         setVerificationTimeout(true);
         setIsVerifying(false);
       }, 3000); // 3 second timeout
@@ -44,6 +47,7 @@ const ProtectedRoute = ({
         })
         .catch(error => {
           console.error("Error checking subscription:", error);
+          setVerificationError("Subscription could not be processed. Please try again later or contact support.");
           setIsVerifying(false);
           clearTimeout(timeoutId);
         });
@@ -106,18 +110,50 @@ const ProtectedRoute = ({
     );
   }
   
+  if (verificationError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-justice-dark to-black">
+        <div className="text-center max-w-md mx-auto p-6 bg-black/30 rounded-lg border border-red-500/30">
+          <p className="text-red-400 mb-4">{verificationError}</p>
+          <div className="flex justify-center gap-4">
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-justice-primary text-white rounded-md hover:bg-justice-primary/80"
+            >
+              Refresh
+            </button>
+            <button 
+              onClick={() => navigate("/subscription/plans")}
+              className="px-4 py-2 bg-justice-tertiary text-white rounded-md hover:bg-justice-tertiary/80"
+            >
+              View Plans
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   if (requireSubscription && verificationTimeout) {
     console.log("Subscription verification timed out");
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-justice-dark to-black">
         <div className="text-center">
           <p className="text-justice-light mb-4">Verification failed. Please refresh or contact support.</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-justice-primary text-white rounded-md hover:bg-justice-primary/80"
-          >
-            Refresh
-          </button>
+          <div className="flex justify-center gap-4">
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-justice-primary text-white rounded-md hover:bg-justice-primary/80"
+            >
+              Refresh
+            </button>
+            <button 
+              onClick={() => navigate("/subscription/plans")}
+              className="px-4 py-2 bg-justice-tertiary text-white rounded-md hover:bg-justice-tertiary/80"
+            >
+              View Plans
+            </button>
+          </div>
         </div>
       </div>
     );

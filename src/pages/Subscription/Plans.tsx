@@ -1,15 +1,15 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { Check, X, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import { stripePriceIds, createCheckoutSession } from "@/lib/stripe";
 import type { SubscriptionPlan, SubscriptionTier } from "@/types/subscription";
 
-// Subscription plan data
+// Subscription plan data with updated pricing
 const plans: SubscriptionPlan[] = [
   {
     id: "basic",
@@ -58,6 +58,7 @@ const plans: SubscriptionPlan[] = [
 
 const SubscriptionPlans = () => {
   const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { user, subscriptionTier, subscriptionStatus, checkSubscriptionStatus } = useAuth();
   const navigate = useNavigate();
 
@@ -78,6 +79,9 @@ const SubscriptionPlans = () => {
 
     try {
       setLoading(plan.id);
+      setError(null);
+      
+      console.log("Starting subscription checkout flow for plan:", plan.id);
       
       // Force refresh subscription status before proceeding
       await checkSubscriptionStatus();
@@ -99,15 +103,17 @@ const SubscriptionPlans = () => {
       );
       
       if (data?.url) {
+        console.log("Redirecting to Stripe checkout URL:", data.url);
         window.location.href = data.url;
       } else {
         throw new Error("No checkout URL returned");
       }
     } catch (error: any) {
       console.error("Checkout error:", error);
+      setError("Subscription could not be processed. Please try again later or contact support.");
       toast({
         title: "Checkout failed",
-        description: error.message || "There was an error creating your checkout session.",
+        description: "Subscription could not be processed. Please try again later or contact support.",
         variant: "destructive",
       });
     } finally {
@@ -143,6 +149,17 @@ const SubscriptionPlans = () => {
           <p className="text-justice-light/80 max-w-2xl mx-auto">
             Select the subscription plan that best fits your justice journey. Upgrade anytime to access more sacred features.
           </p>
+          {error && (
+            <div className="mt-4 bg-red-900/20 border border-red-600/30 p-4 rounded-lg mx-auto max-w-lg">
+              <p className="text-red-300">{error}</p>
+              <button 
+                onClick={() => setError(null)} 
+                className="mt-2 px-4 py-1 bg-red-600/30 hover:bg-red-600/50 rounded text-sm text-white"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

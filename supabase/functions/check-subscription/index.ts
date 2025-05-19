@@ -138,7 +138,17 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
+    logStep("ERROR", { 
+      message: errorMessage,
+      responseBody: {
+        error: errorMessage,
+        subscribed: false,
+        subscription_tier: "basic",
+        user_role: "flame_seeker",
+        subscription_end: null
+      },
+      status: 200
+    });
     
     return new Response(JSON.stringify({ 
       error: errorMessage,

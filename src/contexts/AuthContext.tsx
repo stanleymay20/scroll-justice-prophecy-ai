@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
@@ -33,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>("flame_seeker"); // Default to flame_seeker
+  const [lastSubscriptionCheck, setLastSubscriptionCheck] = useState<number>(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,15 +56,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       
       if (session?.user) {
         // Ensure the user has a role record - don't block UI on this
-        ensureUserRole(session.user.id);
+        ensureUserRole(session.user.id).catch(error => {
+          console.error("Error ensuring user role:", error);
+        });
         
-        // Only check subscription if it hasn't been set yet
-        if (subscriptionStatus === null) {
-          // Use setTimeout to defer subscription check to avoid auth deadlocks
-          setTimeout(() => {
-            checkSubscriptionStatus();
-          }, 0);
-        }
+        // Use setTimeout to defer subscription check to avoid auth deadlocks
+        setTimeout(() => {
+          // Get the subscription from database if it's not already set or if it's been more than 5 minutes
+          if (subscriptionStatus === null || Date.now() - lastSubscriptionCheck > 300000) {
+            fetchSubscriptionFromDb(session.user.id).then(dbSubscription => {
+              if (dbSubscription) {
+                setSubscriptionStatus(dbSubscription.status as SubscriptionStatus);
+                setSubscriptionTier(dbSubscription.tier as SubscriptionTier);
+                setSubscriptionEnd(dbSubscription.current_period_end);
+                setUserRole(mapTierToRole(dbSubscription.tier));
+                setLastSubscriptionCheck(Date.now());
+              }
+              
+              // If it's been more than 5 minutes since last check or status is null, update
+              if (Date.now() - lastSubscriptionCheck > 300000 || subscriptionStatus === null) {
+                checkSubscriptionStatus().catch(console.error);
+              }
+            }).catch(console.error);
+          }
+        }, 0);
       } else {
         setSubscriptionStatus(null);
         setSubscriptionTier(null);
@@ -82,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       
       if (session?.user) {
         // Ensure the user has a role record - don't block UI on this
-        ensureUserRole(session.user.id);
+        ensureUserRole(session.user.id).catch(console.error);
         
         // Quick local check from DB first for better UX
         fetchSubscriptionFromDb(session.user.id).then(dbSubscription => {
@@ -91,27 +106,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setSubscriptionTier(dbSubscription.tier as SubscriptionTier);
             setSubscriptionEnd(dbSubscription.current_period_end);
             setUserRole(mapTierToRole(dbSubscription.tier));
+            setLastSubscriptionCheck(Date.now());
           }
           
           // Still check with Stripe but don't block UI
-          setTimeout(() => checkSubscriptionStatus(), 100);
-        });
+          setTimeout(() => checkSubscriptionStatus().catch(console.error), 100);
+        }).catch(console.error);
       }
       
       setLoading(false);
+    }).catch(error => {
+      console.error("Error getting session:", error);
+      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // New helper function to fetch subscription from database directly first
+  // Helper function to fetch subscription from database directly first
   const fetchSubscriptionFromDb = async (userId: string) => {
     try {
+      console.log("Fetching subscription from database for user:", userId);
+      const startTime = Date.now();
+      
       const { data, error } = await supabase
         .from("subscriptions")
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
+      
+      const endTime = Date.now();
+      console.log(`Subscription database fetch completed in ${endTime - startTime}ms:`, { data, error });
       
       if (error) {
         console.error("Error fetching subscription from database:", error);
@@ -139,7 +166,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (data && data.success) {
         console.log("User role checked:", data.message);
         // Update user role in state if needed
-        setUserRole(data.role);
+        if (data.role && (!userRole || userRole !== data.role)) {
+          setUserRole(data.role);
+        }
       }
     } catch (err) {
       console.error("Failed to invoke ensure-user-role function:", err);
@@ -191,6 +220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     
     try {
       console.log("Checking subscription status for user:", user.id);
+      const startTime = Date.now();
       
       // First ensure user has a role
       await ensureUserRole(user.id);
@@ -207,11 +237,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Map subscription tier to role
         const expectedRole = mapTierToRole(dbSubscription.tier);
         setUserRole(expectedRole);
+        setLastSubscriptionCheck(Date.now());
         
-        // If subscription is active and we have all the data, we could return early
-        // But let's still verify with Stripe to ensure data consistency
-        if (dbSubscription.status === "active" && dbSubscription.tier) {
-          // We'll still call the function but won't wait for it
+        // If subscription is active, recent, and we have all the data needed, we can use it
+        const currentTime = new Date();
+        const subEndTime = dbSubscription.current_period_end ? new Date(dbSubscription.current_period_end) : null;
+        const isValidCachedData = 
+          dbSubscription.status === "active" && 
+          subEndTime && 
+          currentTime < subEndTime && 
+          Date.now() - lastSubscriptionCheck < 300000; // Less than 5 minutes old
+        
+        if (isValidCachedData) {
+          console.log("Using cached subscription data:", { 
+            subscriptionStatus: dbSubscription.status,
+            subscriptionTier: dbSubscription.tier,
+            subscriptionEnd: dbSubscription.current_period_end
+          });
+          
+          // Still do the check with Stripe in the background for data consistency
+          setTimeout(() => {
+            supabase.functions.invoke("check-subscription").catch(error => {
+              console.error("Background subscription check error:", error);
+            });
+          }, 100);
+          
+          return;
         }
       }
 
@@ -219,8 +270,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("Invoking check-subscription edge function");
       const { data, error } = await supabase.functions.invoke("check-subscription");
       
+      const endTime = Date.now();
+      console.log(`Subscription check completed in ${endTime - startTime}ms:`, { data, error });
+      
       if (error) {
         console.error("Error checking subscription:", error);
+        // If we have existing state data, keep it rather than clearing on error
+        if (!subscriptionStatus || !subscriptionTier) {
+          setSubscriptionStatus("inactive");
+          setSubscriptionTier("basic");
+          setUserRole("flame_seeker");
+        }
         return;
       }
       
@@ -229,6 +289,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setSubscriptionStatus(data.subscribed ? "active" : "inactive");
         setSubscriptionTier(data.subscription_tier);
         setSubscriptionEnd(data.subscription_end);
+        setLastSubscriptionCheck(Date.now());
         
         // Update user role from the API response if provided
         if (data.user_role) {
@@ -249,10 +310,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (error) {
       console.error("Error in checkSubscriptionStatus:", error);
-      setSubscriptionStatus("inactive");
-      setSubscriptionTier("basic");
-      setSubscriptionEnd(null);
-      setUserRole("flame_seeker"); // Default to basic role
+      
+      // Only set defaults if we don't have any existing state
+      if (!subscriptionStatus || !subscriptionTier) {
+        setSubscriptionStatus("inactive");
+        setSubscriptionTier("basic");
+        setSubscriptionEnd(null);
+        setUserRole("flame_seeker"); // Default to basic role
+      }
+      
+      throw error; // Re-throw so calling code can handle it
     }
   };
 

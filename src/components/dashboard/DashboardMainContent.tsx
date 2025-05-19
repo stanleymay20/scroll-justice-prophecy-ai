@@ -40,7 +40,7 @@ export const DashboardMainContent = () => {
   
   return (
     <div className="md:col-span-2 space-y-6">
-      <Alert variant="warning" className="bg-yellow-900/20 border-yellow-600/50">
+      <Alert variant="destructive" className="bg-yellow-900/20 border-yellow-600/50">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
           {t("dashboard.demoDisclaimer", "This is a demo version with placeholder content for illustration purposes only.")}
