@@ -4,6 +4,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 import { SubscriptionTier } from "@/types/subscription";
+import { LegalDisclaimer } from "@/components/legal/LegalDisclaimer";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -140,8 +141,17 @@ const ProtectedRoute = ({
     return <Navigate to="/subscription/plans" replace />;
   }
 
-  // User is authenticated and has required subscription/role if applicable
-  return <>{children}</>;
+  // Add wrapper with legal footer around the content
+  return (
+    <>
+      {children}
+      <footer className="bg-justice-dark/80 border-t border-justice-tertiary/20 py-4 px-6 mt-8">
+        <div className="container mx-auto">
+          <LegalDisclaimer variant="full" />
+        </div>
+      </footer>
+    </>
+  );
 };
 
 export default ProtectedRoute;

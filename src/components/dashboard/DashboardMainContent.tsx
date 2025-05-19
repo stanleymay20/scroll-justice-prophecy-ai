@@ -4,37 +4,34 @@ import { SystemMetricsPanel } from "@/components/dashboard/SystemMetricsPanel";
 import { CaseList } from "@/components/dashboard/CaseList";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { useLanguage } from "@/contexts/language";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+import { LegalDisclaimer } from "@/components/legal/LegalDisclaimer";
 
-// Mock data for demo purposes (moved from original file)
+// Mock data for demo purposes with clear disclaimer labeling
 const mockSystemHealth = {
-  overall: 96.5,
-  delta: 2.3,
-  cases_analyzed: 1250,
-  precedent_accuracy: 94.2,
-  jurisdictional_coverage: 89.7
+  overall: 0,  // Removed fictional scores
+  delta: 0,
+  cases_analyzed: 0,
+  precedent_accuracy: 0,
+  jurisdictional_coverage: 0
 };
 
-const mockCases = [
+// Sample data clearly marked as examples
+const sampleCases = [
   {
-    case_id: "SCJ-2025-042",
-    title: "Sacred Principles of Digital Evidence",
-    principle: "Truth Preservation",
-    scroll_alignment: "DAWN Phase, Gate 3",
-    confidence: 0.95
+    case_id: "EXAMPLE-001",
+    title: "Example Case Study",
+    principle: "Research Example",
+    scroll_alignment: "Educational Demo",
+    confidence: 0  // Removed fictional confidence scores
   },
   {
-    case_id: "SCJ-2025-039",
-    title: "Global Jurisdictional Boundaries",
-    principle: "Equitable Access",
-    scroll_alignment: "RISE Phase, Gate 5",
-    confidence: 0.88
-  },
-  {
-    case_id: "SCJ-2025-036",
-    title: "AI Witness Credibility Assessment",
-    principle: "Technological Integrity",
-    scroll_alignment: "ASCEND Phase, Gate 2",
-    confidence: 0.72
+    case_id: "EXAMPLE-002",
+    title: "Demonstration Case",
+    principle: "Educational Example",
+    scroll_alignment: "Research Prototype",
+    confidence: 0
   }
 ];
 
@@ -43,11 +40,21 @@ export const DashboardMainContent = () => {
   
   return (
     <div className="md:col-span-2 space-y-6">
+      <Alert variant="warning" className="bg-yellow-900/20 border-yellow-600/50">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          {t("dashboard.demoDisclaimer", "This is a demo version with placeholder content for illustration purposes only.")}
+        </AlertDescription>
+      </Alert>
+      
       <DashboardMetrics />
       <SystemMetricsPanel data={mockSystemHealth} />
       <GlassCard className="p-6">
-        <h2 className="text-xl font-semibold text-white mb-4">{t("dashboard.recentCases")}</h2>
-        <CaseList cases={mockCases} />
+        <h2 className="text-xl font-semibold text-white mb-4">{t("dashboard.exampleCases")}</h2>
+        <CaseList cases={sampleCases} />
+        <div className="mt-4">
+          <LegalDisclaimer variant="full" />
+        </div>
       </GlassCard>
     </div>
   );

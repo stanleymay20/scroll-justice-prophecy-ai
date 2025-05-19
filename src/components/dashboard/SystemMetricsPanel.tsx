@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SystemHealth } from "@/types";
+import { LegalDisclaimer } from "@/components/legal/LegalDisclaimer";
 
 interface SystemMetricsPanelProps {
   data: SystemHealth;
@@ -12,56 +13,38 @@ export function SystemMetricsPanel({ data }: SystemMetricsPanelProps) {
       <Card className="bg-justice-dark text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Overall Health
+            System Status
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-baseline space-x-2">
-            <div className="text-2xl font-bold">{data.overall.toFixed(1)}%</div>
-            <div className={`text-sm ${data.delta >= 0 ? "text-green-500" : "text-red-500"}`}>
-              {data.delta > 0 ? "+" : ""}{data.delta}%
-            </div>
+            <div className="text-2xl font-bold">Active</div>
           </div>
-          <div className="mt-4 h-2 w-full bg-justice-neutral/30 rounded-full">
-            <div 
-              className="h-full bg-justice-primary rounded-full" 
-              style={{ width: `${data.overall}%` }}
-            ></div>
-          </div>
+          <LegalDisclaimer className="mt-2" />
         </CardContent>
       </Card>
 
       <Card className="bg-justice-dark text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Precedent Accuracy
+            Data Processing
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.precedent_accuracy.toFixed(1)}%</div>
-          <div className="mt-4 h-2 w-full bg-justice-neutral/30 rounded-full">
-            <div 
-              className="h-full bg-scroll-dawn rounded-full" 
-              style={{ width: `${data.precedent_accuracy}%` }}
-            ></div>
-          </div>
+          <div className="text-2xl font-bold">Limited Preview</div>
+          <LegalDisclaimer className="mt-2" />
         </CardContent>
       </Card>
 
       <Card className="bg-justice-dark text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Jurisdictional Coverage
+            Research Mode
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.jurisdictional_coverage.toFixed(1)}%</div>
-          <div className="mt-4 h-2 w-full bg-justice-neutral/30 rounded-full">
-            <div 
-              className="h-full bg-scroll-rise rounded-full" 
-              style={{ width: `${data.jurisdictional_coverage}%` }}
-            ></div>
-          </div>
+          <div className="text-2xl font-bold">Enabled</div>
+          <LegalDisclaimer className="mt-2" />
         </CardContent>
       </Card>
     </div>
