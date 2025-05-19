@@ -1,6 +1,6 @@
 
 import { ReactNode, useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
 import { SubscriptionTier } from "@/types/subscription";
@@ -21,6 +21,7 @@ const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const { user, loading, subscriptionStatus, subscriptionTier, userRole, checkSubscriptionStatus } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [verificationTimeout, setVerificationTimeout] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(null);
