@@ -1,5 +1,5 @@
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { PulseEffect } from "@/components/advanced-ui/PulseEffect";
@@ -20,12 +20,34 @@ const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const { user, loading, subscriptionStatus, subscriptionTier, userRole, checkSubscriptionStatus } = useAuth();
   const location = useLocation();
+  const [verificationTimeout, setVerificationTimeout] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // Check subscription on mount and when changing routes
   useEffect(() => {
     if (user && requireSubscription) {
       console.log("Checking subscription status in ProtectedRoute");
-      checkSubscriptionStatus();
+      setIsVerifying(true);
+      
+      // Add timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        setVerificationTimeout(true);
+        setIsVerifying(false);
+      }, 3000); // 3 second timeout
+      
+      // Check subscription status
+      checkSubscriptionStatus()
+        .then(() => {
+          setIsVerifying(false);
+          clearTimeout(timeoutId);
+        })
+        .catch(error => {
+          console.error("Error checking subscription:", error);
+          setIsVerifying(false);
+          clearTimeout(timeoutId);
+        });
+        
+      return () => clearTimeout(timeoutId);
     }
   }, [user, requireSubscription, checkSubscriptionStatus, location.pathname]);
 
@@ -70,9 +92,7 @@ const ProtectedRoute = ({
     return <Navigate to={`/signin?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  if (requireSubscription && !subscriptionStatus) {
-    console.log("Refreshing subscription status for verification...");
-    checkSubscriptionStatus();
+  if (requireSubscription && isVerifying && !verificationTimeout) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-justice-dark to-black">
         <div className="text-center">
@@ -80,6 +100,23 @@ const ProtectedRoute = ({
             <PulseEffect color="bg-justice-primary" size="lg" />
           </div>
           <p className="text-justice-light/80">Verifying subscription status...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (requireSubscription && verificationTimeout) {
+    console.log("Subscription verification timed out");
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-justice-dark to-black">
+        <div className="text-center">
+          <p className="text-justice-light mb-4">Verification failed. Please refresh or contact support.</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-justice-primary text-white rounded-md hover:bg-justice-primary/80"
+          >
+            Refresh
+          </button>
         </div>
       </div>
     );
