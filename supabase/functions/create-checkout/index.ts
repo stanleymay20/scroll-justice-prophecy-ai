@@ -26,11 +26,13 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    const authHeader = req.headers.get("Authorization")!;
+    const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
     logStep("Authorization header found");
     
     const token = authHeader.replace("Bearer ", "");
+    logStep("Authenticating user with token");
+    
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     
@@ -41,6 +43,7 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    logStep("Stripe key verified");
     
     const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
@@ -114,7 +117,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
-    } catch (stripeError) {
+    } catch (stripeError: any) {
       logStep("Stripe error", { 
         error: stripeError.message, 
         code: stripeError.code,
@@ -129,7 +132,7 @@ serve(async (req) => {
         status: 500,
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { 
       message: errorMessage,

@@ -2,6 +2,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SystemHealth } from "@/types";
 import { LegalDisclaimer } from "@/components/legal/LegalDisclaimer";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SystemMetricsPanelProps {
   data: SystemHealth;
@@ -17,8 +19,14 @@ export function SystemMetricsPanel({ data }: SystemMetricsPanelProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <Alert variant="default" className="bg-yellow-900/20 border-yellow-600/50 mb-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              Demo version - No real data available
+            </AlertDescription>
+          </Alert>
           <div className="flex items-baseline space-x-2">
-            <div className="text-2xl font-bold">Active</div>
+            <div className="text-lg font-medium">Limited Preview</div>
           </div>
           <LegalDisclaimer className="mt-2" />
         </CardContent>
@@ -31,7 +39,13 @@ export function SystemMetricsPanel({ data }: SystemMetricsPanelProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">Limited Preview</div>
+          <Alert variant="default" className="bg-yellow-900/20 border-yellow-600/50 mb-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              Demo version - No real data available
+            </AlertDescription>
+          </Alert>
+          <div className="text-lg font-medium">Educational Mode</div>
           <LegalDisclaimer className="mt-2" />
         </CardContent>
       </Card>
@@ -43,7 +57,13 @@ export function SystemMetricsPanel({ data }: SystemMetricsPanelProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">Enabled</div>
+          <Alert variant="default" className="bg-yellow-900/20 border-yellow-600/50 mb-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              Demo version - No real data available
+            </AlertDescription>
+          </Alert>
+          <div className="text-lg font-medium">Enabled</div>
           <LegalDisclaimer className="mt-2" />
         </CardContent>
       </Card>

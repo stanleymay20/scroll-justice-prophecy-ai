@@ -29,6 +29,46 @@ const mapTierToRole = (tier: string | null): string => {
 };
 
 serve(async (req) => {
+  // Add timeout to prevent hanging requests
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error("Request timed out after 5 seconds")), 5000)
+  );
+  
+  try {
+    // Race the main function against the timeout
+    return await Promise.race([
+      processCheckSubscription(req),
+      timeoutPromise
+    ]) as Response;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { 
+      message: errorMessage,
+      responseBody: {
+        error: errorMessage,
+        subscribed: false,
+        subscription_tier: "basic",
+        user_role: "flame_seeker",
+        subscription_end: null
+      },
+      status: 200
+    });
+    
+    return new Response(JSON.stringify({ 
+      error: errorMessage,
+      subscribed: false,
+      subscription_tier: "basic",
+      user_role: "flame_seeker",
+      subscription_end: null 
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200, // Return 200 with error info instead of 500 to prevent frontend blocking
+    });
+  }
+});
+
+// Main function to process the subscription check
+async function processCheckSubscription(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -114,7 +154,8 @@ serve(async (req) => {
         });
         
         // Background refresh with Stripe - don't wait for this to complete
-        const updatePromise = updateSubscriptionFromStripe(userId, userEmail, supabaseAdmin);
+        const updatePromise = updateSubscriptionFromStripe(userId, userEmail, supabaseAdmin)
+          .catch(err => logStep("Background subscription update failed", { error: String(err) }));
         
         return new Response(JSON.stringify({ 
           subscribed: true,
@@ -161,7 +202,7 @@ serve(async (req) => {
       status: 200, // Return 200 with error info instead of 500 to prevent frontend blocking
     });
   }
-});
+}
 
 // Extract the Stripe check into a separate function for reuse
 async function updateSubscriptionFromStripe(userId: string, userEmail: string, supabaseAdmin: any) {
@@ -212,81 +253,94 @@ async function updateSubscriptionFromStripe(userId: string, userEmail: string, s
   const customerId = customers.data[0].id;
   logStep("Found Stripe customer", { customerId });
   
-  // Check for active subscriptions
-  const subscriptions = await stripe.subscriptions.list({
-    customer: customerId,
-    status: "active",
-    limit: 1,
-  });
-  
-  const hasActiveSub = subscriptions.data.length > 0;
-  let subscriptionTier = "basic";
-  let userRole = "flame_seeker"; // Default role
-  let subscriptionEnd = null;
-  let priceId = null;
+  try {
+    // Check for active subscriptions
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "active",
+      limit: 1,
+    });
+    
+    const hasActiveSub = subscriptions.data.length > 0;
+    let subscriptionTier = "basic";
+    let userRole = "flame_seeker"; // Default role
+    let subscriptionEnd = null;
+    let priceId = null;
 
-  if (hasActiveSub) {
-    const subscription = subscriptions.data[0];
-    subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-    
-    // Get price ID from subscription
-    if (subscription.items.data.length > 0) {
-      priceId = subscription.items.data[0].price.id;
-    
-      // Map price ID to subscription tier
-      if (priceId.includes('professional')) {
-        subscriptionTier = "professional";
-        userRole = "scroll_advocate";
-      } else if (priceId.includes('enterprise')) {
-        subscriptionTier = "enterprise";
-        userRole = "elder_judge";
-      } else {
-        subscriptionTier = "basic";
-        userRole = "flame_seeker";
+    if (hasActiveSub) {
+      const subscription = subscriptions.data[0];
+      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      
+      // Get price ID from subscription
+      if (subscription.items.data.length > 0) {
+        priceId = subscription.items.data[0].price.id;
+      
+        // Map price ID to subscription tier
+        if (priceId.includes('professional')) {
+          subscriptionTier = "professional";
+          userRole = "scroll_advocate";
+        } else if (priceId.includes('enterprise')) {
+          subscriptionTier = "enterprise";
+          userRole = "elder_judge";
+        } else {
+          subscriptionTier = "basic";
+          userRole = "flame_seeker";
+        }
       }
+      
+      logStep("Active subscription found", { 
+        subscriptionId: subscription.id, 
+        tier: subscriptionTier,
+        role: userRole,
+        endDate: subscriptionEnd 
+      });
+    } else {
+      logStep("No active subscription");
     }
     
-    logStep("Active subscription found", { 
-      subscriptionId: subscription.id, 
+    // Update subscription in database
+    await supabaseAdmin.from("subscriptions").upsert({
+      user_id: userId,
+      status: hasActiveSub ? "active" : "inactive",
       tier: subscriptionTier,
+      customer_id: customerId,
+      price_id: priceId,
+      current_period_end: subscriptionEnd,
+      created_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    
+    // Update user_roles table with appropriate role
+    await supabaseAdmin.from("user_roles").upsert({
+      user_id: userId,
       role: userRole,
-      endDate: subscriptionEnd 
+      last_role_change: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    
+    logStep("Database updated", { 
+      userId,
+      status: hasActiveSub ? "active" : "inactive",
+      tier: subscriptionTier,
+      role: userRole
     });
-  } else {
-    logStep("No active subscription");
-  }
-  
-  // Update subscription in database
-  await supabaseAdmin.from("subscriptions").upsert({
-    user_id: userId,
-    status: hasActiveSub ? "active" : "inactive",
-    tier: subscriptionTier,
-    customer_id: customerId,
-    price_id: priceId,
-    current_period_end: subscriptionEnd,
-    created_at: new Date().toISOString()
-  }, { onConflict: 'user_id' });
-  
-  // Update user_roles table with appropriate role
-  await supabaseAdmin.from("user_roles").upsert({
-    user_id: userId,
-    role: userRole,
-    last_role_change: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }, { onConflict: 'user_id' });
-  
-  logStep("Database updated", { 
-    userId,
-    status: hasActiveSub ? "active" : "inactive",
-    tier: subscriptionTier,
-    role: userRole
-  });
 
-  return {
-    subscribed: hasActiveSub,
-    subscription_tier: subscriptionTier,
-    user_role: userRole,
-    subscription_end: subscriptionEnd
-  };
+    return {
+      subscribed: hasActiveSub,
+      subscription_tier: subscriptionTier,
+      user_role: userRole,
+      subscription_end: subscriptionEnd
+    };
+  } catch (stripeError: any) {
+    logStep("Stripe API error", { error: stripeError.message });
+    
+    // Return default free tier info even when Stripe fails
+    return { 
+      subscribed: false,
+      subscription_tier: "basic",
+      user_role: "flame_seeker",
+      subscription_end: null,
+      error: stripeError.message
+    };
+  }
 }

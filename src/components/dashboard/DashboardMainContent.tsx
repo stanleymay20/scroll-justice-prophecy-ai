@@ -8,9 +8,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { LegalDisclaimer } from "@/components/legal/LegalDisclaimer";
 
-// Mock data for demo purposes with clear disclaimer labeling
+// Example data clearly marked as examples
 const mockSystemHealth = {
-  overall: 0,  // Removed fictional scores
+  overall: 0, 
   delta: 0,
   cases_analyzed: 0,
   precedent_accuracy: 0,
@@ -24,7 +24,7 @@ const sampleCases = [
     title: "Example Case Study",
     principle: "Research Example",
     scroll_alignment: "Educational Demo",
-    confidence: 0  // Removed fictional confidence scores
+    confidence: 0
   },
   {
     case_id: "EXAMPLE-002",
@@ -51,6 +51,12 @@ export const DashboardMainContent = () => {
       <SystemMetricsPanel data={mockSystemHealth} />
       <GlassCard className="p-6">
         <h2 className="text-xl font-semibold text-white mb-4">{t("dashboard.exampleCases")}</h2>
+        <Alert variant="default" className="bg-yellow-900/20 border-yellow-600/50 mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Example cases for demonstration only
+          </AlertDescription>
+        </Alert>
         <CaseList cases={sampleCases} />
         <div className="mt-4">
           <LegalDisclaimer variant="full" />
