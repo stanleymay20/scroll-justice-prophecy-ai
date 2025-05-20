@@ -22,4 +22,5 @@ export interface SubscriptionPlan {
   features: string[];
   recommended?: boolean;
   tier: SubscriptionTier;
+  billingCycle?: "monthly" | "yearly"; // Added the missing billingCycle property
 }

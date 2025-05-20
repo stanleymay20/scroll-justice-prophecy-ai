@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ const plans: SubscriptionPlan[] = [
     description: "Essential resources for individuals",
     price: 0,
     tier: "basic",
+    billingCycle: "monthly", // Added default billing cycle
     features: [
       "Basic research access",
       "5 document uploads per month",
@@ -31,6 +31,7 @@ const plans: SubscriptionPlan[] = [
     description: "Advanced features for professionals",
     price: 49.99,
     tier: "professional",
+    billingCycle: "monthly", // Specified billing cycle
     recommended: true,
     features: [
       "Full research access",
@@ -44,7 +45,7 @@ const plans: SubscriptionPlan[] = [
     name: "Enterprise",
     description: "Complete solution for organizations",
     price: 499.00,
-    billingCycle: "yearly",
+    billingCycle: "yearly", // This was already correct
     tier: "enterprise",
     features: [
       "All Professional features",
@@ -208,7 +209,7 @@ const SubscriptionPlans = () => {
                     {plan.billingCycle === "yearly" ? "/year" : "/month"}
                   </span>
                 </div>
-                {plan.id === "enterprise" && (
+                {plan.billingCycle === "yearly" && (
                   <div className="text-justice-primary text-sm mt-1">Annual billing</div>
                 )}
               </div>
