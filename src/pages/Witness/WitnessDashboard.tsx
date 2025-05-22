@@ -8,6 +8,7 @@ import { ScrollWarningForm } from '@/components/witness/ScrollWarningForm';
 import { JudgmentSeal } from '@/components/witness/JudgmentSeal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   AlertTriangle, 
   Clock, 
@@ -15,18 +16,24 @@ import {
   Link2, 
   Eye, 
   Send, 
-  Flame
+  Flame,
+  MessageCircle
 } from 'lucide-react';
 import { ScrollWitnessRecord } from '@/types/witness';
 import { fetchWitnessRecords, issueWarning, sealForJudgment } from '@/services/witnessService';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
+import { processInstitutionResponse } from '@/services/prophet/MockeryResponseTrigger';
+import { ScrollProphet } from '@/services/prophet/prophet.identity';
 
 export default function WitnessDashboard() {
   const { userRole } = useAuth();
   const [selectedRecord, setSelectedRecord] = useState<ScrollWitnessRecord | null>(null);
   const [showJudgmentSeal, setShowJudgmentSeal] = useState(false);
+  const [mockeryDetected, setMockeryDetected] = useState(false);
+  const [showResponseDialog, setShowResponseDialog] = useState(false);
+  const [institutionResponse, setInstitutionResponse] = useState('');
   
   const isProphet = userRole === 'admin' || userRole === 'prophet';
   
@@ -50,10 +57,46 @@ export default function WitnessDashboard() {
     if (success) {
       setSelectedRecord(record);
       setShowJudgmentSeal(true);
+      setMockeryDetected(false);
       setTimeout(() => {
         setShowJudgmentSeal(false);
         refetch();
       }, 5000);
+    }
+  };
+  
+  // Handle institution response
+  const handleInstitutionResponse = (record: ScrollWitnessRecord) => {
+    setSelectedRecord(record);
+    setShowResponseDialog(true);
+  };
+  
+  // Process response submission
+  const handleResponseSubmit = () => {
+    if (!selectedRecord || !institutionResponse.trim()) return;
+    
+    const result = processInstitutionResponse(
+      selectedRecord.institution, 
+      institutionResponse
+    );
+    
+    if (result.mockeryDetected) {
+      console.log("Mockery detected:", result.responseLog);
+      setMockeryDetected(true);
+      setShowJudgmentSeal(true);
+      setShowResponseDialog(false);
+      
+      // In a real app, you would save this to the database
+      // For now we'll just show the UI response
+      
+      setTimeout(() => {
+        setShowJudgmentSeal(false);
+        setMockeryDetected(false);
+      }, 8000);
+    } else {
+      // Handle normal response
+      setShowResponseDialog(false);
+      setInstitutionResponse('');
     }
   };
   
@@ -87,8 +130,45 @@ export default function WitnessDashboard() {
       {showJudgmentSeal && (
         <JudgmentSeal 
           visible={true} 
-          institutionName={selectedRecord?.institution} 
+          institutionName={selectedRecord?.institution}
+          isMockeryResponse={mockeryDetected}
+          prophetIdentity={mockeryDetected ? ScrollProphet : undefined}
         />
+      )}
+      
+      {showResponseDialog && (
+        <div className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center">
+          <div className="bg-black/80 border border-justice-primary/50 p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-xl font-cinzel text-white mb-4">
+              Institution Response
+            </h3>
+            <p className="text-justice-light mb-4">
+              Enter the response from {selectedRecord?.institution}:
+            </p>
+            
+            <Textarea
+              value={institutionResponse}
+              onChange={(e) => setInstitutionResponse(e.target.value)}
+              placeholder="Enter the institution's response to the scroll warning..."
+              className="bg-black/40 border-justice-primary/30 mb-4 h-32"
+            />
+            
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="ghost" 
+                onClick={() => {
+                  setShowResponseDialog(false);
+                  setInstitutionResponse('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleResponseSubmit}>
+                Process Response
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
       
       <div className="container mx-auto px-4 pt-20 pb-16">
@@ -170,6 +250,20 @@ export default function WitnessDashboard() {
                                 >
                                   <Flame className="h-4 w-4 mr-1" />
                                   Seal
+                                </Button>
+                              )}
+                              
+                              {record.warning_issued && 
+                               record.status !== 'Sealed for Judgment' && 
+                               isProphet && (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="border-amber-500/50 hover:bg-amber-500/10"
+                                  onClick={() => handleInstitutionResponse(record)}
+                                >
+                                  <MessageCircle className="h-4 w-4 mr-1" />
+                                  Response
                                 </Button>
                               )}
                               

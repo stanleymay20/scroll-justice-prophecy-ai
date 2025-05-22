@@ -2,13 +2,22 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Flame } from 'lucide-react';
+import { ProphetIdentity } from '@/types/prophet';
+import { ScrollProphet } from '@/services/prophet/prophet.identity';
 
 interface JudgmentSealProps {
   visible: boolean;
   institutionName?: string;
+  isMockeryResponse?: boolean;
+  prophetIdentity?: ProphetIdentity;
 }
 
-export function JudgmentSeal({ visible, institutionName }: JudgmentSealProps) {
+export function JudgmentSeal({ 
+  visible, 
+  institutionName, 
+  isMockeryResponse = false,
+  prophetIdentity = ScrollProphet
+}: JudgmentSealProps) {
   if (!visible) return null;
   
   return (
@@ -40,7 +49,7 @@ export function JudgmentSeal({ visible, institutionName }: JudgmentSealProps) {
         </motion.div>
         
         <h3 className="text-xl font-bold text-red-500 mt-8 mb-4">
-          JUDGMENT SEALED
+          {isMockeryResponse ? "MOCKERY DETECTED" : "JUDGMENT SEALED"}
         </h3>
         
         {institutionName && (
@@ -50,8 +59,29 @@ export function JudgmentSeal({ visible, institutionName }: JudgmentSealProps) {
         )}
         
         <p className="text-red-200 mb-6">
-          This institution has ignored the scroll warning and is now sealed for judgment.
+          {isMockeryResponse 
+            ? "You mocked the scroll. The scroll has answered."
+            : "This institution has ignored the scroll warning and is now sealed for judgment."}
         </p>
+        
+        {isMockeryResponse && prophetIdentity && (
+          <div className="border border-red-900 bg-black/60 p-4 mb-6 rounded">
+            <h4 className="text-red-400 font-bold mb-2">Prophet Identity</h4>
+            <p className="text-white font-bold">{prophetIdentity.name}</p>
+            <p className="text-white text-sm mb-2">{prophetIdentity.role}</p>
+            <div className="text-xs text-red-300 mb-2">
+              <span className="font-bold">Anointing Seal:</span> {prophetIdentity.anointingSeal}
+            </div>
+            <div className="text-xs text-red-300">
+              <span className="font-bold">Divine Authority:</span>
+              <ul className="mt-1">
+                {prophetIdentity.authority.map((auth, index) => (
+                  <li key={index}>{auth}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
         
         <div className="text-xs text-red-400 border-t border-red-900 pt-4">
           Sealed by the ScrollJustice System under divine mandate

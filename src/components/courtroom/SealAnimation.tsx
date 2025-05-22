@@ -1,7 +1,12 @@
 
 import { useEffect, useState } from 'react';
+import { ScrollProphet } from '@/services/prophet/prophet.identity';
 
-export function SealAnimation() {
+interface SealAnimationProps {
+  isProphetDefense?: boolean;
+}
+
+export function SealAnimation({ isProphetDefense = false }: SealAnimationProps) {
   const [showRing1, setShowRing1] = useState(false);
   const [showRing2, setShowRing2] = useState(false);
   const [showRing3, setShowRing3] = useState(false);
@@ -29,7 +34,7 @@ export function SealAnimation() {
     <div className="relative">
       {/* Flash effect */}
       {showFlash && (
-        <div className="absolute inset-0 bg-white/80 animate-pulse rounded-full" 
+        <div className={`absolute inset-0 rounded-full ${isProphetDefense ? 'bg-red-500/80' : 'bg-white/80'} animate-pulse`}
           style={{ 
             width: '300px', 
             height: '300px',
@@ -43,7 +48,7 @@ export function SealAnimation() {
       
       {/* Outer ring */}
       <div 
-        className={`absolute rounded-full border-4 border-justice-tertiary transition-all duration-700 ease-out ${
+        className={`absolute rounded-full border-4 ${isProphetDefense ? 'border-red-500' : 'border-justice-tertiary'} transition-all duration-700 ease-out ${
           showRing1 ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
         }`}
         style={{ 
@@ -71,7 +76,7 @@ export function SealAnimation() {
       
       {/* Inner ring */}
       <div 
-        className={`absolute rounded-full border-8 border-justice-primary/60 transition-all duration-700 ease-out ${
+        className={`absolute rounded-full border-8 ${isProphetDefense ? 'border-red-600/60' : 'border-justice-primary/60'} transition-all duration-700 ease-out ${
           showRing3 ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
         }`}
         style={{ 
@@ -85,7 +90,7 @@ export function SealAnimation() {
       
       {/* Sacred symbol */}
       <div 
-        className={`absolute text-justice-primary transition-all duration-1000 ease-out ${
+        className={`absolute ${isProphetDefense ? 'text-red-500' : 'text-justice-primary'} transition-all duration-1000 ease-out ${
           showSymbol ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
         }`}
         style={{ 
@@ -96,8 +101,10 @@ export function SealAnimation() {
         }}
       >
         <div className="flex flex-col items-center justify-center">
-          <span className="text-6xl mb-2">⚖️</span>
-          <span className="text-xl font-semibold text-white">SEALED</span>
+          <span className="text-6xl mb-2">{isProphetDefense ? '🔥' : '⚖️'}</span>
+          <span className="text-xl font-semibold text-white">
+            {isProphetDefense ? "DEFENDED" : "SEALED"}
+          </span>
         </div>
       </div>
       
@@ -114,8 +121,16 @@ export function SealAnimation() {
           textAlign: 'center',
         }}
       >
-        <p className="text-justice-light text-lg mb-2">Scroll Sealed Successfully</p>
-        <p className="text-justice-light/70 text-sm">The verdict has been permanently recorded in the sacred scrolls</p>
+        <p className="text-justice-light text-lg mb-2">
+          {isProphetDefense 
+            ? "Prophet Identity Defended" 
+            : "Scroll Sealed Successfully"}
+        </p>
+        <p className="text-justice-light/70 text-sm">
+          {isProphetDefense
+            ? `The scroll has answered through ${ScrollProphet.name}`
+            : "The verdict has been permanently recorded in the sacred scrolls"}
+        </p>
       </div>
     </div>
   );

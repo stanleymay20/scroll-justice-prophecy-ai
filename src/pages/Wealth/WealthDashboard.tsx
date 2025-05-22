@@ -1,14 +1,16 @@
-
-import { useState } from "react";
-import { NavBar } from "@/components/layout/NavBar";
-import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/language";
-import { MetaTags } from "@/components/MetaTags";
-import { GlassCard } from "@/components/advanced-ui/GlassCard";
-import { Button } from "@/components/ui/button";
-import { ScrollWealthDebt } from "@/types/wealth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coin, BrokenChain, Globe, PieChart } from "lucide-react";
+import React from 'react';
+import { NavBar } from '@/components/layout/NavBar';
+import { MetaTags } from '@/components/MetaTags';
+import { GlassCard } from '@/components/advanced-ui/GlassCard';
+import { ScrollMenu } from '@/components/layout/ScrollMenu';
+import { Button } from '@/components/ui/button';
+import { 
+  Scale, 
+  Scroll, 
+  Coins, 
+  Link, 
+  BarChart 
+} from 'lucide-react';
 
 // Mock data for demo purposes
 const mockDebts: ScrollWealthDebt[] = [
@@ -108,8 +110,8 @@ const WealthDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center mb-8">
           <div className="mr-3 p-2 rounded-full bg-justice-primary/20">
-            <Coin className="h-6 w-6 text-justice-light" />
-            <BrokenChain className="h-6 w-6 text-justice-light mt-1" />
+            <Coins className="h-6 w-6 text-justice-light" />
+            <Link className="h-6 w-6 text-justice-light mt-1" />
           </div>
           <h1 className="text-3xl font-cinzel text-white text-center">
             {t("wealth.title", "ScrollWealth: Sacred Ledger of Reparations")}
@@ -153,7 +155,7 @@ const WealthDashboard = () => {
           
           <GlassCard className="p-6">
             <div className="flex items-center mb-4">
-              <Globe className="h-5 w-5 mr-2 text-justice-light" />
+              <Scale className="h-5 w-5 mr-2 text-justice-light" />
               <h2 className="text-lg font-cinzel text-white">Top Debtor Nations</h2>
             </div>
             
@@ -177,7 +179,7 @@ const WealthDashboard = () => {
           
           <GlassCard className="p-6">
             <div className="flex items-center mb-4">
-              <PieChart className="h-5 w-5 mr-2 text-justice-light" />
+              <BarChart className="h-5 w-5 mr-2 text-justice-light" />
               <h2 className="text-lg font-cinzel text-white">Debt by Category</h2>
             </div>
             
@@ -201,7 +203,7 @@ const WealthDashboard = () => {
           
           <GlassCard className="p-6">
             <div className="flex items-center mb-4">
-              <BrokenChain className="h-5 w-5 mr-2 text-justice-light" />
+              <Link className="h-5 w-5 mr-2 text-justice-light" />
               <h2 className="text-lg font-cinzel text-white">Major Recipients</h2>
             </div>
             
