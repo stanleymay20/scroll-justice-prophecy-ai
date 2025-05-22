@@ -29,6 +29,11 @@ import ScrollCourt from "@/pages/ScrollCourt";
 import JudgmentRoom from "@/pages/JudgmentRoom";
 import ScrollCry from "@/pages/ScrollCry";
 
+// New Module Pages
+import TribunalDashboard from "@/pages/Tribunal/TribunalDashboard";
+import ScrollBackPage from "@/pages/ScrollBack/ScrollBackPage";
+import WealthDashboard from "@/pages/Wealth/WealthDashboard";
+
 // Auth Pages
 import SignIn from "@/pages/Auth/SignIn";
 import SignUp from "@/pages/Auth/SignUp";
@@ -77,6 +82,32 @@ export const AppRoutes = () => {
           } 
         />
         <Route path="/ScrollCry" element={<ScrollCry />} />
+        
+        {/* ScrollJustice Expansion Module Routes */}
+        <Route 
+          path="/Tribunal" 
+          element={
+            <ProtectedRoute>
+              <TribunalDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/ScrollBack" 
+          element={
+            <ProtectedRoute>
+              <ScrollBackPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/Wealth" 
+          element={
+            <ProtectedRoute>
+              <WealthDashboard />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* Subscription Routes */}
         <Route path="/subscription/plans" element={<SubscriptionPlans />} />
