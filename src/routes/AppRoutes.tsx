@@ -33,6 +33,7 @@ import ScrollCry from "@/pages/ScrollCry";
 import TribunalDashboard from "@/pages/Tribunal/TribunalDashboard";
 import ScrollBackPage from "@/pages/ScrollBack/ScrollBackPage";
 import WealthDashboard from "@/pages/Wealth/WealthDashboard";
+import WitnessDashboard from "@/pages/Witness/WitnessDashboard";
 
 // Auth Pages
 import SignIn from "@/pages/Auth/SignIn";
@@ -108,6 +109,15 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/Witness" 
+          element={
+            <ProtectedRoute>
+              <WitnessDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route path="/witness/:id" element={<Witness />} />
         
         {/* Subscription Routes */}
         <Route path="/subscription/plans" element={<SubscriptionPlans />} />

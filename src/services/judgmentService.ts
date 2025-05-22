@@ -1,5 +1,6 @@
 
-import { ScrollPetition, ScrollJudgment } from "@/types/petition";
+import { ScrollPetition } from "@/types/petition";
+import { ScrollJudgment } from "@/types/petition.d";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { useLanguage } from "@/contexts/language";
-import { Scroll, Scale, FileText, Dna, Coin, BrokenChain } from "lucide-react";
+import { Scroll, Scale, FileText, Dna, Coins, Link2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface MenuItem {
@@ -58,8 +58,15 @@ export const ScrollMenu = () => {
       id: "wealthLedger",
       label: t("scrollMenu.wealth", "ScrollWealth"),
       path: "/Wealth",
-      icon: <Coin className="h-6 w-6" />,
+      icon: <Coins className="h-6 w-6" />,
       description: t("scrollMenu.wealthDesc", "Sacred reparations ledger")
+    },
+    {
+      id: "witness",
+      label: t("scrollMenu.witness", "ScrollWitness"),
+      path: "/Witness",
+      icon: <Link2 className="h-6 w-6" />,
+      description: t("scrollMenu.witnessDesc", "Divine institution oversight")
     }
   ];
   
