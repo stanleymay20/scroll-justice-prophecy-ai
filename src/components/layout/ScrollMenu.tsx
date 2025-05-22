@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/advanced-ui/GlassCard";
 import { useLanguage } from "@/contexts/language";
-import { Scroll, Scales, FileText } from "lucide-react";
+import { Scroll, Scale, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface MenuItem {
@@ -30,7 +30,7 @@ export const ScrollMenu = () => {
       id: "judgmentRoom",
       label: t("scrollMenu.judgment", "Judgment Room"),
       path: "/JudgmentRoom",
-      icon: <Scales className="h-6 w-6" />,
+      icon: <Scale className="h-6 w-6" />,
       description: t("scrollMenu.judgmentDesc", "View petitions and verdicts")
     },
     {
@@ -42,7 +42,8 @@ export const ScrollMenu = () => {
     }
   ];
   
-  const container = {
+  // Define proper framer-motion variants
+  const containerVariants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -52,7 +53,7 @@ export const ScrollMenu = () => {
     }
   };
   
-  const item = {
+  const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
   };
@@ -65,23 +66,23 @@ export const ScrollMenu = () => {
       
       <motion.div 
         className="grid gap-4"
-        variants={container}
+        variants={containerVariants}
         initial="hidden"
         animate="show"
       >
-        {menuItems.map((item) => (
-          <motion.div key={item.id} variants={item}>
+        {menuItems.map((menuItem) => (
+          <motion.div key={menuItem.id} variants={itemVariants}>
             <Button
-              onClick={() => navigate(item.path)}
+              onClick={() => navigate(menuItem.path)}
               variant="outline"
               className="w-full justify-start text-left bg-black/20 border-justice-primary/30 hover:bg-justice-primary/20 py-6"
             >
               <div className="mr-4 p-2 rounded-full bg-justice-primary/20">
-                {item.icon}
+                {menuItem.icon}
               </div>
               <div>
-                <div className="font-semibold text-white">{item.label}</div>
-                <div className="text-sm text-justice-light/70">{item.description}</div>
+                <div className="font-semibold text-white">{menuItem.label}</div>
+                <div className="text-sm text-justice-light/70">{menuItem.description}</div>
               </div>
             </Button>
           </motion.div>

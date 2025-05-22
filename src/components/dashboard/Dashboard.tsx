@@ -17,10 +17,10 @@ export const Dashboard = () => {
     setAgentMessage("Connecting to the ScrollJustice network");
     
     const stateSequence = [
-      { state: 'processing', message: "Analyzing recent petitions", delay: 4000 },
-      { state: 'judging', message: "Seeking divine wisdom for cases", delay: 8000 },
-      { state: 'complete', message: "ScrollJustice Ultra connected", delay: 12000 },
-      { state: 'idle', message: "Ready to serve justice", delay: 15000 }
+      { state: 'processing' as const, message: "Analyzing recent petitions", delay: 4000 },
+      { state: 'judging' as const, message: "Seeking divine wisdom for cases", delay: 8000 },
+      { state: 'complete' as const, message: "ScrollJustice Ultra connected", delay: 12000 },
+      { state: 'idle' as const, message: "Ready to serve justice", delay: 15000 }
     ];
     
     stateSequence.forEach((sequence, index) => {
