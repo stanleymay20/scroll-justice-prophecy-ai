@@ -25,6 +25,9 @@ import Courtroom from "@/pages/Courtroom";
 import Witness from "@/pages/Witness";
 import AIUsagePolicy from "@/pages/policy/AIUsagePolicy";
 import Blessing from "@/pages/Blessing";
+import ScrollCourt from "@/pages/ScrollCourt";
+import JudgmentRoom from "@/pages/JudgmentRoom";
+import ScrollCry from "@/pages/ScrollCry";
 
 // Auth Pages
 import SignIn from "@/pages/Auth/SignIn";
@@ -55,6 +58,25 @@ export const AppRoutes = () => {
         
         {/* Policy Routes */}
         <Route path="/policy/ai-usage" element={<AIUsagePolicy />} />
+        
+        {/* ScrollJustice Ultra Routes */}
+        <Route 
+          path="/ScrollCourt" 
+          element={
+            <ProtectedRoute>
+              <ScrollCourt />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/JudgmentRoom" 
+          element={
+            <ProtectedRoute>
+              <JudgmentRoom />
+            </ProtectedRoute>
+          } 
+        />
+        <Route path="/ScrollCry" element={<ScrollCry />} />
         
         {/* Subscription Routes */}
         <Route path="/subscription/plans" element={<SubscriptionPlans />} />

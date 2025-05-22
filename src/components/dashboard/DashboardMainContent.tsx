@@ -8,8 +8,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { LegalDisclaimer } from "@/components/legal/LegalDisclaimer";
 
-// Example data clearly marked as examples
-const mockSystemHealth = {
+// Demo data clearly labeled
+const demoSystemHealth = {
   overall: 0, 
   delta: 0,
   cases_analyzed: 0,
@@ -17,20 +17,20 @@ const mockSystemHealth = {
   jurisdictional_coverage: 0
 };
 
-// Sample data clearly marked as examples
-const sampleCases = [
+// Demo cases clearly labeled
+const demoCases = [
   {
-    case_id: "EXAMPLE-001",
-    title: "Example Case Study",
-    principle: "Research Example",
-    scroll_alignment: "Educational Demo",
+    case_id: "DEMO-001",
+    title: "Demo Petition Case",
+    principle: "Demonstration Only",
+    scroll_alignment: "Educational Example",
     confidence: 0
   },
   {
-    case_id: "EXAMPLE-002",
-    title: "Demonstration Case",
-    principle: "Educational Example",
-    scroll_alignment: "Research Prototype",
+    case_id: "DEMO-002",
+    title: "Sample Scroll Petition",
+    principle: "Example Data",
+    scroll_alignment: "Demonstration",
     confidence: 0
   }
 ];
@@ -43,21 +43,21 @@ export const DashboardMainContent = () => {
       <Alert variant="destructive" className="bg-yellow-900/20 border-yellow-600/50">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          {t("dashboard.demoDisclaimer", "This is a demo version with placeholder content for illustration purposes only.")}
+          {t("dashboard.demoDisclaimer", "This is currently showing demo content. Submit a petition for real data to appear.")}
         </AlertDescription>
       </Alert>
       
       <DashboardMetrics />
-      <SystemMetricsPanel data={mockSystemHealth} />
+      <SystemMetricsPanel data={demoSystemHealth} />
       <GlassCard className="p-6">
-        <h2 className="text-xl font-semibold text-white mb-4">{t("dashboard.exampleCases")}</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">{t("dashboard.demoCases")}</h2>
         <Alert variant="default" className="bg-yellow-900/20 border-yellow-600/50 mb-4">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Example cases for demonstration only
+            Demo petitions shown. Submit a real petition to see actual cases.
           </AlertDescription>
         </Alert>
-        <CaseList cases={sampleCases} />
+        <CaseList cases={demoCases} />
         <div className="mt-4">
           <LegalDisclaimer variant="full" />
         </div>

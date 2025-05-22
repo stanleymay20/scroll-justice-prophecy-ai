@@ -18,6 +18,8 @@ export type ScrollPetition = {
   verdict_transcription?: string;
   flame_signature_hash?: string;
   scroll_seal_timestamp?: string;
+  category?: 'Wage Theft' | 'Land Injustice' | 'Violence' | 'False Judgment';
+  evidenceFiles?: string[];
 };
 
 export type ScrollEvidence = {
