@@ -21,3 +21,14 @@ export type MockeryDetectionResult = {
   responseText?: string;
   shouldDeployFireSeal: boolean;
 };
+
+export interface GlobalExodusData {
+  id: string;
+  groupName: string;
+  historicalTribe: string;
+  modernPharaoh: string;
+  exodusStatus: 'Bondage' | 'Call' | 'Resistance' | 'ScrollPlague' | 'Exodus';
+  estimatedDebt: number;
+  prophetName?: string;
+  scrollLink?: string;
+}

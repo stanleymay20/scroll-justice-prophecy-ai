@@ -1,123 +1,78 @@
 
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { GlassCard } from "@/components/advanced-ui/GlassCard";
-import { useLanguage } from "@/contexts/language";
-import { Scroll, Scale, FileText, Dna, Coins, Link2 } from "lucide-react";
-import { motion } from "framer-motion";
-
-interface MenuItem {
-  id: string;
-  label: string;
-  path: string;
-  icon: React.ReactNode;
-  description: string;
-}
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import { useLanguage } from '@/contexts/language';
+import { 
+  Scroll, 
+  Scale, 
+  GraduationCap, 
+  Flame, 
+  Coins,
+  LibraryBig 
+} from 'lucide-react';
 
 export const ScrollMenu = () => {
-  const navigate = useNavigate();
   const { t } = useLanguage();
   
-  const menuItems: MenuItem[] = [
+  const menuItems = [
     {
-      id: "scrollCourt",
-      label: t("scrollMenu.court", "Scroll Court"),
-      path: "/ScrollCourt",
-      icon: <Scroll className="h-6 w-6" />,
-      description: t("scrollMenu.courtDesc", "Submit a petition for justice")
+      label: t('menu.court', 'Scroll Court'),
+      icon: <Scroll className="w-4 h-4" />,
+      path: '/scroll-court'
     },
     {
-      id: "judgmentRoom",
-      label: t("scrollMenu.judgment", "Judgment Room"),
-      path: "/JudgmentRoom",
-      icon: <Scale className="h-6 w-6" />,
-      description: t("scrollMenu.judgmentDesc", "View petitions and verdicts")
+      label: t('menu.judgment', 'Judgment Room'),
+      icon: <Scale className="w-4 h-4" />,
+      path: '/judgment-room'
     },
     {
-      id: "scrollCry",
-      label: t("scrollMenu.cry", "National ScrollCry"),
-      path: "/ScrollCry",
-      icon: <FileText className="h-6 w-6" />,
-      description: t("scrollMenu.cryDesc", "Join the national declaration")
+      label: t('menu.wealth', 'ScrollWealth'),
+      icon: <Coins className="w-4 h-4" />,
+      path: '/wealth'
     },
     {
-      id: "tribunal",
-      label: t("scrollMenu.tribunal", "ScrollTribunal"),
-      path: "/Tribunal",
-      icon: <Scale className="h-6 w-6" />,
-      description: t("scrollMenu.tribunalDesc", "Global historical justice court")
+      label: t('menu.exodus', 'Exodus Map'),
+      icon: <Flame className="w-4 h-4" />,
+      path: '/exodus'
     },
     {
-      id: "scrollBack",
-      label: t("scrollMenu.scrollBack", "ScrollBack"),
-      path: "/ScrollBack",
-      icon: <Dna className="h-6 w-6" />,
-      description: t("scrollMenu.scrollBackDesc", "Ancestry restoration program")
+      label: t('menu.principles', 'Principles'),
+      icon: <GraduationCap className="w-4 h-4" />,
+      path: '/principles'
     },
     {
-      id: "wealthLedger",
-      label: t("scrollMenu.wealth", "ScrollWealth"),
-      path: "/Wealth",
-      icon: <Coins className="h-6 w-6" />,
-      description: t("scrollMenu.wealthDesc", "Sacred reparations ledger")
-    },
-    {
-      id: "witness",
-      label: t("scrollMenu.witness", "ScrollWitness"),
-      path: "/Witness",
-      icon: <Link2 className="h-6 w-6" />,
-      description: t("scrollMenu.witnessDesc", "Divine institution oversight")
+      label: t('menu.memory', 'Scroll Memory'),
+      icon: <LibraryBig className="w-4 h-4" />,
+      path: '/memory'
     }
   ];
   
-  // Define proper framer-motion variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
-  
   return (
-    <GlassCard className="p-6">
-      <h2 className="text-xl font-cinzel text-white mb-6">
-        {t("scrollMenu.title", "Sacred Scroll Justice")}
+    <div className="bg-black/30 p-3 rounded-lg border border-justice-primary/20">
+      <h2 className="text-sm font-semibold text-justice-light mb-2 px-2">
+        {t('menu.title', 'Sacred Scroll Navigation')}
       </h2>
-      
-      <motion.div 
-        className="grid gap-4"
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-      >
-        {menuItems.map((menuItem) => (
-          <motion.div key={menuItem.id} variants={itemVariants}>
-            <Button
-              onClick={() => navigate(menuItem.path)}
-              variant="outline"
-              className="w-full justify-start text-left bg-black/20 border-justice-primary/30 hover:bg-justice-primary/20 py-6"
-            >
-              <div className="mr-4 p-2 rounded-full bg-justice-primary/20">
-                {menuItem.icon}
-              </div>
-              <div>
-                <div className="font-semibold text-white">{menuItem.label}</div>
-                <div className="text-sm text-justice-light/70">{menuItem.description}</div>
-              </div>
-            </Button>
-          </motion.div>
-        ))}
-      </motion.div>
-    </GlassCard>
+      <nav>
+        <ul className="space-y-1">
+          {menuItems.map((item) => (
+            <li key={item.path}>
+              <NavLink
+                to={item.path}
+                className={({ isActive }) => 
+                  `flex items-center px-2 py-2 text-sm rounded-md transition-colors ${
+                    isActive 
+                      ? 'bg-justice-primary/20 text-white' 
+                      : 'text-justice-light hover:bg-black/20 hover:text-white'
+                  }`
+                }
+              >
+                <span className="mr-2">{item.icon}</span>
+                {item.label}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
   );
 };
-
-export default ScrollMenu;
