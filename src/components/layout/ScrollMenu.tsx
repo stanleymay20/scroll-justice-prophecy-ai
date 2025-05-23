@@ -8,7 +8,8 @@ import {
   GraduationCap, 
   Flame, 
   Coins,
-  LibraryBig 
+  LibraryBig,
+  BookOpenText
 } from 'lucide-react';
 
 export const ScrollMenu = () => {
@@ -36,7 +37,11 @@ export const ScrollMenu = () => {
       icon: <Flame className="w-4 h-4" />,
       path: '/exodus'
     },
-    // Only include routes that are implemented
+    {
+      label: t('menu.scrollCry', 'ScrollCry'),
+      icon: <BookOpenText className="w-4 h-4" />,
+      path: '/scroll-cry'
+    },
     {
       label: t('menu.dashboard', 'Dashboard'),
       icon: <GraduationCap className="w-4 h-4" />,
