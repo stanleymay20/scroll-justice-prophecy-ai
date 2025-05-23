@@ -14,6 +14,7 @@ import {
 export const ScrollMenu = () => {
   const { t } = useLanguage();
   
+  // Updated to ensure all routes exist in our application
   const menuItems = [
     {
       label: t('menu.court', 'Scroll Court'),
@@ -35,15 +36,16 @@ export const ScrollMenu = () => {
       icon: <Flame className="w-4 h-4" />,
       path: '/exodus'
     },
+    // Only include routes that are implemented
     {
-      label: t('menu.principles', 'Principles'),
+      label: t('menu.dashboard', 'Dashboard'),
       icon: <GraduationCap className="w-4 h-4" />,
-      path: '/principles'
+      path: '/'
     },
     {
-      label: t('menu.memory', 'Scroll Memory'),
+      label: t('menu.home', 'Home'),
       icon: <LibraryBig className="w-4 h-4" />,
-      path: '/memory'
+      path: '/'
     }
   ];
   
@@ -55,7 +57,7 @@ export const ScrollMenu = () => {
       <nav>
         <ul className="space-y-1">
           {menuItems.map((item) => (
-            <li key={item.path}>
+            <li key={item.path + item.label}>
               <NavLink
                 to={item.path}
                 className={({ isActive }) => 

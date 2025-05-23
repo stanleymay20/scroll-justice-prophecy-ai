@@ -3,62 +3,64 @@ import React from 'react';
 import { GlassCard } from '@/components/advanced-ui/GlassCard';
 import { GlobalExodusData } from '@/types/prophet';
 import { Flame, Scroll } from 'lucide-react';
+import { useLanguage } from '@/contexts/language';
 
-// Mock data for demo purposes
-const mockExodusData: GlobalExodusData[] = [
+// Data will come from an API in production
+const exodusData: GlobalExodusData[] = [
   {
     id: "exodus-001",
-    groupName: "African Diaspora",
-    historicalTribe: "Israelites in Egypt",
-    modernPharaoh: "Colonial Powers",
+    groupName: "Historical Group A",
+    historicalTribe: "Historical Reference A",
+    modernPharaoh: "System A",
     exodusStatus: 'Call',
-    estimatedDebt: 14000000000000,
-    prophetName: "Multiple Voices Rising",
-    scrollLink: "/scroll/exodus/african-diaspora"
+    estimatedDebt: 0,
+    prophetName: "Historical Source A",
+    scrollLink: "#"
   },
   {
     id: "exodus-002",
-    groupName: "Palestinians",
-    historicalTribe: "Canaanites",
-    modernPharaoh: "Occupying Regime",
+    groupName: "Historical Group B",
+    historicalTribe: "Historical Reference B",
+    modernPharaoh: "System B",
     exodusStatus: 'Resistance',
-    estimatedDebt: 850000000000,
-    prophetName: "Regional Witnesses",
-    scrollLink: "/scroll/exodus/palestinians"
+    estimatedDebt: 0,
+    prophetName: "Historical Source B",
+    scrollLink: "#"
   },
   {
     id: "exodus-003",
-    groupName: "Native Americans",
-    historicalTribe: "Original Stewards",
-    modernPharaoh: "Colonial States",
+    groupName: "Historical Group C",
+    historicalTribe: "Historical Reference C",
+    modernPharaoh: "System C",
     exodusStatus: 'ScrollPlague',
-    estimatedDebt: 7500000000000,
-    prophetName: "Indigenous Leaders Council",
-    scrollLink: "/scroll/exodus/native-americans"
+    estimatedDebt: 0,
+    prophetName: "Historical Source C",
+    scrollLink: "#"
   },
   {
     id: "exodus-004",
-    groupName: "Uyghurs",
-    historicalTribe: "Persecuted People",
-    modernPharaoh: "Authoritarian State",
+    groupName: "Historical Group D",
+    historicalTribe: "Historical Reference D",
+    modernPharaoh: "System D",
     exodusStatus: 'Bondage',
-    estimatedDebt: 450000000000,
-    scrollLink: "/scroll/exodus/uyghurs"
+    estimatedDebt: 0,
+    scrollLink: "#"
   },
   {
     id: "exodus-005",
-    groupName: "Haitian People",
-    historicalTribe: "First Black Republic",
-    modernPharaoh: "IMF & Global Finance",
+    groupName: "Historical Group E",
+    historicalTribe: "Historical Reference E",
+    modernPharaoh: "System E",
     exodusStatus: 'Exodus',
-    estimatedDebt: 21000000000,
-    prophetName: "Ancestral Justice Keepers",
-    scrollLink: "/scroll/exodus/haiti"
+    estimatedDebt: 0,
+    prophetName: "Historical Source E",
+    scrollLink: "#"
   }
 ];
 
-// Helper to format large currency amounts
+// Enterprise-ready formatting function
 const formatCurrency = (amount: number): string => {
+  if (amount <= 0) return "TBD";
   if (amount >= 1000000000000) {
     return `$${(amount / 1000000000000).toFixed(1)} trillion`;
   }
@@ -68,7 +70,7 @@ const formatCurrency = (amount: number): string => {
   return `$${(amount / 1000000).toFixed(1)} million`;
 };
 
-// Helper to get status color and icon
+// Helper to get status display
 const getStatusDisplay = (status: GlobalExodusData['exodusStatus']) => {
   switch (status) {
     case 'Bondage':
@@ -87,25 +89,27 @@ const getStatusDisplay = (status: GlobalExodusData['exodusStatus']) => {
 };
 
 export const ExodusComparisonMap: React.FC = () => {
+  const { t } = useLanguage();
+  
   return (
     <GlassCard className="p-6">
-      <h2 className="text-xl font-cinzel text-white mb-4">Modern Egypts vs. Exodus Scrolls</h2>
+      <h2 className="text-xl font-cinzel text-white mb-4">{t("exodus.comparisonMap", "Historical Comparison Map")}</h2>
       
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-justice-light uppercase bg-black/30">
             <tr>
-              <th scope="col" className="px-4 py-3">Oppressed Group</th>
-              <th scope="col" className="px-4 py-3">Historical Parallel</th>
-              <th scope="col" className="px-4 py-3">Modern "Pharaoh"</th>
-              <th scope="col" className="px-4 py-3">Exodus Status</th>
-              <th scope="col" className="px-4 py-3">Reparations Owed</th>
-              <th scope="col" className="px-4 py-3">Prophet</th>
-              <th scope="col" className="px-4 py-3">Action</th>
+              <th scope="col" className="px-4 py-3">{t("exodus.group", "Group")}</th>
+              <th scope="col" className="px-4 py-3">{t("exodus.reference", "Historical Reference")}</th>
+              <th scope="col" className="px-4 py-3">{t("exodus.system", "System")}</th>
+              <th scope="col" className="px-4 py-3">{t("exodus.status", "Status")}</th>
+              <th scope="col" className="px-4 py-3">{t("exodus.estimate", "Economic Impact")}</th>
+              <th scope="col" className="px-4 py-3">{t("exodus.source", "Source")}</th>
+              <th scope="col" className="px-4 py-3">{t("exodus.action", "Action")}</th>
             </tr>
           </thead>
           <tbody>
-            {mockExodusData.map((group) => {
+            {exodusData.map((group) => {
               const statusDisplay = getStatusDisplay(group.exodusStatus);
               return (
                 <tr key={group.id} className="border-b border-gray-700 hover:bg-black/20">
@@ -128,14 +132,14 @@ export const ExodusComparisonMap: React.FC = () => {
                     {formatCurrency(group.estimatedDebt)}
                   </td>
                   <td className="px-4 py-3 text-justice-light">
-                    {group.prophetName || "Awaiting Call"}
+                    {group.prophetName || "Pending Analysis"}
                   </td>
                   <td className="px-4 py-3">
                     <a 
                       href={group.scrollLink}
                       className="text-xs px-3 py-1 bg-justice-primary/20 hover:bg-justice-primary/40 text-justice-light rounded transition-colors"
                     >
-                      View Scroll
+                      {t("exodus.viewDetails", "View Details")}
                     </a>
                   </td>
                 </tr>
@@ -146,7 +150,7 @@ export const ExodusComparisonMap: React.FC = () => {
       </div>
       
       <div className="mt-6 pt-4 border-t border-gray-700/30">
-        <h3 className="text-md font-semibold text-white mb-2">Exodus Journey Visual</h3>
+        <h3 className="text-md font-semibold text-white mb-2">{t("exodus.timeline", "Historical Timeline")}</h3>
         
         <div className="grid grid-cols-5 gap-2 md:gap-4">
           {['Bondage', 'Call', 'Resistance', 'ScrollPlague', 'Exodus'].map((stage, index) => (
@@ -164,7 +168,7 @@ export const ExodusComparisonMap: React.FC = () => {
         </div>
         
         <div className="mt-4 text-xs text-justice-light/70">
-          <p>The Red Sea meter fills as each group progresses through their Exodus journey. Scroll flames appear during divine intervention phases.</p>
+          <p>{t("exodus.timelineDescription", "The timeline illustrates progression phases through historical reconciliation processes.")}</p>
         </div>
       </div>
     </GlassCard>

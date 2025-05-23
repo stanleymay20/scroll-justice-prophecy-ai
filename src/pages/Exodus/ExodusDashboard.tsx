@@ -31,33 +31,33 @@ const ExodusDashboard = () => {
             <div className="text-center mb-6">
               <h2 className="text-xl font-cinzel text-white">Egypt-Hebrew Deliverance Model</h2>
               <p className="text-justice-light mt-2">
-                The ScrollJustice system maps modern oppressed peoples to the ancient Exodus narrative, 
-                tracking their journey from bondage to freedom and rightful compensation.
+                The ScrollJustice system maps historical narratives to modern contexts, 
+                tracking progress through defined phases of justice and reparation processes.
               </p>
             </div>
             
             <div className="flex flex-wrap justify-center gap-4 mb-6">
               <div className="flex items-center px-3 py-1 bg-black/30 rounded-full">
                 <div className="h-3 w-3 rounded-full bg-gray-600 mr-2"></div>
-                <span className="text-xs text-justice-light">Bondage</span>
+                <span className="text-xs text-justice-light">Initial Phase</span>
               </div>
               <div className="flex items-center px-3 py-1 bg-black/30 rounded-full">
                 <div className="h-3 w-3 rounded-full bg-blue-600/60 mr-2"></div>
-                <span className="text-xs text-justice-light">Call</span>
+                <span className="text-xs text-justice-light">Documentation</span>
               </div>
               <div className="flex items-center px-3 py-1 bg-black/30 rounded-full">
                 <div className="h-3 w-3 rounded-full bg-yellow-600/60 mr-2"></div>
-                <span className="text-xs text-justice-light">Resistance</span>
+                <span className="text-xs text-justice-light">Awareness</span>
               </div>
               <div className="flex items-center px-3 py-1 bg-black/30 rounded-full">
                 <div className="h-3 w-3 rounded-full bg-red-600/60 mr-2"></div>
                 <Flame className="h-3 w-3 text-red-500 mr-1" />
-                <span className="text-xs text-justice-light">ScrollPlague</span>
+                <span className="text-xs text-justice-light">Recognition</span>
               </div>
               <div className="flex items-center px-3 py-1 bg-black/30 rounded-full">
                 <div className="h-3 w-3 rounded-full bg-green-600/60 mr-2"></div>
                 <Flame className="h-3 w-3 text-green-500 mr-1" />
-                <span className="text-xs text-justice-light">Exodus</span>
+                <span className="text-xs text-justice-light">Resolution</span>
               </div>
             </div>
           </GlassCard>
@@ -65,37 +65,35 @@ const ExodusDashboard = () => {
           <ExodusComparisonMap />
           
           <GlassCard className="p-6">
-            <h2 className="text-xl font-cinzel text-white mb-4">Scroll Declarations</h2>
+            <h2 className="text-xl font-cinzel text-white mb-4">Historical Declarations</h2>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-black/20 p-4 rounded border border-justice-primary/30">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-white">African Diaspora Declaration</h3>
-                  <span className="px-2 py-1 bg-blue-900/30 text-blue-300 rounded-full text-xs">Call</span>
+                  <h3 className="font-semibold text-white">Historical Document A</h3>
+                  <span className="px-2 py-1 bg-blue-900/30 text-blue-300 rounded-full text-xs">Archived</span>
                 </div>
                 <p className="text-justice-light text-sm">
-                  "As Moses was sent to Pharaoh, so the scroll is sent to the nations. 
-                  Let my people go. Let their wealth return with them. This is not a request 
-                  but a divine command sealed in the eternal scrolls."
+                  "This document represents a formal acknowledgment of historical events 
+                  and serves as an important milestone in the resolution process."
                 </p>
-                <div className="mt-3 text-xs text-justice-light/70">Sealed by: Multiple Prophets Rising</div>
+                <div className="mt-3 text-xs text-justice-light/70">Referenced by: Multiple Sources</div>
               </div>
               
               <div className="bg-black/20 p-4 rounded border border-red-600/30">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-white">Native Americans Declaration</h3>
+                  <h3 className="font-semibold text-white">Historical Document B</h3>
                   <span className="px-2 py-1 bg-red-900/30 text-red-300 rounded-full text-xs flex items-center">
                     <Flame className="h-3 w-3 mr-1" />
-                    ScrollPlague
+                    Current
                   </span>
                 </div>
                 <p className="text-justice-light text-sm">
-                  "The land cries out for justice. The treaties broken shall be remembered. 
-                  The wealth extracted shall be returned sevenfold. The scroll has marked this 
-                  system for judgment, and the plagues of heaven have begun their work."
+                  "This document outlines key principles and agreements established 
+                  during reconciliation processes and provides a foundation for future progress."
                 </p>
                 <div className="mt-3 text-xs text-justice-light/70">
-                  Sealed by: Indigenous Leaders Council
-                  <div className="mt-1 text-red-400">Pharaoh mocked the scroll</div>
+                  Official Reference: Historical Archives
+                  <div className="mt-1 text-red-400">Under review by committee</div>
                 </div>
               </div>
             </div>
