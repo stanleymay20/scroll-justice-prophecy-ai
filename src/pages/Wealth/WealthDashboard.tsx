@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavBar } from '@/components/layout/NavBar';
 import { MetaTags } from '@/components/MetaTags';
 import { GlassCard } from '@/components/advanced-ui/GlassCard';
@@ -11,6 +11,9 @@ import {
   Link, 
   BarChart 
 } from 'lucide-react';
+import { useLanguage } from '@/contexts/language';
+import { useAuth } from '@/contexts/AuthContext';
+import { ScrollWealthDebt } from '@/types/wealth';
 
 // Mock data for demo purposes
 const mockDebts: ScrollWealthDebt[] = [
