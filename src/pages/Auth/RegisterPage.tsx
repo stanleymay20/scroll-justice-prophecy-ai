@@ -16,27 +16,46 @@ const RegisterPage = () => {
     password: '',
     confirmPassword: ''
   });
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.fullName || !formData.email || !formData.password) {
+  const validateForm = () => {
+    if (!formData.fullName.trim()) {
+      toast({
+        title: "Sacred Challenge",
+        description: "Please enter your full name",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.email || !formData.password) {
       toast({
         title: "Sacred Challenge",
         description: "Please fill in all required fields",
         variant: "destructive"
       });
-      return;
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        title: "Sacred Challenge",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive"
+      });
+      return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -45,16 +64,7 @@ const RegisterPage = () => {
         description: "Passwords do not match",
         variant: "destructive"
       });
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast({
-        title: "Sacred Challenge",
-        description: "Password must be at least 6 characters",
-        variant: "destructive"
-      });
-      return;
+      return false;
     }
 
     if (!acceptTerms) {
@@ -63,21 +73,30 @@ const RegisterPage = () => {
         description: "Please accept the terms and conditions",
         variant: "destructive"
       });
-      return;
+      return false;
     }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
 
     setIsLoading(true);
     try {
       await signUp(formData.email, formData.password);
       toast({
-        title: "Welcome to ScrollJustice",
-        description: "Please check your email to verify your account",
+        title: "Sacred Account Created",
+        description: "Welcome to ScrollJustice! Please check your email for verification.",
       });
       navigate('/login');
     } catch (error: any) {
+      console.error('Registration error:', error);
       toast({
-        title: "Sacred Challenge Rejected",
-        description: error.message || "Registration failed. Please try again.",
+        title: "Sacred Challenge Failed",
+        description: error.message || "Failed to create account. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -105,9 +124,10 @@ const RegisterPage = () => {
               </label>
               <Input
                 id="fullName"
+                name="fullName"
                 type="text"
                 value={formData.fullName}
-                onChange={(e) => handleInputChange('fullName', e.target.value)}
+                onChange={handleChange}
                 placeholder="Enter your full name"
                 className="bg-black/20 border-justice-primary/30 text-white"
                 required
@@ -120,9 +140,10 @@ const RegisterPage = () => {
               </label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
+                onChange={handleChange}
                 placeholder="your@email.com"
                 className="bg-black/20 border-justice-primary/30 text-white"
                 required
@@ -136,10 +157,11 @@ const RegisterPage = () => {
               <div className="relative">
                 <Input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  placeholder="Create a strong password"
+                  onChange={handleChange}
+                  placeholder="Create a secure password"
                   className="bg-black/20 border-justice-primary/30 text-white pr-10"
                   required
                 />
@@ -160,9 +182,10 @@ const RegisterPage = () => {
               <div className="relative">
                 <Input
                   id="confirmPassword"
+                  name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  onChange={handleChange}
                   placeholder="Confirm your password"
                   className="bg-black/20 border-justice-primary/30 text-white pr-10"
                   required
@@ -181,16 +204,16 @@ const RegisterPage = () => {
               <Checkbox
                 id="terms"
                 checked={acceptTerms}
-                onCheckedChange={setAcceptTerms}
+                onCheckedChange={(checked) => setAcceptTerms(checked === true)}
                 className="mt-1"
               />
-              <label htmlFor="terms" className="text-sm text-justice-light">
+              <label htmlFor="terms" className="text-sm text-justice-light leading-relaxed">
                 I accept the{" "}
-                <Link to="/terms" className="text-justice-primary hover:text-justice-tertiary">
+                <Link to="/terms" className="text-justice-primary hover:text-justice-tertiary underline">
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link to="/privacy" className="text-justice-primary hover:text-justice-tertiary">
+                <Link to="/privacy" className="text-justice-primary hover:text-justice-tertiary underline">
                   Privacy Policy
                 </Link>
               </label>
@@ -201,18 +224,18 @@ const RegisterPage = () => {
               className="w-full bg-justice-primary hover:bg-justice-tertiary"
               disabled={isLoading}
             >
-              {isLoading ? "Joining Sacred Order..." : "Join Sacred Order"}
+              {isLoading ? "Creating Sacred Account..." : "Join the Sacred Order"}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-justice-light">
-              Already a member?{" "}
+              Already have a sacred account?{" "}
               <Link
                 to="/login"
                 className="text-justice-primary hover:text-justice-tertiary font-medium"
               >
-                Enter Here
+                Sign In
               </Link>
             </p>
           </div>

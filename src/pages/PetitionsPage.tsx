@@ -33,14 +33,31 @@ const PetitionsPage = () => {
     if (!user) return;
 
     try {
+      console.log('Fetching petitions for user:', user.id);
+      
       const { data, error } = await supabase
-        .from('petitions')
+        .from('scroll_petitions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('petitioner_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setPetitions(data || []);
+      if (error) {
+        console.error('Error fetching petitions:', error);
+        throw error;
+      }
+
+      console.log('Fetched petitions:', data);
+      
+      // Transform the data to match our interface
+      const transformedPetitions = data?.map(p => ({
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        status: p.status || 'pending',
+        created_at: p.created_at
+      })) || [];
+      
+      setPetitions(transformedPetitions);
     } catch (error: any) {
       console.error('Error fetching petitions:', error);
       toast({
@@ -66,16 +83,21 @@ const PetitionsPage = () => {
 
     setSubmitting(true);
     try {
+      console.log('Submitting petition:', formData);
+      
       const { error } = await supabase
-        .from('petitions')
+        .from('scroll_petitions')
         .insert({
-          user_id: user.id,
+          petitioner_id: user.id,
           title: formData.title.trim(),
           description: formData.description.trim(),
           status: 'pending'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error submitting petition:', error);
+        throw error;
+      }
 
       toast({
         title: "Sacred Petition Submitted",
@@ -84,12 +106,12 @@ const PetitionsPage = () => {
 
       setFormData({ title: '', description: '' });
       setShowForm(false);
-      fetchPetitions();
+      fetchPetitions(); // Refresh the list
     } catch (error: any) {
       console.error('Error submitting petition:', error);
       toast({
         title: "Sacred Error",
-        description: "Failed to submit petition",
+        description: error.message || "Failed to submit petition",
         variant: "destructive"
       });
     } finally {
