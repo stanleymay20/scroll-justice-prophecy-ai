@@ -86,7 +86,7 @@ const RegisterPage = () => {
 
     setIsLoading(true);
     try {
-      await signUp(formData.email, formData.password);
+      await signUp(formData.email, formData.password, formData.fullName);
       toast({
         title: "Sacred Account Created",
         description: "Welcome to ScrollJustice! Please check your email for verification.",
