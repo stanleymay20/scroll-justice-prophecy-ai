@@ -7,10 +7,15 @@ import { toast } from "@/hooks/use-toast";
 type AuthContextType = {
   session: Session | null;
   user: User | null;
+  userRole: string | null;
+  subscriptionTier: string | null;
+  subscriptionStatus: string | null;
+  subscriptionEnd: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
+  checkSubscriptionStatus: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,12 +25,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     console.log("Auth Provider initialized");
     
-    // Set up the auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log("Auth state changed:", session?.user?.email);
       setSession(session);
@@ -33,7 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setLoading(false);
     });
 
-    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session:", session?.user?.email);
       setSession(session);
@@ -48,6 +55,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       subscription.unsubscribe();
     };
   }, []);
+
+  const checkSubscriptionStatus = async () => {
+    // Mock implementation for now
+    setSubscriptionTier('basic');
+    setSubscriptionStatus('active');
+    setSubscriptionEnd(null);
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -125,10 +139,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         session,
         user,
+        userRole,
+        subscriptionTier,
+        subscriptionStatus,
+        subscriptionEnd,
         signIn,
         signUp,
         signOut,
         loading,
+        checkSubscriptionStatus,
       }}
     >
       {children}
