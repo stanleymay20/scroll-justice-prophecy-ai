@@ -115,22 +115,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
-        .from('scroll_subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .single();
-      
-      if (data) {
-        setSubscriptionTier(data.plan);
-        setSubscriptionStatus(data.status);
-        setSubscriptionEnd(data.current_period_end);
-      } else {
-        setSubscriptionTier('free');
-        setSubscriptionStatus('inactive');
-        setSubscriptionEnd(null);
-      }
+      // Mock subscription check for now
+      setSubscriptionTier('free');
+      setSubscriptionStatus('inactive');
+      setSubscriptionEnd(null);
     } catch (error) {
       console.error('Error checking subscription:', error);
       setSubscriptionTier('free');
