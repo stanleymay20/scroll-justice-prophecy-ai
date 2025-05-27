@@ -1,350 +1,366 @@
 
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Brain, Globe, Database, BookOpen, FileText, Languages } from "lucide-react";
-import { TrainingParameters, LegalFrameworkFocus, Jurisdiction } from "@/types";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
+import { TrainingParameters, Jurisdiction, LegalFrameworkFocus } from '@/types';
+import { Brain, Gavel, Globe, Settings, Shield, Zap } from 'lucide-react';
 
 interface EnhancedTrainingFormProps {
-  availableJurisdictions: Jurisdiction[];
-  onStartTraining: (params: TrainingParameters) => void;
+  onSubmit: (params: TrainingParameters) => void;
+  loading?: boolean;
 }
 
-export function EnhancedTrainingForm({ availableJurisdictions, onStartTraining }: EnhancedTrainingFormProps) {
-  const [trainingParams, setTrainingParams] = useState<TrainingParameters>({
-    name: "Global Legal AI v1.0",
-    jurisdictions: ["US", "UK", "CA", "UN", "ICC"],
-    principles: ["Equal Protection", "Right to Privacy", "Human Rights", "Rule of Law"],
-    case_count: 10000,
-    epochs: 150,
-    learning_rate: 0.001,
-    balance_jurisdictions: true,
-    include_scroll_alignment: true,
-    include_international_law: true,
-    un_charter_compliance: true,
-    icc_rome_statute_compliance: true,
-    human_rights_emphasis: 0.8,
-    language_weighting: {
-      "en": 1.0,
-      "fr": 0.9,
-      "es": 0.9,
-      "ar": 0.8,
-      "zh": 0.8,
-      "ru": 0.8
-    },
-    legal_framework_focus: [
-      { name: "UN Charter", weight: 0.9, description: "United Nations foundational principles" },
-      { name: "UDHR", weight: 1.0, description: "Universal Declaration of Human Rights" },
-      { name: "Rome Statute", weight: 0.85, description: "International Criminal Court foundation" },
-      { name: "ICCPR", weight: 0.8, description: "International Covenant on Civil and Political Rights" },
-      { name: "ICESCR", weight: 0.8, description: "International Covenant on Economic, Social and Cultural Rights" }
-    ]
-  });
+const initialParams: TrainingParameters = {
+  name: 'ScrollJustice AI Model',
+  jurisdictions: [],
+  legalFrameworks: mockFrameworks,
+  legal_framework_focus: mockFrameworks,
+  accuracy_threshold: 85,
+  bias_detection: true,
+  multilingual: true,
+  case_count: 10000,
+  language_weighting: {
+    'en': 40,
+    'de': 20,
+    'fr': 15,
+    'es': 10,
+    'ar': 10,
+    'he': 5
+  },
+  epochs: 100,
+  learning_rate: 0.001,
+  human_rights_emphasis: true,
+  balance_jurisdictions: true,
+  include_scroll_alignment: true
+};
 
-  const handleJurisdictionToggle = (code: string) => {
-    setTrainingParams(prev => {
-      const newJurisdictions = prev.jurisdictions.includes(code)
-        ? prev.jurisdictions.filter(j => j !== code)
-        : [...prev.jurisdictions, code];
-      
-      return { ...prev, jurisdictions: newJurisdictions };
-    });
+const mockJurisdictions: Jurisdiction[] = [
+  { id: '1', code: 'US', name: 'United States', country: 'United States', region: 'North America', legal_system: 'Common Law', supported: true },
+  { id: '2', code: 'DE', name: 'Germany', country: 'Germany', region: 'Europe', legal_system: 'Civil Law', supported: true },
+  { id: '3', code: 'FR', name: 'France', country: 'France', region: 'Europe', legal_system: 'Civil Law', supported: true },
+  { id: '4', code: 'UK', name: 'United Kingdom', country: 'United Kingdom', region: 'Europe', legal_system: 'Common Law', supported: true },
+  { id: '5', code: 'JP', name: 'Japan', country: 'Japan', region: 'Asia', legal_system: 'Civil Law', supported: true },
+];
+
+const mockFrameworks: LegalFrameworkFocus[] = [
+  { id: '1', name: 'Constitutional Law', weight: 90, enabled: true },
+  { id: '2', name: 'Human Rights', weight: 95, enabled: true },
+  { id: '3', name: 'Employment Law', weight: 80, enabled: true },
+  { id: '4', name: 'Contract Law', weight: 75, enabled: true },
+  { id: '5', name: 'Criminal Law', weight: 85, enabled: true },
+];
+
+export const EnhancedTrainingForm: React.FC<EnhancedTrainingFormProps> = ({ 
+  onSubmit, 
+  loading = false 
+}) => {
+  const [params, setParams] = useState<TrainingParameters>(initialParams);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(params);
   };
 
-  const handleLegalFrameworkWeightChange = (name: string, weight: number) => {
-    setTrainingParams(prev => {
-      const updatedFrameworks = prev.legal_framework_focus?.map(framework => 
-        framework.name === name ? { ...framework, weight } : framework
-      ) || [];
-      
-      return { ...prev, legal_framework_focus: updatedFrameworks };
-    });
+  const updateFramework = (id: string, updates: Partial<LegalFrameworkFocus>) => {
+    setParams(prev => ({
+      ...prev,
+      legal_framework_focus: prev.legal_framework_focus.map(framework =>
+        framework.id === id ? { ...framework, ...updates } : framework
+      )
+    }));
   };
 
-  const handleSubmit = () => {
-    onStartTraining(trainingParams);
-  };
-
-  // Group jurisdictions by region for easier selection
-  const jurisdictionsByRegion = availableJurisdictions.reduce((acc, jurisdiction) => {
-    if (!acc[jurisdiction.region]) {
-      acc[jurisdiction.region] = [];
-    }
-    acc[jurisdiction.region].push(jurisdiction);
-    return acc;
-  }, {} as Record<string, Jurisdiction[]>);
+  const regions = [...new Set(mockJurisdictions.map(j => j.region))];
+  const getJurisdictionsByRegion = (region: string) => 
+    mockJurisdictions.filter(j => j.region === region);
 
   return (
-    <Card className="border-justice-tertiary bg-transparent">
-      <CardHeader className="border-b border-justice-dark">
-        <CardTitle className="flex items-center">
-          <Brain className="mr-2 h-5 w-5" />
-          Global Legal AI Model Training
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground block mb-1">
-                Model Name
-              </label>
-              <Input 
-                placeholder="Enter model name..." 
-                value={trainingParams.name || ""}
-                className="bg-justice-dark/50 border-justice-tertiary text-white"
-                onChange={(e) => setTrainingParams(prev => ({...prev, name: e.target.value}))}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            Model Configuration
+          </CardTitle>
+          <CardDescription>
+            Configure the basic parameters for your AI legal model
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="model-name">Model Name</Label>
+            <Input
+              id="model-name"
+              value={params.name}
+              onChange={(e) => setParams(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Enter model name"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="case-count">Training Case Count</Label>
+            <Input
+              id="case-count"
+              type="number"
+              value={params.case_count}
+              onChange={(e) => setParams(prev => ({ ...prev, case_count: parseInt(e.target.value) }))}
+              min="1000"
+              max="100000"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="accuracy">Minimum Accuracy Threshold (%)</Label>
+            <div className="flex items-center space-x-4">
+              <Slider
+                value={[params.accuracy_threshold]}
+                onValueChange={([value]) => setParams(prev => ({ ...prev, accuracy_threshold: value }))}
+                max={100}
+                min={50}
+                step={1}
+                className="flex-1"
               />
+              <span className="w-12 text-sm">{params.accuracy_threshold}%</span>
             </div>
-            
-            <div>
-              <label className="text-sm font-medium text-muted-foreground block mb-1">
-                <Globe className="inline-block mr-1 h-4 w-4" />
-                Jurisdictions Coverage
-              </label>
-              <div className="max-h-44 overflow-y-auto p-2 bg-justice-dark/50 border border-justice-tertiary rounded-md">
-                {Object.entries(jurisdictionsByRegion).map(([region, jurisdictions]) => (
-                  <div key={region} className="mb-3">
-                    <div className="text-xs uppercase text-muted-foreground mb-1">{region}</div>
-                    <div className="flex flex-wrap gap-2">
-                      {jurisdictions.map(jurisdiction => (
-                        <Badge 
-                          key={jurisdiction.id}
-                          variant={trainingParams.jurisdictions.includes(jurisdiction.code) ? "default" : "outline"}
-                          className={`cursor-pointer ${trainingParams.jurisdictions.includes(jurisdiction.code) ? 'bg-justice-primary' : ''}`}
-                          onClick={() => handleJurisdictionToggle(jurisdiction.code)}
-                        >
-                          {jurisdiction.code} - {jurisdiction.name}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue="jurisdictions" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="jurisdictions">
+            <Globe className="h-4 w-4 mr-2" />
+            Jurisdictions
+          </TabsTrigger>
+          <TabsTrigger value="frameworks">
+            <Gavel className="h-4 w-4 mr-2" />
+            Legal Frameworks
+          </TabsTrigger>
+          <TabsTrigger value="languages">
+            <Zap className="h-4 w-4 mr-2" />
+            Languages
+          </TabsTrigger>
+          <TabsTrigger value="advanced">
+            <Settings className="h-4 w-4 mr-2" />
+            Advanced
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="jurisdictions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Select Training Jurisdictions</CardTitle>
+              <CardDescription>
+                Choose which legal jurisdictions to include in the training dataset
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {regions.map(region => (
+                <div key={region} className="mb-6">
+                  <h4 className="font-medium mb-3">{region}</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {getJurisdictionsByRegion(region).map(jurisdiction => (
+                      <Label
+                        key={jurisdiction.id}
+                        className="flex items-center space-x-2 cursor-pointer p-2 border rounded hover:bg-gray-50"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={params.jurisdictions.includes(jurisdiction.code)}
+                          onChange={(e) => {
+                            const codes = e.target.checked
+                              ? [...params.jurisdictions, jurisdiction.code]
+                              : params.jurisdictions.filter(c => c !== jurisdiction.code);
+                            setParams(prev => ({ ...prev, jurisdictions: codes }));
+                          }}
+                        />
+                        <span>{jurisdiction.name}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {jurisdiction.legal_system}
                         </Badge>
-                      ))}
+                      </Label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="frameworks" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Legal Framework Emphasis</CardTitle>
+              <CardDescription>
+                Adjust the importance weighting for different areas of law
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {params.legal_framework_focus.map(framework => (
+                  <div key={framework.id} className="flex items-center justify-between p-3 border rounded">
+                    <div className="flex items-center space-x-3">
+                      <Switch
+                        checked={framework.enabled}
+                        onCheckedChange={(enabled) => updateFramework(framework.id, { enabled })}
+                      />
+                      <span className="font-medium">{framework.name}</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Slider
+                        value={[framework.weight]}
+                        onValueChange={([weight]) => updateFramework(framework.id, { weight })}
+                        max={100}
+                        min={0}
+                        step={5}
+                        className="w-32"
+                        disabled={!framework.enabled}
+                      />
+                      <span className="w-10 text-sm">{framework.weight}%</span>
                     </div>
                   </div>
                 ))}
-                <div className="mt-2 text-xs text-muted-foreground">
-                  {trainingParams.jurisdictions.length} jurisdictions selected
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="languages" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Language Training Weights</CardTitle>
+              <CardDescription>
+                Set the percentage of training data for each language
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {Object.entries(params.language_weighting).map(([lang, weight]) => (
+                  <div key={lang} className="flex items-center justify-between">
+                    <Label className="capitalize">{lang === 'en' ? 'English' : lang === 'de' ? 'German' : lang === 'fr' ? 'French' : lang === 'es' ? 'Spanish' : lang === 'ar' ? 'Arabic' : 'Hebrew'}</Label>
+                    <div className="flex items-center space-x-3">
+                      <Slider
+                        value={[weight]}
+                        onValueChange={([newWeight]) => {
+                          setParams(prev => ({
+                            ...prev,
+                            language_weighting: {
+                              ...prev.language_weighting,
+                              [lang]: newWeight
+                            }
+                          }));
+                        }}
+                        max={50}
+                        min={0}
+                        step={5}
+                        className="w-32"
+                      />
+                      <span className="w-10 text-sm">{weight}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="advanced" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Advanced Training Parameters</CardTitle>
+              <CardDescription>
+                Fine-tune the model training process
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label htmlFor="epochs">Training Epochs</Label>
+                <Input
+                  id="epochs"
+                  type="number"
+                  value={params.epochs}
+                  onChange={(e) => setParams(prev => ({ ...prev, epochs: parseInt(e.target.value) }))}
+                  min="10"
+                  max="1000"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="learning-rate">Learning Rate</Label>
+                <Input
+                  id="learning-rate"
+                  type="number"
+                  step="0.0001"
+                  value={params.learning_rate}
+                  onChange={(e) => setParams(prev => ({ ...prev, learning_rate: parseFloat(e.target.value) }))}
+                  min="0.0001"
+                  max="0.1"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Human Rights Emphasis</Label>
+                  <Switch
+                    checked={params.human_rights_emphasis}
+                    onCheckedChange={(human_rights_emphasis) => 
+                      setParams(prev => ({ ...prev, human_rights_emphasis }))
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label>Balance Jurisdictions</Label>
+                  <Switch
+                    checked={params.balance_jurisdictions}
+                    onCheckedChange={(balance_jurisdictions) => setParams(prev => ({ ...prev, balance_jurisdictions }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label>Include Scroll Alignment</Label>
+                  <Switch
+                    checked={params.include_scroll_alignment}
+                    onCheckedChange={(include_scroll_alignment) => setParams(prev => ({ ...prev, include_scroll_alignment }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label>Bias Detection</Label>
+                  <Switch
+                    checked={params.bias_detection}
+                    onCheckedChange={(bias_detection) => setParams(prev => ({ ...prev, bias_detection }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label>Multilingual Support</Label>
+                  <Switch
+                    checked={params.multilingual}
+                    onCheckedChange={(multilingual) => setParams(prev => ({ ...prev, multilingual }))}
+                  />
                 </div>
               </div>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-muted-foreground block mb-1">
-                <Database className="inline-block mr-1 h-4 w-4" />
-                Training Dataset Size
-              </label>
-              <Select 
-                value={trainingParams.case_count.toString()} 
-                onValueChange={(val) => setTrainingParams({...trainingParams, case_count: parseInt(val)})}
-              >
-                <SelectTrigger className="bg-justice-dark/50 border-justice-tertiary">
-                  <SelectValue placeholder="Select size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5000">Small (5,000 cases)</SelectItem>
-                  <SelectItem value="10000">Medium (10,000 cases)</SelectItem>
-                  <SelectItem value="25000">Large (25,000 cases)</SelectItem>
-                  <SelectItem value="50000">Comprehensive (50,000 cases)</SelectItem>
-                  <SelectItem value="100000">Global Coverage (100,000 cases)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-            <div>
-              <label className="text-sm font-medium text-muted-foreground block mb-1">
-                <Languages className="inline-block mr-1 h-4 w-4" />
-                Language Support Priority
-              </label>
-              <div className="space-y-2 bg-justice-dark/50 p-2 rounded-md">
-                {Object.entries(trainingParams.language_weighting || {}).map(([lang, weight]) => (
-                  <div key={lang} className="flex items-center justify-between">
-                    <span className="text-sm">{getLanguageName(lang)}</span>
-                    <div className="flex items-center gap-2">
-                      <Slider
-                        value={[weight * 100]}
-                        min={0}
-                        max={100}
-                        step={5}
-                        className="w-24"
-                        onValueChange={(val) => setTrainingParams({
-                          ...trainingParams, 
-                          language_weighting: {
-                            ...(trainingParams.language_weighting || {}),
-                            [lang]: val[0] / 100
-                          }
-                        })}
-                      />
-                      <span className="w-8 text-xs">{(weight * 100).toFixed(0)}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground block mb-1">
-                <BookOpen className="inline-block mr-1 h-4 w-4" />
-                International Legal Frameworks
-              </label>
-              <div className="max-h-44 overflow-y-auto p-2 bg-justice-dark/50 border border-justice-tertiary rounded-md">
-                {trainingParams.legal_framework_focus?.map((framework) => (
-                  <div key={framework.name} className="mb-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm">{framework.name}</div>
-                        <div className="text-xs text-muted-foreground">{framework.description}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Slider
-                          value={[framework.weight * 100]}
-                          min={0}
-                          max={100}
-                          step={5}
-                          className="w-24"
-                          onValueChange={(val) => handleLegalFrameworkWeightChange(
-                            framework.name, 
-                            val[0] / 100
-                          )}
-                        />
-                        <span className="w-8 text-xs">{(framework.weight * 100).toFixed(0)}%</span>
-                      </div>
-                    </div>
-                    <Separator className="my-2" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground block mb-1">
-                  Training Epochs
-                </label>
-                <Input 
-                  type="number"
-                  value={trainingParams.epochs}
-                  min="50"
-                  max="500"
-                  className="bg-justice-dark/50 border-justice-tertiary text-white"
-                  onChange={(e) => setTrainingParams({...trainingParams, epochs: parseInt(e.target.value)})}
-                />
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-muted-foreground block mb-1">
-                  Learning Rate
-                </label>
-                <Input 
-                  type="number"
-                  value={trainingParams.learning_rate}
-                  step="0.0001"
-                  min="0.0001"
-                  max="0.01"
-                  className="bg-justice-dark/50 border-justice-tertiary text-white"
-                  onChange={(e) => setTrainingParams({...trainingParams, learning_rate: parseFloat(e.target.value)})}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-muted-foreground block mb-1">
-                Human Rights Emphasis
-              </label>
-              <div className="flex items-center gap-2">
-                <Slider
-                  value={[trainingParams.human_rights_emphasis * 100]}
-                  min={0}
-                  max={100}
-                  step={5}
-                  className="flex-1"
-                  onValueChange={(val) => setTrainingParams({
-                    ...trainingParams, 
-                    human_rights_emphasis: val[0] / 100
-                  })}
-                />
-                <span className="w-12 text-sm">{(trainingParams.human_rights_emphasis * 100).toFixed(0)}%</span>
-              </div>
-            </div>
-            
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-muted-foreground">
-                  Balance Jurisdictions
-                </label>
-                <Switch 
-                  checked={trainingParams.balance_jurisdictions}
-                  onCheckedChange={(val) => setTrainingParams({...trainingParams, balance_jurisdictions: val})}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-muted-foreground">
-                  Include Scroll Alignment
-                </label>
-                <Switch 
-                  checked={trainingParams.include_scroll_alignment}
-                  onCheckedChange={(val) => setTrainingParams({...trainingParams, include_scroll_alignment: val})}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-muted-foreground">
-                  UN Charter Compliance
-                </label>
-                <Switch 
-                  checked={trainingParams.un_charter_compliance}
-                  onCheckedChange={(val) => setTrainingParams({...trainingParams, un_charter_compliance: val})}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-muted-foreground">
-                  ICC Rome Statute Compliance
-                </label>
-                <Switch 
-                  checked={trainingParams.icc_rome_statute_compliance}
-                  onCheckedChange={(val) => setTrainingParams({...trainingParams, icc_rome_statute_compliance: val})}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-      <CardFooter className="border-t border-justice-dark pt-4">
-        <Button 
-          className="w-full bg-justice-primary hover:bg-justice-secondary"
-          onClick={handleSubmit}
-        >
-          <Brain className="mr-2 h-5 w-5" />
-          Start Global Legal AI Training
+      <div className="flex justify-end space-x-4">
+        <Button type="button" variant="outline">
+          Save Draft
         </Button>
-      </CardFooter>
-    </Card>
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Training...' : 'Start Training'}
+        </Button>
+      </div>
+    </form>
   );
-}
-
-function getLanguageName(code: string): string {
-  const languages: Record<string, string> = {
-    "en": "English",
-    "fr": "French",
-    "es": "Spanish",
-    "ar": "Arabic",
-    "zh": "Chinese",
-    "ru": "Russian",
-    "de": "German",
-    "pt": "Portuguese",
-    "ja": "Japanese",
-    "ko": "Korean",
-    "it": "Italian",
-    "nl": "Dutch"
-  };
-  
-  return languages[code] || code;
-}
+};

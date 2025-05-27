@@ -44,10 +44,12 @@ export const AppRoutes = () => {
   return (
     <TooltipProvider>
       <Routes>
-        {/* Default route - redirect to login if not authenticated */}
+        {/* Default route - redirect based on auth state */}
         <Route 
           path="/" 
-          element={<Navigate to="/login" replace />} 
+          element={
+            user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+          } 
         />
         
         {/* Public Routes */}
@@ -118,7 +120,7 @@ export const AppRoutes = () => {
           </ProtectedRoute>
         } />
         
-        {/* Catch-all route */}
+        {/* Catch-all route - redirect to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </TooltipProvider>

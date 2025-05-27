@@ -1,63 +1,64 @@
 
-import { mainNavItems, SidebarNav } from "@/components/ui/sidebar-nav";
-import { ScrollPhase, ScrollGate } from "@/types";
-import { CompactEHourClock } from "@/components/scroll-time/CompactEHourClock";
+import { ScrollPhase } from "@/types";
 
-interface SidebarProps {
-  currentPhase: ScrollPhase;
-  currentGate: ScrollGate;
-}
+const mockScrollData = {
+  currentPhase: "DAWN" as ScrollPhase,
+  currentGate: 3,
+  phaseProgress: 65
+};
 
-export function Sidebar({ currentPhase, currentGate }: SidebarProps) {
-  // Get background color based on current phase
-  const getPhaseColor = (phase: ScrollPhase) => {
+const getPhaseIcon = (phase: ScrollPhase) => {
+  switch (phase) {
+    case "DAWN":
+      return "🌅";
+    case "RISE":
+      return "☀️";
+    case "ASCEND":
+      return "🌟";
+    default:
+      return "🌅";
+  }
+};
+
+const getPhaseColor = (phase: ScrollPhase, current: ScrollPhase) => {
+  if (phase === current) {
     switch (phase) {
       case "DAWN":
-        return "bg-gradient-to-b from-scroll-dawn/30 to-justice-dark";
+        return "text-yellow-400 bg-yellow-400/10";
       case "RISE":
-        return "bg-gradient-to-b from-scroll-rise/30 to-justice-dark";
+        return "text-orange-400 bg-orange-400/10";
       case "ASCEND":
-        return "bg-gradient-to-b from-scroll-ascend/30 to-justice-dark";
-      default:
-        return "bg-gradient-to-b from-scroll-dawn/30 to-justice-dark";
+        return "text-purple-400 bg-purple-400/10";
     }
-  };
+  }
+  return "text-gray-400 bg-gray-400/10";
+};
 
-  // Get text color based on current phase
-  const getPhaseTextColor = (phase: ScrollPhase) => {
-    switch (phase) {
-      case "DAWN":
-        return "text-scroll-dawn";
-      case "RISE":
-        return "text-scroll-rise";
-      case "ASCEND":
-        return "text-scroll-ascend";
-      default:
-        return "text-scroll-dawn";
-    }
-  };
-
+export function Sidebar() {
   return (
-    <div className={`${getPhaseColor(currentPhase)} border-r border-justice-dark min-h-screen w-64 px-4 py-8 flex flex-col`}>
-      <div className="flex items-center justify-center mb-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-justice-light">FastTrackJusticeAI</h1>
-          <div className={`text-sm mt-2 font-medium ${getPhaseTextColor(currentPhase)}`}>
-            {currentPhase} - Gate {currentGate}
-          </div>
-          <div className="mt-2">
-            <CompactEHourClock />
-          </div>
+    <div className="hidden border-r bg-muted/40 md:block">
+      <div className="flex h-full max-h-screen flex-col gap-2">
+        <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+          <span className="font-semibold">ScrollJustice AI</span>
         </div>
-      </div>
-      
-      <SidebarNav items={mainNavItems} className="px-2" />
-      
-      <div className="mt-auto pt-6 border-t border-justice-dark/30">
-        <div className="flex flex-col items-center px-4 py-2">
-          <div className="text-sm text-muted-foreground">Scroll Founder</div>
-          <div className="text-xs text-muted-foreground mt-1">Stanley (Gate 7)</div>
-          <div className="text-xs text-muted-foreground mt-1">Divine Architecture</div>
+        
+        <div className="flex-1 p-4">
+          <div className="space-y-4">
+            <div className="rounded-lg border p-4">
+              <h3 className="text-sm font-medium mb-3">Scroll Phase Status</h3>
+              <div className="space-y-2">
+                {(["DAWN", "RISE", "ASCEND"] as ScrollPhase[]).map((phase) => (
+                  <div key={phase} className={`flex items-center gap-2 p-2 rounded ${getPhaseColor(phase, mockScrollData.currentPhase)}`}>
+                    <span>{getPhaseIcon(phase)}</span>
+                    <span className="text-sm">{phase}</span>
+                    {phase === mockScrollData.currentPhase && (
+                      <span className="text-xs">Gate {mockScrollData.currentGate}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

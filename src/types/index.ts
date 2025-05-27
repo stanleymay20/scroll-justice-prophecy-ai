@@ -62,19 +62,24 @@ export interface SubscriptionTier {
   priority_support: boolean;
 }
 
-// Additional types for the application
-export type ScrollPhase = 'genesis' | 'advocacy' | 'judgment' | 'sealing' | 'archive';
+// Updated ScrollPhase to match actual usage
+export type ScrollPhase = 'DAWN' | 'RISE' | 'ASCEND';
 
-export type ScrollGate = 'flame' | 'water' | 'earth' | 'air' | 'spirit';
+// Updated ScrollGate to use numbers instead of strings  
+export type ScrollGate = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export interface Case {
   id: string;
+  case_id: string;
   title: string;
   status: PetitionStatus;
   created_at: string;
   updated_at: string;
   jurisdiction: string;
   category: InjusticeCategory;
+  principle: string;
+  scroll_alignment: string;
+  confidence: number;
 }
 
 export interface SystemHealth {
@@ -83,14 +88,28 @@ export interface SystemHealth {
   activeUsers: number;
   systemLoad: number;
   lastUpdate: string;
+  overall: number;
+  delta: number;
+  cases_analyzed: number;
+  precedent_accuracy: number;
+  jurisdictional_coverage: number;
 }
 
 export interface TrainingParameters {
+  name: string;
   jurisdictions: string[];
   legalFrameworks: LegalFrameworkFocus[];
   accuracy_threshold: number;
   bias_detection: boolean;
   multilingual: boolean;
+  legal_framework_focus: LegalFrameworkFocus[];
+  case_count: number;
+  language_weighting: Record<string, number>;
+  epochs: number;
+  learning_rate: number;
+  human_rights_emphasis: boolean;
+  balance_jurisdictions: boolean;
+  include_scroll_alignment: boolean;
 }
 
 export interface LegalFrameworkFocus {
@@ -105,6 +124,7 @@ export interface Jurisdiction {
   code: string;
   name: string;
   country: string;
+  region: string;
   legal_system: string;
   supported: boolean;
 }

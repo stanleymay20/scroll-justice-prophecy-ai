@@ -1,29 +1,33 @@
 
 import { useEffect } from "react";
-import { NavBar } from "@/components/layout/NavBar";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/language";
 import { MetaTags } from "@/components/MetaTags";
-import { Dashboard } from "@/components/dashboard/Dashboard";
-import { LandingPage } from "@/components/landing/LandingPage";
 
 const Index = () => {
-  const { user } = useAuth();
-  const { t } = useLanguage();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   
-  // Log mount for debugging
   useEffect(() => {
-    console.log("Index page mounted");
-  }, []);
+    if (!loading) {
+      if (user) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        navigate('/login', { replace: true });
+      }
+    }
+  }, [user, loading, navigate]);
   
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
-      <MetaTags title={user ? t("nav.dashboard") : t("nav.home")} />
-      <NavBar />
-      
-      {user ? <Dashboard /> : <LandingPage />}
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black flex items-center justify-center">
+        <MetaTags />
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-justice-primary"></div>
+      </div>
+    );
+  }
+  
+  return null;
 };
 
 export default Index;
