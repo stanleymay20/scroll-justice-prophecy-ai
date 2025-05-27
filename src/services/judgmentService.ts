@@ -1,4 +1,3 @@
-
 import { ScrollPetition } from "@/types/petition";
 import { ScrollJudgment } from "@/types/petition.d";
 import { supabase } from "@/lib/supabase";
@@ -183,3 +182,26 @@ export async function checkJudgmentIntegrity(judgmentId: string): Promise<boolea
     return false;
   }
 }
+
+export const analyzeScrollPetition = async (petition: ScrollPetition): Promise<any> => {
+  try {
+    console.log('Analyzing scroll petition:', petition.id);
+    
+    // Mock analysis since we don't have real AI integration
+    const categoryAnalysis = petition.category || 'General';
+    const severity = petition.category === 'Violence' ? 'High' : 
+                    petition.category === 'Wage Theft' ? 'Medium' : 'Low';
+    
+    return {
+      category: categoryAnalysis,
+      severity,
+      confidence: 0.85,
+      recommendedAction: `Review required for ${categoryAnalysis} case`,
+      estimatedDuration: '3-5 days'
+    };
+    
+  } catch (error) {
+    console.error('Error analyzing petition:', error);
+    throw new Error('Failed to analyze sacred petition');
+  }
+};

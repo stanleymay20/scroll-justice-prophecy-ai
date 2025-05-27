@@ -34,6 +34,11 @@ export interface ScrollPetition {
   verdict?: string;
   verdict_reasoning?: string;
   ai_suggested_verdict?: string;
+  audio_verdict_url?: string;
+  verdict_transcription?: string;
+  flame_signature_hash?: string;
+  scroll_seal_timestamp?: string;
+  category?: 'Wage Theft' | 'Land Injustice' | 'Violence' | 'False Judgment';
 }
 
 export interface ScrollJudgment {
@@ -52,7 +57,7 @@ export interface ScrollJudgment {
   is_public: boolean;
 }
 
-export interface EvidenceFile {
+export interface ScrollEvidence {
   id: string;
   petition_id: string;
   uploaded_by: string;
@@ -63,11 +68,29 @@ export interface EvidenceFile {
   description?: string;
 }
 
+export interface ScrollIntegrityLog {
+  id: string;
+  user_id?: string;
+  petition_id?: string;
+  action_type: string;
+  integrity_impact: number;
+  description?: string;
+  created_at: string;
+}
+
+export interface LegalCitation {
+  code: string;
+  section: string;
+  description: string;
+  category: string;
+  jurisdiction: string;
+}
+
 // Speech Recognition types
 declare global {
   interface Window {
-    SpeechRecognition?: typeof SpeechRecognition;
-    webkitSpeechRecognition?: typeof SpeechRecognition;
+    SpeechRecognition?: new () => SpeechRecognitionInstance;
+    webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
   }
 }
 
@@ -92,7 +115,7 @@ export interface SpeechRecognitionAlternative {
   confidence: number;
 }
 
-export interface SpeechRecognition extends EventTarget {
+export interface SpeechRecognitionInstance extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
   lang: string;

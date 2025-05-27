@@ -12,7 +12,7 @@ export default function Courtroom() {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
-      <MetaTags title={id ? t("court.feedback") : t("court.oath")} />
+      <MetaTags title={id ? "Petition Review" : "Sacred Courtroom"} />
       <NavBar />
       
       <div className="container mx-auto px-4 pt-20 pb-16">

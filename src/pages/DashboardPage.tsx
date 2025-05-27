@@ -15,32 +15,11 @@ import {
   Eye, 
   Download, 
   Zap,
-  TrendingUp,
-  Users,
   FileText,
   Award
 } from 'lucide-react';
-import PetitionForm from '@/components/petition/PetitionForm';
-
-interface Petition {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  created_at: string;
-  verdict?: string;
-  ai_suggested_verdict?: string;
-}
-
-interface Judgment {
-  id: string;
-  verdict: string;
-  reasoning: string;
-  compensation_amount?: number;
-  currency: string;
-  created_at: string;
-  petition_id: string;
-}
+import { PetitionForm } from '@/components/petition/PetitionForm';
+import { ScrollPetition } from '@/types/petition';
 
 interface DashboardStats {
   totalPetitions: number;
@@ -51,8 +30,7 @@ interface DashboardStats {
 
 const DashboardPage = () => {
   const { user, userRole } = useAuth();
-  const [petitions, setPetitions] = useState<Petition[]>([]);
-  const [judgments, setJudgments] = useState<Judgment[]>([]);
+  const [petitions, setPetitions] = useState<ScrollPetition[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalPetitions: 0,
     pendingPetitions: 0,
@@ -84,32 +62,16 @@ const DashboardPage = () => {
       if (petitionsError) throw petitionsError;
       setPetitions(petitionsData || []);
       
-      // Fetch judgments for user's petitions
-      if (petitionsData && petitionsData.length > 0) {
-        const petitionIds = petitionsData.map(p => p.id);
-        const { data: judgementsData, error: judgementsError } = await supabase
-          .from('scroll_judgments')
-          .select('*')
-          .in('petition_id', petitionIds)
-          .order('created_at', { ascending: false });
-        
-        if (judgementsError) throw judgementsError;
-        setJudgments(judgementsData || []);
-      }
-      
       // Calculate stats
       const totalPetitions = petitionsData?.length || 0;
       const pendingPetitions = petitionsData?.filter(p => p.status === 'pending').length || 0;
       const judgedPetitions = petitionsData?.filter(p => p.status === 'verdict_delivered').length || 0;
       
-      // Calculate total compensation
-      const totalCompensation = judgments.reduce((sum, j) => sum + (j.compensation_amount || 0), 0);
-      
       setStats({
         totalPetitions,
         pendingPetitions,
         judgedPetitions,
-        totalCompensation
+        totalCompensation: 0 // Will implement when scroll_judgments table exists
       });
       
     } catch (error: any) {
@@ -157,13 +119,6 @@ const DashboardPage = () => {
       case 'verdict_delivered': return 'bg-green-500/20 text-green-300 border-green-500';
       default: return 'bg-gray-500/20 text-gray-300 border-gray-500';
     }
-  };
-
-  const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'EUR'
-    }).format(amount);
   };
 
   if (loading) {
@@ -231,9 +186,7 @@ const DashboardPage = () => {
             <div className="flex items-center space-x-3">
               <Award className="h-8 w-8 text-justice-tertiary" />
               <div>
-                <p className="text-2xl font-bold text-white">
-                  {formatCurrency(stats.totalCompensation, 'EUR')}
-                </p>
+                <p className="text-2xl font-bold text-white">€0</p>
                 <p className="text-sm text-justice-light">Compensation</p>
               </div>
             </div>
@@ -263,8 +216,8 @@ const DashboardPage = () => {
                   <div key={petition.id} className="bg-black/20 p-4 rounded-lg border border-justice-primary/10">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-white text-sm">{petition.title}</h3>
-                      <Badge className={getStatusColor(petition.status)}>
-                        {petition.status.replace('_', ' ')}
+                      <Badge className={getStatusColor(petition.status || 'pending')}>
+                        {(petition.status || 'pending').replace('_', ' ')}
                       </Badge>
                     </div>
                     
@@ -311,45 +264,6 @@ const DashboardPage = () => {
             </div>
           </GlassCard>
         </div>
-
-        {/* Recent Judgments */}
-        {judgments.length > 0 && (
-          <GlassCard className="p-6">
-            <h2 className="text-xl font-cinzel text-white mb-4 flex items-center">
-              <Scale className="h-5 w-5 mr-2 text-justice-tertiary" />
-              Recent Judgments
-            </h2>
-            
-            <div className="space-y-4">
-              {judgments.slice(0, 3).map((judgment) => (
-                <div key={judgment.id} className="bg-black/20 p-4 rounded-lg border border-justice-primary/10">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white text-sm mb-1">Sacred Verdict</h3>
-                      <p className="text-justice-light text-xs">{judgment.verdict}</p>
-                    </div>
-                    {judgment.compensation_amount && (
-                      <Badge className="bg-green-500/20 text-green-300 border-green-500">
-                        {formatCurrency(judgment.compensation_amount, judgment.currency)}
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center justify-between mt-3">
-                    <span className="text-xs text-justice-light">
-                      {new Date(judgment.created_at).toLocaleDateString()}
-                    </span>
-                    
-                    <Button size="sm" variant="outline" className="h-7 text-xs">
-                      <Download className="h-3 w-3 mr-1" />
-                      ScrollSeal PDF
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </GlassCard>
-        )}
       </div>
     </AppLayout>
   );
