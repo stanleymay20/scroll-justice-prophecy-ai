@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ScrollJudgment, LegalCitation } from '@/types/petition';
 
@@ -74,4 +75,9 @@ const generateMockVerdict = (petition: any) => {
     reasoning: `Based on review of the petition "${petition.title}", the ScrollProphet finds the accused ${randomVerdict.toLowerCase()}. This judgment considers the sacred principles of justice and righteousness.`,
     compensation: randomVerdict === 'Guilty' ? Math.floor(Math.random() * 5000) + 500 : 0
   };
+};
+
+// Export as ScrollProphetService object to match the import
+export const ScrollProphetService = {
+  triggerJudgment
 };

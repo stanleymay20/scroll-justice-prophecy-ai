@@ -12,7 +12,6 @@ import { toast } from '@/hooks/use-toast';
 
 interface Profile {
   id: string;
-  full_name: string | null;
   username: string | null;
   avatar_url: string | null;
   bio: string | null;
@@ -26,7 +25,6 @@ const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    full_name: '',
     username: '',
     bio: ''
   });
@@ -49,7 +47,6 @@ const SettingsPage = () => {
       if (data) {
         const profileData: Profile = {
           id: data.id,
-          full_name: data.full_name || null,
           username: data.username || null,
           avatar_url: data.avatar_url || null,
           bio: data.bio || null,
@@ -59,7 +56,6 @@ const SettingsPage = () => {
         
         setProfile(profileData);
         setFormData({
-          full_name: profileData.full_name || '',
           username: profileData.username || '',
           bio: profileData.bio || ''
         });
@@ -86,7 +82,6 @@ const SettingsPage = () => {
         .from('profiles')
         .upsert({
           id: user.id,
-          full_name: formData.full_name.trim() || null,
           username: formData.username.trim() || null,
           bio: formData.bio.trim() || null,
           updated_at: new Date().toISOString()
@@ -149,20 +144,6 @@ const SettingsPage = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label htmlFor="full_name" className="block text-sm font-medium text-justice-light">
-                  Full Name
-                </label>
-                <Input
-                  id="full_name"
-                  name="full_name"
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  placeholder="Enter your full name"
-                  className="bg-black/20 border-justice-primary/30 text-white"
-                />
-              </div>
-
               <div className="space-y-2">
                 <label htmlFor="username" className="block text-sm font-medium text-justice-light">
                   Username

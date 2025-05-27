@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Mic, MicOff, Sparkles, Scale } from 'lucide-react';
-import { Jurisdiction, Category, SpeechRecognition, SpeechRecognitionEvent } from '@/types/petition';
+import { Jurisdiction, Category, SpeechRecognitionInstance } from '@/types/petition';
 
 interface PetitionFormProps {
   onSubmitted?: () => void;
@@ -27,7 +27,7 @@ export function PetitionForm({ onSubmitted }: PetitionFormProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognitionInstance | null>(null);
   const [jurisdictions, setJurisdictions] = useState<Jurisdiction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [aiSuggestion, setAiSuggestion] = useState<string>('');
@@ -82,7 +82,7 @@ export function PetitionForm({ onSubmitted }: PetitionFormProps) {
       recognitionInstance.interimResults = true;
       recognitionInstance.lang = 'en-US';
 
-      recognitionInstance.onresult = (event: SpeechRecognitionEvent) => {
+      recognitionInstance.onresult = (event) => {
         let transcript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           transcript += event.results[i][0].transcript;
