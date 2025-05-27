@@ -2,14 +2,14 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { GlobalLegalMetrics } from '@/types';
+import type { GlobalLegalMetrics as GlobalLegalMetricsType } from '@/types';
 import { Globe, TrendingUp, Users, Gavel, Shield, Scale } from 'lucide-react';
 
 interface GlobalLegalMetricsProps {
-  data?: GlobalLegalMetrics;
+  data?: GlobalLegalMetricsType;
 }
 
-const defaultMetrics: GlobalLegalMetrics = {
+const defaultMetrics: GlobalLegalMetricsType = {
   total_cases: 15420,
   success_rate: 87.3,
   avg_resolution_time: 4.2,

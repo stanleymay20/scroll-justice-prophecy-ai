@@ -6,45 +6,35 @@ import { ScrollMemory } from '@/types';
 import { Scroll, Clock } from 'lucide-react';
 
 interface ScrollMemoryTrailProps {
+  memory?: ScrollMemory;
   memories?: ScrollMemory[];
+  cases?: Record<string, string>;
 }
 
-const defaultMemories: ScrollMemory[] = [
-  {
-    id: '1',
-    trail_id: 'trail-001',
-    phase: 'DAWN',
-    scroll_phase: 'DAWN',
-    gate: 3,
-    timestamp: '2024-01-15T10:00:00Z',
-    event_type: 'CASE_JUDGEMENT',
-    description: 'Sacred principle established in employment law case',
-    metadata: { caseId: 'case-001' },
-    case_ids: ['case-001', 'case-002'],
-    principles: ['Due Process', 'Equal Treatment'],
-    prophetic_insight: 'This case sets precedent for future employment disputes',
-    confidence: 92
-  },
-  {
-    id: '2',
-    trail_id: 'trail-002',
-    phase: 'RISE',
-    scroll_phase: 'RISE',
-    gate: 5,
-    timestamp: '2024-01-16T14:30:00Z',
-    event_type: 'PRINCIPLE_EVOLUTION',
-    description: 'Constitutional principle evolved through international case',
-    metadata: { jurisdiction: 'International' },
-    case_ids: ['case-003'],
-    principles: ['Constitutional Rights'],
-    prophetic_insight: 'Global alignment strengthens constitutional framework',
-    confidence: 88
-  }
-];
+const defaultMemory: ScrollMemory = {
+  id: '1',
+  trail_id: 'trail-001',
+  phase: 'DAWN',
+  scroll_phase: 'DAWN',
+  gate: 3,
+  timestamp: '2024-01-15T10:00:00Z',
+  event_type: 'CASE_JUDGEMENT',
+  description: 'Sacred principle established in employment law case',
+  metadata: { caseId: 'case-001' },
+  case_ids: ['case-001', 'case-002'],
+  principles: ['Due Process', 'Equal Treatment'],
+  prophetic_insight: 'This case sets precedent for future employment disputes',
+  confidence: 92
+};
 
 export const ScrollMemoryTrail: React.FC<ScrollMemoryTrailProps> = ({ 
-  memories = defaultMemories 
+  memory,
+  memories,
+  cases = {}
 }) => {
+  // Handle both single memory and memories array
+  const memoriesToRender = memory ? [memory] : (memories || [defaultMemory]);
+
   const getPhaseColor = (phase: string) => {
     switch (phase) {
       case 'DAWN': return 'bg-yellow-500';
@@ -56,45 +46,45 @@ export const ScrollMemoryTrail: React.FC<ScrollMemoryTrailProps> = ({
 
   return (
     <div className="space-y-4">
-      {memories.map(memory => (
-        <Card key={memory.id}>
+      {memoriesToRender.map(mem => (
+        <Card key={mem.id}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Scroll className="h-5 w-5" />
-                Trail {memory.trail_id?.substring(-3) || memory.id.substring(0, 8)}
+                Trail {mem.trail_id?.substring(-3) || mem.id.substring(0, 8)}
               </CardTitle>
-              <Badge className={`${getPhaseColor(memory.scroll_phase || memory.phase)} text-white`}>
-                {memory.scroll_phase || memory.phase} Gate {memory.gate}
+              <Badge className={`${getPhaseColor(mem.scroll_phase || mem.phase)} text-white`}>
+                {mem.scroll_phase || mem.phase} Gate {mem.gate}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm">{memory.description}</p>
+            <p className="text-sm">{mem.description}</p>
             
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
-              {new Date(memory.timestamp).toLocaleString()}
+              {new Date(mem.timestamp).toLocaleString()}
             </div>
             
-            {memory.case_ids && memory.case_ids.length > 0 && (
+            {mem.case_ids && mem.case_ids.length > 0 && (
               <div>
                 <span className="text-xs text-muted-foreground">Related Cases:</span>
                 <div className="flex gap-1 mt-1">
-                  {memory.case_ids.map(caseId => (
+                  {mem.case_ids.map(caseId => (
                     <Badge key={caseId} variant="outline" className="text-xs">
-                      {caseId}
+                      {cases[caseId] || caseId}
                     </Badge>
                   ))}
                 </div>
               </div>
             )}
             
-            {memory.principles && memory.principles.length > 0 && (
+            {mem.principles && mem.principles.length > 0 && (
               <div>
                 <span className="text-xs text-muted-foreground">Principles:</span>
                 <div className="flex gap-1 mt-1 flex-wrap">
-                  {memory.principles.map(principle => (
+                  {mem.principles.map(principle => (
                     <Badge key={principle} variant="secondary" className="text-xs">
                       {principle}
                     </Badge>
@@ -103,13 +93,13 @@ export const ScrollMemoryTrail: React.FC<ScrollMemoryTrailProps> = ({
               </div>
             )}
             
-            {memory.prophetic_insight && (
+            {mem.prophetic_insight && (
               <div className="p-3 bg-muted rounded-lg">
                 <span className="text-xs text-muted-foreground">Prophetic Insight:</span>
-                <p className="text-sm italic">{memory.prophetic_insight}</p>
-                {memory.confidence && (
+                <p className="text-sm italic">{mem.prophetic_insight}</p>
+                {mem.confidence && (
                   <div className="text-xs text-muted-foreground mt-1">
-                    Confidence: {memory.confidence}%
+                    Confidence: {mem.confidence}%
                   </div>
                 )}
               </div>

@@ -1,4 +1,3 @@
-
 // Core application types
 export type UserRole = 'petitioner' | 'advocate' | 'scroll_judge' | 'prophet' | 'admin';
 
@@ -172,7 +171,7 @@ export interface Principle {
   id: string;
   name: string;
   description: string;
-  strength: number;
+  strength: number | 'weak' | 'medium' | 'strong';
   evolution_date: string;
   jurisdiction: string;
   evolution?: Array<{
