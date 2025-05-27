@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { PageHeader } from "@/components/layout/page-header";
@@ -50,7 +49,7 @@ const LegalSystems = () => {
         />
 
         <div className="mt-6">
-          <GlobalLegalMetrics metrics={globalLegalMetrics} />
+          <GlobalLegalMetrics data={globalLegalMetrics} />
         </div>
 
         <Tabs defaultValue="jurisdictions" className="mt-6">
@@ -278,6 +277,7 @@ const LegalSystems = () => {
             <EnhancedTrainingForm 
               availableJurisdictions={jurisdictions}
               onStartTraining={startTraining}
+              onSubmit={startTraining}
             />
           </TabsContent>
           

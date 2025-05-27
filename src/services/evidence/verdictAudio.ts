@@ -14,13 +14,11 @@ export const uploadAudioVerdict = async (
     // For now, we'll simulate the upload and return a mock URL
     const mockUrl = `https://example.com/verdicts/${fileName}`;
     
-    // Update petition with audio verdict URL
+    // Update petition with AI suggested verdict as a placeholder
     const { error } = await supabase
       .from('scroll_petitions')
       .update({
-        verdict_transcription: transcription
-        // Note: audio_verdict_url is not in the current schema
-        // This would need to be added via migration
+        ai_suggested_verdict: transcription
       })
       .eq('id', petitionId);
 
@@ -37,14 +35,14 @@ export const hasAudioVerdict = async (petitionId: string): Promise<boolean> => {
   try {
     const { data, error } = await supabase
       .from('scroll_petitions')
-      .select('verdict_transcription')
+      .select('ai_suggested_verdict')
       .eq('id', petitionId)
       .single();
 
     if (error) throw error;
     
-    // Check if transcription exists as a proxy for audio verdict
-    return !!data?.verdict_transcription;
+    // Check if AI suggested verdict exists as a proxy for audio verdict
+    return !!data?.ai_suggested_verdict;
   } catch (error) {
     console.error('Error checking audio verdict:', error);
     return false;

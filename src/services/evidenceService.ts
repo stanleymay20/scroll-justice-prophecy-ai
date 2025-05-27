@@ -13,6 +13,5 @@ export {
 
 export {
   uploadAudioVerdict,
-  saveAudioVerdict,
   hasAudioVerdict
 } from './evidence/verdictAudio';

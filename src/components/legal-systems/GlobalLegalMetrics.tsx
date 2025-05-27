@@ -23,9 +23,7 @@ const defaultMetrics: GlobalLegalMetricsType = {
   human_rights_compliance: 94.2
 };
 
-export const GlobalLegalMetrics: React.FC<GlobalLegalMetricsProps> = ({ 
-  data = defaultMetrics 
-}) => {
+export function GlobalLegalMetrics({ data = defaultMetrics }: GlobalLegalMetricsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <Card>
@@ -115,4 +113,4 @@ export const GlobalLegalMetrics: React.FC<GlobalLegalMetricsProps> = ({
       </Card>
     </div>
   );
-};
+}

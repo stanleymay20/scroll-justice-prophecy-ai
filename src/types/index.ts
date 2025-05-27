@@ -1,3 +1,4 @@
+
 // Core application types
 export type UserRole = 'petitioner' | 'advocate' | 'scroll_judge' | 'prophet' | 'admin';
 
@@ -39,6 +40,7 @@ export interface ScrollPetition {
   ai_suggested_verdict?: string;
   is_sealed: boolean;
   scroll_integrity_score: number;
+  verdict_transcription?: string;
 }
 
 export interface VerdictDocument {
@@ -132,6 +134,9 @@ export interface Jurisdiction {
   un_recognized?: boolean;
   icc_jurisdiction?: boolean;
   active?: boolean;
+  cases_count?: number;
+  principles_count?: number;
+  language_codes?: string[];
 }
 
 export interface ModelTrainingStatus {
