@@ -117,6 +117,7 @@ export interface LegalFrameworkFocus {
   name: string;
   weight: number;
   enabled: boolean;
+  description?: string;
 }
 
 export interface Jurisdiction {
@@ -127,16 +128,30 @@ export interface Jurisdiction {
   region: string;
   legal_system: string;
   supported: boolean;
+  precedent_weight?: number;
+  international_relevance?: number;
+  un_recognized?: boolean;
+  icc_jurisdiction?: boolean;
+  active?: boolean;
 }
 
 export interface ModelTrainingStatus {
   id: string;
-  status: 'pending' | 'training' | 'completed' | 'failed';
+  model_id?: string;
+  name?: string;
+  status: 'pending' | 'training' | 'completed' | 'failed' | 'idle';
   progress: number;
   started_at: string;
+  training_started?: string;
   completed_at?: string;
   accuracy: number;
   model_version: string;
+  cases_analyzed?: number;
+  international_compliance?: number;
+  un_compliance?: number;
+  icc_compliance?: number;
+  jurisdiction_coverage?: string[];
+  languages_supported?: string[];
 }
 
 export interface GlobalLegalMetrics {
@@ -144,7 +159,13 @@ export interface GlobalLegalMetrics {
   success_rate: number;
   avg_resolution_time: number;
   jurisdictions_covered: number;
+  jurisdiction_count?: number;
   active_judges: number;
+  case_coverage_percentage?: number;
+  principle_universality_score?: number;
+  language_diversity?: number;
+  international_alignment?: number;
+  human_rights_compliance?: number;
 }
 
 export interface Principle {
@@ -154,21 +175,33 @@ export interface Principle {
   strength: number;
   evolution_date: string;
   jurisdiction: string;
+  evolution?: Array<{
+    date: string;
+    strength: number;
+    event: string;
+  }>;
 }
 
 export interface ScrollMemory {
   id: string;
   phase: ScrollPhase;
+  scroll_phase?: ScrollPhase;
   gate: ScrollGate;
   timestamp: string;
   event_type: string;
   description: string;
   metadata: Record<string, any>;
+  trail_id?: string;
+  case_ids?: string[];
+  principles?: string[];
+  prophetic_insight?: string;
+  confidence?: number;
 }
 
 export interface Graph {
   nodes: GraphNode[];
   edges: GraphEdge[];
+  links?: GraphEdge[];
 }
 
 export interface GraphNode {

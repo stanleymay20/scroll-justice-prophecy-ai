@@ -1,66 +1,122 @@
 
-import { ScrollMemory } from "@/types";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ScrollMemory } from '@/types';
+import { Scroll, Clock } from 'lucide-react';
 
 interface ScrollMemoryTrailProps {
-  memory: ScrollMemory;
-  cases: Record<string, string>;
+  memories?: ScrollMemory[];
 }
 
-export function ScrollMemoryTrail({ memory, cases }: ScrollMemoryTrailProps) {
+const defaultMemories: ScrollMemory[] = [
+  {
+    id: '1',
+    trail_id: 'trail-001',
+    phase: 'DAWN',
+    scroll_phase: 'DAWN',
+    gate: 3,
+    timestamp: '2024-01-15T10:00:00Z',
+    event_type: 'CASE_JUDGEMENT',
+    description: 'Sacred principle established in employment law case',
+    metadata: { caseId: 'case-001' },
+    case_ids: ['case-001', 'case-002'],
+    principles: ['Due Process', 'Equal Treatment'],
+    prophetic_insight: 'This case sets precedent for future employment disputes',
+    confidence: 92
+  },
+  {
+    id: '2',
+    trail_id: 'trail-002',
+    phase: 'RISE',
+    scroll_phase: 'RISE',
+    gate: 5,
+    timestamp: '2024-01-16T14:30:00Z',
+    event_type: 'PRINCIPLE_EVOLUTION',
+    description: 'Constitutional principle evolved through international case',
+    metadata: { jurisdiction: 'International' },
+    case_ids: ['case-003'],
+    principles: ['Constitutional Rights'],
+    prophetic_insight: 'Global alignment strengthens constitutional framework',
+    confidence: 88
+  }
+];
+
+export const ScrollMemoryTrail: React.FC<ScrollMemoryTrailProps> = ({ 
+  memories = defaultMemories 
+}) => {
   const getPhaseColor = (phase: string) => {
     switch (phase) {
-      case "DAWN": return "bg-scroll-dawn/20 border-scroll-dawn text-scroll-dawn";
-      case "RISE": return "bg-scroll-rise/20 border-scroll-rise text-scroll-rise";
-      case "ASCEND": return "bg-scroll-ascend/10 border-scroll-ascend text-scroll-ascend";
-      default: return "bg-justice-primary/20 border-justice-primary text-justice-primary";
+      case 'DAWN': return 'bg-yellow-500';
+      case 'RISE': return 'bg-orange-500';
+      case 'ASCEND': return 'bg-purple-500';
+      default: return 'bg-gray-500';
     }
   };
 
   return (
-    <Card className="bg-justice-dark text-white border-justice-tertiary">
-      <CardHeader className="border-b border-justice-secondary/20">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-justice-light">Trail {memory.trail_id}</CardTitle>
-          <Badge className={`${getPhaseColor(memory.scroll_phase)}`}>
-            {memory.scroll_phase} - Gate {memory.gate}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-4">
-        <div className="mb-4">
-          <h4 className="text-sm font-medium text-muted-foreground mb-2">Related Cases</h4>
-          <div className="flex flex-wrap gap-2">
-            {memory.case_ids.map((caseId) => (
-              <Badge key={caseId} variant="outline" className="bg-justice-secondary/20">
-                {cases[caseId] || caseId}
+    <div className="space-y-4">
+      {memories.map(memory => (
+        <Card key={memory.id}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Scroll className="h-5 w-5" />
+                Trail {memory.trail_id?.substring(-3) || memory.id.substring(0, 8)}
+              </CardTitle>
+              <Badge className={`${getPhaseColor(memory.scroll_phase || memory.phase)} text-white`}>
+                {memory.scroll_phase || memory.phase} Gate {memory.gate}
               </Badge>
-            ))}
-          </div>
-        </div>
-        <div className="mb-4">
-          <h4 className="text-sm font-medium text-muted-foreground mb-2">Principles</h4>
-          <div className="flex flex-wrap gap-2">
-            {memory.principles.map((principle) => (
-              <Badge key={principle} className="bg-justice-primary/20">
-                {principle}
-              </Badge>
-            ))}
-          </div>
-        </div>
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-2">Prophetic Insight</h4>
-          <p className="text-sm italic border-l-2 border-justice-light pl-3 py-1">
-            "{memory.prophetic_insight}"
-          </p>
-        </div>
-      </CardContent>
-      <CardFooter className="border-t border-justice-secondary/20 text-right">
-        <div className="ml-auto text-sm text-muted-foreground">
-          Confidence: <span className="font-semibold">{(memory.confidence * 100).toFixed(1)}%</span>
-        </div>
-      </CardFooter>
-    </Card>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm">{memory.description}</p>
+            
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              {new Date(memory.timestamp).toLocaleString()}
+            </div>
+            
+            {memory.case_ids && memory.case_ids.length > 0 && (
+              <div>
+                <span className="text-xs text-muted-foreground">Related Cases:</span>
+                <div className="flex gap-1 mt-1">
+                  {memory.case_ids.map(caseId => (
+                    <Badge key={caseId} variant="outline" className="text-xs">
+                      {caseId}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {memory.principles && memory.principles.length > 0 && (
+              <div>
+                <span className="text-xs text-muted-foreground">Principles:</span>
+                <div className="flex gap-1 mt-1 flex-wrap">
+                  {memory.principles.map(principle => (
+                    <Badge key={principle} variant="secondary" className="text-xs">
+                      {principle}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {memory.prophetic_insight && (
+              <div className="p-3 bg-muted rounded-lg">
+                <span className="text-xs text-muted-foreground">Prophetic Insight:</span>
+                <p className="text-sm italic">{memory.prophetic_insight}</p>
+                {memory.confidence && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Confidence: {memory.confidence}%
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
-}
+};

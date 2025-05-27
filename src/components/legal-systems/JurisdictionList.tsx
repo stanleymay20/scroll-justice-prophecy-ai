@@ -1,106 +1,123 @@
 
-import { Jurisdiction } from "@/types";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { Edit, ChevronRight, Globe, Check } from "lucide-react";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Jurisdiction } from '@/types';
+import { Globe, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface JurisdictionListProps {
-  jurisdictions: Jurisdiction[];
-  onJurisdictionSelect?: (jurisdiction: Jurisdiction) => void;
+  jurisdictions?: Jurisdiction[];
 }
 
-export function JurisdictionList({ jurisdictions, onJurisdictionSelect }: JurisdictionListProps) {
-  const getLegalSystemBadge = (system: string) => {
-    switch (system) {
-      case "common_law":
-        return <Badge className="bg-blue-500/20 text-blue-300">Common Law</Badge>;
-      case "civil_law":
-        return <Badge className="bg-green-500/20 text-green-300">Civil Law</Badge>;
-      case "religious_law":
-        return <Badge className="bg-purple-500/20 text-purple-300">Religious Law</Badge>;
-      case "customary_law":
-        return <Badge className="bg-orange-500/20 text-orange-300">Customary Law</Badge>;
-      case "mixed":
-        return <Badge className="bg-yellow-500/20 text-yellow-300">Mixed</Badge>;
-      case "international_law":
-        return <Badge className="bg-cyan-500/20 text-cyan-300">International Law</Badge>;
-      case "humanitarian_law":
-        return <Badge className="bg-red-500/20 text-red-300">Humanitarian Law</Badge>;
-      case "un_charter":
-        return <Badge className="bg-blue-700/20 text-blue-200">UN Charter</Badge>;
-      case "treaty_based":
-        return <Badge className="bg-teal-500/20 text-teal-300">Treaty-Based</Badge>;
-      case "icc_rome_statute":
-        return <Badge className="bg-violet-500/20 text-violet-300">ICC Rome Statute</Badge>;
-      default:
-        return <Badge>Unknown</Badge>;
-    }
-  };
+const defaultJurisdictions: Jurisdiction[] = [
+  { 
+    id: '1', 
+    code: 'US', 
+    name: 'United States', 
+    country: 'United States', 
+    region: 'North America', 
+    legal_system: 'Common Law', 
+    supported: true,
+    precedent_weight: 85,
+    international_relevance: 92,
+    un_recognized: true,
+    icc_jurisdiction: false,
+    active: true
+  },
+  { 
+    id: '2', 
+    code: 'DE', 
+    name: 'Germany', 
+    country: 'Germany', 
+    region: 'Europe', 
+    legal_system: 'Civil Law', 
+    supported: true,
+    precedent_weight: 78,
+    international_relevance: 88,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    active: true
+  },
+  { 
+    id: '3', 
+    code: 'FR', 
+    name: 'France', 
+    country: 'France', 
+    region: 'Europe', 
+    legal_system: 'Civil Law', 
+    supported: true,
+    precedent_weight: 82,
+    international_relevance: 90,
+    un_recognized: true,
+    icc_jurisdiction: true,
+    active: true
+  }
+];
+
+export const JurisdictionList: React.FC<JurisdictionListProps> = ({ 
+  jurisdictions = defaultJurisdictions 
+}) => {
+  const regions = [...new Set(jurisdictions.map(j => j.region))];
 
   return (
-    <Table>
-      <TableHeader className="bg-justice-dark text-white">
-        <TableRow>
-          <TableHead className="w-[50px]">Code</TableHead>
-          <TableHead>Jurisdiction</TableHead>
-          <TableHead>Legal System</TableHead>
-          <TableHead>Region</TableHead>
-          <TableHead className="text-center">Precedent Weight</TableHead>
-          <TableHead className="text-center">Int'l</TableHead>
-          <TableHead className="text-center">UN/ICC</TableHead>
-          <TableHead className="text-center">Active</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {jurisdictions.map((jurisdiction) => (
-          <TableRow key={jurisdiction.id} className="hover:bg-justice-dark/5">
-            <TableCell className="font-mono">{jurisdiction.code}</TableCell>
-            <TableCell className="font-medium">{jurisdiction.name}</TableCell>
-            <TableCell>{getLegalSystemBadge(jurisdiction.legal_system)}</TableCell>
-            <TableCell>{jurisdiction.region}</TableCell>
-            <TableCell className="text-center">
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-sm">{jurisdiction.precedent_weight.toFixed(2)}</span>
-                <div 
-                  className="h-2 rounded-full bg-gradient-to-r from-red-500 to-green-500" 
-                  style={{ width: '50px', opacity: jurisdiction.precedent_weight }}
-                ></div>
-              </div>
-            </TableCell>
-            <TableCell className="text-center">
-              {jurisdiction.international_relevance ? (
-                <div className="flex justify-center">
-                  <Badge variant="outline" className="bg-justice-primary/10">
-                    {jurisdiction.international_relevance.toFixed(1)}
-                  </Badge>
-                </div>
-              ) : "-"}
-            </TableCell>
-            <TableCell className="text-center">
-              <div className="flex justify-center gap-1">
-                {jurisdiction.un_recognized && <Globe className="h-4 w-4 text-blue-400" />}
-                {jurisdiction.icc_jurisdiction && <Check className="h-4 w-4 text-purple-400" />}
-              </div>
-            </TableCell>
-            <TableCell className="text-center">
-              <div className="flex justify-center">
-                <Switch checked={jurisdiction.active} />
-              </div>
-            </TableCell>
-            <TableCell className="text-right">
-              <Button variant="ghost" size="icon">
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => onJurisdictionSelect && onJurisdictionSelect(jurisdiction)}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div className="space-y-6">
+      {regions.map(region => (
+        <Card key={region}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              {region}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {jurisdictions
+                .filter(j => j.region === region)
+                .map(jurisdiction => (
+                  <div key={jurisdiction.id} className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">{jurisdiction.name}</h4>
+                      <div className="flex items-center gap-2">
+                        {jurisdiction.supported ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-red-500" />
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Badge variant="outline">{jurisdiction.legal_system}</Badge>
+                      
+                      <div className="text-sm space-y-1">
+                        <div className="flex justify-between">
+                          <span>Precedent Weight:</span>
+                          <span>{jurisdiction.precedent_weight || 75}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Int'l Relevance:</span>
+                          <span>{jurisdiction.international_relevance || 80}%</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-2">
+                        {jurisdiction.un_recognized && (
+                          <Badge variant="secondary" className="text-xs">UN</Badge>
+                        )}
+                        {jurisdiction.icc_jurisdiction && (
+                          <Badge variant="secondary" className="text-xs">ICC</Badge>
+                        )}
+                        {jurisdiction.active && (
+                          <Badge variant="default" className="text-xs">Active</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
-}
+};

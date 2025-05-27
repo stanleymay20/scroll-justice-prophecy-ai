@@ -1,79 +1,90 @@
 
-import { useRef, useEffect } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
-import { Graph, ScrollPhase, PrincipleStrength } from '@/types';
-
-// Helper function to get scroll phase color
-const getScrollPhaseColor = (phase: ScrollPhase): string => {
-  switch (phase) {
-    case 'DAWN': return '#1EAEDB'; // Blue
-    case 'RISE': return '#FEC6A1'; // Gold
-    case 'ASCEND': return '#FFFFFF'; // White
-    default: return '#1EAEDB';
-  }
-};
-
-// Helper function to get principle strength color
-const getPrincipleStrengthColor = (strength: PrincipleStrength): string => {
-  switch (strength) {
-    case 'strong': return '#F2FCE2'; // Green
-    case 'medium': return '#FEF7CD'; // Yellow
-    case 'weak': return '#ea384c'; // Red
-    default: return '#F2FCE2';
-  }
-};
+import React, { useEffect, useRef } from 'react';
+import { Graph, PrincipleStrength } from '@/types';
 
 interface ForceGraphProps {
   data: Graph;
+  width?: number;
   height?: number;
 }
 
-export function ForceGraph({ data, height = 600 }: ForceGraphProps) {
-  const graphRef = useRef<any>();
+// Sample test data with proper types
+const sampleData: Graph = {
+  nodes: [
+    { id: 'justice', label: 'Justice', phase: 'DAWN', strength: 'strong' as PrincipleStrength },
+    { id: 'equality', label: 'Equality', phase: 'RISE', strength: 'moderate' as PrincipleStrength },
+    { id: 'freedom', label: 'Freedom', phase: 'ASCEND', strength: 'absolute' as PrincipleStrength }
+  ],
+  edges: [
+    { source: 'justice', target: 'equality', weight: 0.8 },
+    { source: 'equality', target: 'freedom', weight: 0.9 }
+  ],
+  links: [
+    { source: 'justice', target: 'equality', weight: 0.8 },
+    { source: 'equality', target: 'freedom', weight: 0.9 }
+  ]
+};
+
+export const ForceGraph: React.FC<ForceGraphProps> = ({ 
+  data = sampleData, 
+  width = 600, 
+  height = 400 
+}) => {
+  const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
-    if (graphRef.current) {
-      // Adjust graph simulation
-      const linkForce = graphRef.current.d3Force('link');
-      if (linkForce) {
-        linkForce.distance(() => 100);
-      }
-      
-      const chargeForce = graphRef.current.d3Force('charge');
-      if (chargeForce) {
-        chargeForce.strength(-120);
-      }
-    }
-  }, []);
+    if (!svgRef.current || !data.nodes.length) return;
 
-  const getNodeColor = (node: any) => {
-    if (node.type === 'case' && node.phase) {
-      return getScrollPhaseColor(node.phase);
+    // Simple visualization - in production would use D3.js
+    const svg = svgRef.current;
+    svg.innerHTML = '';
+
+    // Create simple circle layout
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 3;
+
+    data.nodes.forEach((node, index) => {
+      const angle = (index * 2 * Math.PI) / data.nodes.length;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+
+      // Create node circle
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', x.toString());
+      circle.setAttribute('cy', y.toString());
+      circle.setAttribute('r', '20');
+      circle.setAttribute('fill', getNodeColor(node.strength));
+      circle.setAttribute('stroke', '#333');
+      circle.setAttribute('stroke-width', '2');
+      svg.appendChild(circle);
+
+      // Create node label
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x.toString());
+      text.setAttribute('y', (y + 35).toString());
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('fill', '#fff');
+      text.setAttribute('font-size', '12');
+      text.textContent = node.label;
+      svg.appendChild(text);
+    });
+
+  }, [data, width, height]);
+
+  const getNodeColor = (strength: PrincipleStrength): string => {
+    switch (strength) {
+      case 'weak': return '#fbbf24';
+      case 'moderate': return '#3b82f6';
+      case 'strong': return '#10b981';
+      case 'absolute': return '#8b5cf6';
+      default: return '#6b7280';
     }
-    if (node.type === 'principle' && node.strength) {
-      return getPrincipleStrengthColor(node.strength);
-    }
-    return '#9b87f5'; // Default color (primary purple)
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-justice-dark">
-      <ForceGraph2D
-        ref={graphRef}
-        graphData={data}
-        height={height}
-        width={800}
-        nodeLabel={(node: any) => `${node.label} (${node.id})`}
-        nodeColor={getNodeColor}
-        nodeRelSize={8}
-        nodeVal={(node: any) => node.type === 'principle' ? 12 : 8}
-        linkWidth={(link: any) => link.value * 2}
-        linkColor={() => 'rgba(155, 135, 245, 0.3)'}
-        cooldownTicks={100}
-        onEngineStop={() => graphRef.current?.zoomToFit(400, 50)}
-        enableNodeDrag={true}
-        enableZoomInteraction={true}
-      />
+    <div className="w-full bg-gray-900 rounded-lg p-4">
+      <svg ref={svgRef} width={width} height={height} className="w-full h-auto" />
     </div>
   );
-}
+};

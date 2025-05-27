@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +14,22 @@ interface EnhancedTrainingFormProps {
   onSubmit: (params: TrainingParameters) => void;
   loading?: boolean;
 }
+
+const mockJurisdictions: Jurisdiction[] = [
+  { id: '1', code: 'US', name: 'United States', country: 'United States', region: 'North America', legal_system: 'Common Law', supported: true },
+  { id: '2', code: 'DE', name: 'Germany', country: 'Germany', region: 'Europe', legal_system: 'Civil Law', supported: true },
+  { id: '3', code: 'FR', name: 'France', country: 'France', region: 'Europe', legal_system: 'Civil Law', supported: true },
+  { id: '4', code: 'UK', name: 'United Kingdom', country: 'United Kingdom', region: 'Europe', legal_system: 'Common Law', supported: true },
+  { id: '5', code: 'JP', name: 'Japan', country: 'Japan', region: 'Asia', legal_system: 'Civil Law', supported: true },
+];
+
+const mockFrameworks: LegalFrameworkFocus[] = [
+  { id: '1', name: 'Constitutional Law', weight: 90, enabled: true, description: 'Constitutional principles and rights' },
+  { id: '2', name: 'Human Rights', weight: 95, enabled: true, description: 'International human rights law' },
+  { id: '3', name: 'Employment Law', weight: 80, enabled: true, description: 'Labor and employment regulations' },
+  { id: '4', name: 'Contract Law', weight: 75, enabled: true, description: 'Commercial and contract law' },
+  { id: '5', name: 'Criminal Law', weight: 85, enabled: true, description: 'Criminal justice and procedures' },
+];
 
 const initialParams: TrainingParameters = {
   name: 'ScrollJustice AI Model',
@@ -40,22 +54,6 @@ const initialParams: TrainingParameters = {
   balance_jurisdictions: true,
   include_scroll_alignment: true
 };
-
-const mockJurisdictions: Jurisdiction[] = [
-  { id: '1', code: 'US', name: 'United States', country: 'United States', region: 'North America', legal_system: 'Common Law', supported: true },
-  { id: '2', code: 'DE', name: 'Germany', country: 'Germany', region: 'Europe', legal_system: 'Civil Law', supported: true },
-  { id: '3', code: 'FR', name: 'France', country: 'France', region: 'Europe', legal_system: 'Civil Law', supported: true },
-  { id: '4', code: 'UK', name: 'United Kingdom', country: 'United Kingdom', region: 'Europe', legal_system: 'Common Law', supported: true },
-  { id: '5', code: 'JP', name: 'Japan', country: 'Japan', region: 'Asia', legal_system: 'Civil Law', supported: true },
-];
-
-const mockFrameworks: LegalFrameworkFocus[] = [
-  { id: '1', name: 'Constitutional Law', weight: 90, enabled: true },
-  { id: '2', name: 'Human Rights', weight: 95, enabled: true },
-  { id: '3', name: 'Employment Law', weight: 80, enabled: true },
-  { id: '4', name: 'Contract Law', weight: 75, enabled: true },
-  { id: '5', name: 'Criminal Law', weight: 85, enabled: true },
-];
 
 export const EnhancedTrainingForm: React.FC<EnhancedTrainingFormProps> = ({ 
   onSubmit, 
