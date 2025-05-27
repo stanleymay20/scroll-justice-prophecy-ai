@@ -1,6 +1,4 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -53,11 +51,6 @@
   body {
     @apply bg-background text-foreground;
     color-scheme: dark;
-  }
-
-  /* Sacred Scroll styling */
-  .font-cinzel {
-    font-family: 'Cinzel Decorative', serif;
   }
 
   /* Premium UI Styling */
@@ -143,48 +136,10 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* Sacred Scroll animations */
-@keyframes scroll-reveal {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.scroll-reveal {
-  animation: scroll-reveal 0.8s ease-out forwards;
-}
-
-@keyframes flame-flicker {
-  0%, 100% {
-    opacity: 0.8;
-    filter: drop-shadow(0 0 5px rgba(255, 165, 0, 0.7));
-  }
-  50% {
-    opacity: 1;
-    filter: drop-shadow(0 0 8px rgba(255, 165, 0, 1));
-  }
-}
-
-.flame-flicker {
-  animation: flame-flicker 3s ease-in-out infinite;
-}
-
 /* Card and container styles */
 .premium-card {
   @apply border border-justice-tertiary/30 bg-gradient-to-b from-justice-dark/80 to-black/80 backdrop-blur-sm;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2), 0 0 10px rgba(155, 135, 245, 0.1) inset;
-}
-
-/* Sacred Scroll Theme */
-.scroll-bg {
-  background-image: url('/lovable-uploads/54136c6b-c4a6-40ac-9c48-47c0ecd617e9.png');
-  background-size: cover;
-  background-position: center;
 }
 
 /* Media Upload Styles */
@@ -238,3 +193,4 @@
 .simulation-step.completed {
   @apply opacity-70;
 }
+

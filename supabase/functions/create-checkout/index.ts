@@ -26,13 +26,11 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    const authHeader = req.headers.get("Authorization");
+    const authHeader = req.headers.get("Authorization")!;
     if (!authHeader) throw new Error("No authorization header provided");
     logStep("Authorization header found");
     
     const token = authHeader.replace("Bearer ", "");
-    logStep("Authenticating user with token");
-    
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     
@@ -43,7 +41,6 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
     
     const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
@@ -106,44 +103,24 @@ serve(async (req) => {
         metadata: sessionMetadata
       });
       
-      logStep("Checkout session created", { 
-        sessionId: session.id, 
-        url: session.url,
-        status: 200,
-        responseBody: { url: session.url }
-      });
+      logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
       return new Response(JSON.stringify({ url: session.url }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
-    } catch (stripeError: any) {
-      logStep("Stripe error", { 
-        error: stripeError.message, 
-        code: stripeError.code,
-        status: 500,
-        responseBody: { error: stripeError.message }
-      });
-      return new Response(JSON.stringify({ 
-        error: "Subscription could not be processed. Please try again later or contact support.",
-        details: stripeError.message
-      }), {
+    } catch (stripeError) {
+      logStep("Stripe error", { error: stripeError.message, code: stripeError.code });
+      return new Response(JSON.stringify({ error: stripeError.message }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { 
-      message: errorMessage,
-      status: 500,
-      responseBody: { error: "Subscription could not be processed. Please try again later or contact support." }
-    });
+    logStep("ERROR", { message: errorMessage });
     
-    return new Response(JSON.stringify({ 
-      error: "Subscription could not be processed. Please try again later or contact support.",
-      details: errorMessage
-    }), {
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

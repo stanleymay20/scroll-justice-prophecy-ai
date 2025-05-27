@@ -61,7 +61,6 @@ export async function saveAudioVerdict(
   transcription: string | null = null
 ): Promise<void> {
   try {
-    // Create the update data object with the correct types
     const { error } = await supabase
       .from('scroll_petitions')
       .update({
@@ -69,7 +68,7 @@ export async function saveAudioVerdict(
         flame_signature_hash: flameSealHash,
         verdict_transcription: transcription,
         scroll_seal_timestamp: new Date().toISOString()
-      } as any) // Using 'as any' as a temporary fix until Supabase types are regenerated
+      })
       .eq('id', petitionId);
       
     if (error) throw error;
@@ -94,7 +93,7 @@ export async function hasAudioVerdict(petitionId: string): Promise<boolean> {
   try {
     const { data, error } = await supabase
       .from('scroll_petitions')
-      .select('*') // Using '*' instead of specific columns to avoid type issues
+      .select('audio_verdict_url')
       .eq('id', petitionId)
       .single();
       
@@ -103,8 +102,7 @@ export async function hasAudioVerdict(petitionId: string): Promise<boolean> {
       return false;
     }
     
-    // Access the property safely to avoid TypeScript errors
-    return !!data && 'audio_verdict_url' in data && !!data.audio_verdict_url;
+    return !!data?.audio_verdict_url;
   } catch (error) {
     console.error('Error checking for audio verdict:', error);
     return false;

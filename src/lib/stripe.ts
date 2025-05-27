@@ -10,7 +10,7 @@ export const isStripeConfigured = () => {
 };
 
 // Import supabase client for making API calls
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define subscription tiers with their metadata
 export const subscriptionTiers = {
@@ -26,11 +26,11 @@ export const tierNames = {
   'enterprise': 'Elder Judge'
 };
 
-// Updated price IDs for test mode - using consistent naming convention
+// Actual Stripe Price IDs - updated with the provided test price IDs
 export const stripePriceIds = {
-  'basic': 'price_basic_test',  // Replace with actual test mode price IDs
-  'professional': 'price_professional_monthly',  // Monthly: $49.99
-  'enterprise': 'price_enterprise_yearly'  // Yearly: $499 
+  'basic': 'price_1RK6oXJYFIBeCvef91NjjbYl', 
+  'professional': 'price_1RK6pOJYFIBeCvefVNimxQmC', 
+  'enterprise': 'price_1RK6qIJYFIBeCvefqUB0loTl'  
 };
 
 // Create a Stripe checkout session
@@ -73,12 +73,7 @@ export const createCheckoutSession = async (priceId: string, returnUrl: string) 
       }
     });
     
-    if (error) {
-      console.error("Stripe checkout error:", error);
-      throw error;
-    }
-    
-    console.log("Checkout session created:", data);
+    if (error) throw error;
     return data;
   } catch (error: any) {
     console.error("Error creating checkout session:", error);
@@ -89,13 +84,7 @@ export const createCheckoutSession = async (priceId: string, returnUrl: string) 
 // Check subscription status
 export const checkSubscription = async () => {
   try {
-    console.log("Checking subscription status...");
-    const startTime = Date.now();
-    
     const { data, error } = await supabase.functions.invoke("check-subscription");
-    
-    const endTime = Date.now();
-    console.log(`Subscription check completed in ${endTime - startTime}ms:`, { data, error });
     
     if (error) throw error;
     return data;
@@ -129,6 +118,18 @@ export const hasAccess = (userTier: string | null, requiredTier: "basic" | "prof
   const requiredTierIndex = tierHierarchy.indexOf(requiredTier);
   
   return userTierIndex >= requiredTierIndex;
+};
+
+// Generate a QR code ScrollPass for subscription users
+export const generateScrollPass = async (userId: string, role: string, timestamp: string) => {
+  // This would integrate with a QR code generation service
+  // Placeholder for now
+  return {
+    userId,
+    role,
+    timestamp,
+    qrCode: `scrollpass-${userId}-${role}-${Date.now()}` 
+  };
 };
 
 // Function to map subscription tier to user role

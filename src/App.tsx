@@ -1,60 +1,69 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { LanguageProvider } from '@/components/language/LanguageProvider';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter } from "react-router-dom";
+import { useEffect } from "react";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { LanguageProvider } from "@/contexts/language";
+import { MetaTags } from "@/components/MetaTags";
+import { AppRoutes } from "@/routes/AppRoutes";
+import { 
+  applyRlsPolicies, 
+  initializeAiAuditLog, 
+  setupWindowSizeLogger 
+} from "@/services/appInitService";
+import { ensureEvidenceBucketExists } from "@/services/evidenceService";
 
-// Pages
-import LoginPage from '@/pages/Auth/LoginPage';
-import RegisterPage from '@/pages/Auth/RegisterPage';
-import DashboardPage from '@/pages/DashboardPage';
-import PetitionsPage from '@/pages/PetitionsPage';
-import SettingsPage from '@/pages/SettingsPage';
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
-// New Components for ScrollJustice
-import { AdminPanel } from '@/components/admin/AdminPanel';
-import { ScrollIntelDashboard } from '@/components/analytics/ScrollIntelDashboard';
-import { DonationTiers } from '@/components/billing/DonationTiers';
+const App = () => {
+  // Add console logging to help with debugging
+  useEffect(() => {
+    console.log("info: App component mounted");
+    
+    // Set up window size logger
+    const cleanupSizeLogger = setupWindowSizeLogger();
+    
+    // Ensure evidence bucket exists
+    ensureEvidenceBucketExists().then(exists => {
+      console.log("info: Evidence bucket ready:", exists);
+    });
 
-const queryClient = new QueryClient();
+    // Apply RLS policies to fix permission issues
+    applyRlsPolicies();
+    
+    // Initialize AI audit log table
+    initializeAiAuditLog();
+    
+    return () => {
+      cleanupSizeLogger();
+    };
+  }, []);
 
-function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <AuthProvider>
-          <Router>
-            <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black">
-              <Routes>
-                {/* Default route redirects to login */}
-                <Route path="/" element={<Navigate to="/login" replace />} />
-                
-                {/* Auth routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                
-                {/* Main app routes */}
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/petitions" element={<PetitionsPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                
-                {/* ScrollJustice specific routes */}
-                <Route path="/admin" element={<AdminPanel />} />
-                <Route path="/analytics" element={<ScrollIntelDashboard />} />
-                <Route path="/donate" element={<DonationTiers />} />
-                
-                {/* Catch all route */}
-                <Route path="*" element={<Navigate to="/login" replace />} />
-              </Routes>
-              <Toaster />
-            </div>
-          </Router>
-        </AuthProvider>
-      </LanguageProvider>
+      <BrowserRouter>
+        <LanguageProvider>
+          <AuthProvider>
+            {/* Add global meta tags */}
+            <MetaTags />
+            <AppRoutes />
+            <Toaster />
+            <Sonner />
+          </AuthProvider>
+        </LanguageProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
-}
+};
 
 export default App;

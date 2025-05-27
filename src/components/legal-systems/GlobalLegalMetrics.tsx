@@ -1,9 +1,8 @@
 
 import { GlobalLegalMetrics as GlobalMetrics } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Globe, AlertTriangle } from "lucide-react";
-import { LegalDisclaimer } from "@/components/legal/LegalDisclaimer";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { Globe, Scale, Users, Languages, BookOpen, Award } from "lucide-react";
 
 interface GlobalLegalMetricsProps {
   metrics: GlobalMetrics;
@@ -15,41 +14,90 @@ export function GlobalLegalMetrics({ metrics }: GlobalLegalMetricsProps) {
       <CardHeader className="border-b border-justice-dark">
         <CardTitle className="flex items-center">
           <Globe className="mr-2 h-5 w-5" />
-          Legal System Research Platform
-          <AlertTriangle className="ml-2 h-4 w-4 text-yellow-400" />
+          Global Legal System Coverage
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-black/20 p-4 rounded-md border border-justice-tertiary/20">
-          <Alert variant="destructive" className="bg-yellow-900/20 border-yellow-600/50 mb-2">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription className="text-xs">
-              Demo version with simulated data only
-            </AlertDescription>
-          </Alert>
-          <h3 className="text-sm font-medium mb-2">Educational Platform</h3>
-          <p className="text-xs text-justice-light/70 mb-4">
-            This is a demonstration research platform only.
+      <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-sm font-medium">
+              <Globe className="mr-2 h-4 w-4 text-justice-light" />
+              Jurisdiction Coverage
+            </div>
+            <span className="text-justice-light">{metrics.jurisdiction_count}</span>
+          </div>
+          <Progress value={metrics.case_coverage_percentage} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            {metrics.case_coverage_percentage}% of global jurisdictions analyzed
           </p>
-          <LegalDisclaimer />
         </div>
         
-        <div className="bg-black/20 p-4 rounded-md border border-justice-tertiary/20">
-          <Alert variant="destructive" className="bg-yellow-900/20 border-yellow-600/50 mb-2">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription className="text-xs">
-              Demo version with simulated data only
-            </AlertDescription>
-          </Alert>
-          <h3 className="text-sm font-medium mb-2">For Educational Purposes</h3>
-          <p className="text-xs text-justice-light/70 mb-4">
-            Not connected to any real legal systems or databases.
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-sm font-medium">
+              <Scale className="mr-2 h-4 w-4 text-justice-light" />
+              Principle Universality
+            </div>
+            <span className="text-justice-light">{metrics.principle_universality_score.toFixed(1)}/10</span>
+          </div>
+          <Progress value={metrics.principle_universality_score * 10} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            Alignment of principles across jurisdictions
           </p>
-          <LegalDisclaimer />
         </div>
         
-        <div className="col-span-1 md:col-span-2">
-          <LegalDisclaimer variant="full" className="mt-4 p-2 border border-justice-tertiary/20 rounded bg-justice-dark/30" />
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-sm font-medium">
+              <Languages className="mr-2 h-4 w-4 text-justice-light" />
+              Language Diversity
+            </div>
+            <span className="text-justice-light">{metrics.language_diversity}</span>
+          </div>
+          <Progress value={(metrics.language_diversity / 20) * 100} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            Number of supported legal languages
+          </p>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-sm font-medium">
+              <BookOpen className="mr-2 h-4 w-4 text-justice-light" />
+              International Alignment
+            </div>
+            <span className="text-justice-light">{metrics.international_alignment.toFixed(1)}/10</span>
+          </div>
+          <Progress value={metrics.international_alignment * 10} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            Coherence with international legal frameworks
+          </p>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-sm font-medium">
+              <Users className="mr-2 h-4 w-4 text-justice-light" />
+              Human Rights Compliance
+            </div>
+            <span className="text-justice-light">{metrics.human_rights_compliance.toFixed(1)}/10</span>
+          </div>
+          <Progress value={metrics.human_rights_compliance * 10} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            Alignment with UDHR principles
+          </p>
+        </div>
+        
+        <div className="flex items-center justify-center">
+          <div className="flex flex-col items-center">
+            <Award className="h-10 w-10 text-justice-primary mb-2" />
+            <div className="text-center">
+              <div className="text-sm font-medium">UN/ICC Compliance</div>
+              <div className="text-2xl font-bold text-justice-light">
+                {((metrics.international_alignment + metrics.human_rights_compliance) / 2 * 10).toFixed(1)}%
+              </div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

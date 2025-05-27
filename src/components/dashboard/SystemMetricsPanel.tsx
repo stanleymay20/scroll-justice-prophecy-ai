@@ -1,9 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SystemHealth } from "@/types";
-import { LegalDisclaimer } from "@/components/legal/LegalDisclaimer";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SystemMetricsPanelProps {
   data: SystemHealth;
@@ -15,56 +12,56 @@ export function SystemMetricsPanel({ data }: SystemMetricsPanelProps) {
       <Card className="bg-justice-dark text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            System Status
+            Overall Health
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Alert variant="default" className="bg-yellow-900/20 border-yellow-600/50 mb-2">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-xs">
-              Demo version - No real data available
-            </AlertDescription>
-          </Alert>
           <div className="flex items-baseline space-x-2">
-            <div className="text-lg font-medium">Limited Preview</div>
+            <div className="text-2xl font-bold">{data.overall.toFixed(1)}%</div>
+            <div className={`text-sm ${data.delta >= 0 ? "text-green-500" : "text-red-500"}`}>
+              {data.delta > 0 ? "+" : ""}{data.delta}%
+            </div>
           </div>
-          <LegalDisclaimer className="mt-2" />
+          <div className="mt-4 h-2 w-full bg-justice-neutral/30 rounded-full">
+            <div 
+              className="h-full bg-justice-primary rounded-full" 
+              style={{ width: `${data.overall}%` }}
+            ></div>
+          </div>
         </CardContent>
       </Card>
 
       <Card className="bg-justice-dark text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Data Processing
+            Precedent Accuracy
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Alert variant="default" className="bg-yellow-900/20 border-yellow-600/50 mb-2">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-xs">
-              Demo version - No real data available
-            </AlertDescription>
-          </Alert>
-          <div className="text-lg font-medium">Educational Mode</div>
-          <LegalDisclaimer className="mt-2" />
+          <div className="text-2xl font-bold">{data.precedent_accuracy.toFixed(1)}%</div>
+          <div className="mt-4 h-2 w-full bg-justice-neutral/30 rounded-full">
+            <div 
+              className="h-full bg-scroll-dawn rounded-full" 
+              style={{ width: `${data.precedent_accuracy}%` }}
+            ></div>
+          </div>
         </CardContent>
       </Card>
 
       <Card className="bg-justice-dark text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Research Mode
+            Jurisdictional Coverage
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Alert variant="default" className="bg-yellow-900/20 border-yellow-600/50 mb-2">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-xs">
-              Demo version - No real data available
-            </AlertDescription>
-          </Alert>
-          <div className="text-lg font-medium">Enabled</div>
-          <LegalDisclaimer className="mt-2" />
+          <div className="text-2xl font-bold">{data.jurisdictional_coverage.toFixed(1)}%</div>
+          <div className="mt-4 h-2 w-full bg-justice-neutral/30 rounded-full">
+            <div 
+              className="h-full bg-scroll-rise rounded-full" 
+              style={{ width: `${data.jurisdictional_coverage}%` }}
+            ></div>
+          </div>
         </CardContent>
       </Card>
     </div>

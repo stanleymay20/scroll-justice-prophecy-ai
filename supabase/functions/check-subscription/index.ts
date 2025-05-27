@@ -29,46 +29,6 @@ const mapTierToRole = (tier: string | null): string => {
 };
 
 serve(async (req) => {
-  // Add timeout to prevent hanging requests
-  const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error("Request timed out after 5 seconds")), 5000)
-  );
-  
-  try {
-    // Race the main function against the timeout
-    return await Promise.race([
-      processCheckSubscription(req),
-      timeoutPromise
-    ]) as Response;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { 
-      message: errorMessage,
-      responseBody: {
-        error: errorMessage,
-        subscribed: false,
-        subscription_tier: "basic",
-        user_role: "flame_seeker",
-        subscription_end: null
-      },
-      status: 200
-    });
-    
-    return new Response(JSON.stringify({ 
-      error: errorMessage,
-      subscribed: false,
-      subscription_tier: "basic",
-      user_role: "flame_seeker",
-      subscription_end: null 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200, // Return 200 with error info instead of 500 to prevent frontend blocking
-    });
-  }
-});
-
-// Main function to process the subscription check
-async function processCheckSubscription(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -133,127 +93,57 @@ async function processCheckSubscription(req: Request): Promise<Response> {
       userEmail = user.email;
       logStep("User authenticated", { userId, email: userEmail });
     }
-    
-    // First check if we already have a valid subscription in the database
-    // This provides a quicker response without waiting for Stripe API
-    const { data: existingSubscription, error: dbError } = await supabaseAdmin
-      .from("subscriptions")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-      
-    if (!dbError && existingSubscription && existingSubscription.status === "active") {
-      // If we have a cached valid subscription that hasn't expired yet, return it immediately
-      const currentTime = new Date();
-      const subEndTime = existingSubscription.current_period_end ? new Date(existingSubscription.current_period_end) : null;
-      
-      if (subEndTime && currentTime < subEndTime) {
-        logStep("Returning cached subscription data", { 
-          subscription: existingSubscription,
-          role: mapTierToRole(existingSubscription.tier)
-        });
-        
-        // Background refresh with Stripe - don't wait for this to complete
-        const updatePromise = updateSubscriptionFromStripe(userId, userEmail, supabaseAdmin)
-          .catch(err => logStep("Background subscription update failed", { error: String(err) }));
-        
-        return new Response(JSON.stringify({ 
-          subscribed: true,
-          subscription_tier: existingSubscription.tier,
-          user_role: mapTierToRole(existingSubscription.tier),
-          subscription_end: existingSubscription.current_period_end 
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
-    }
 
-    // If we don't have a valid cached subscription or it's expired, check with Stripe
-    const result = await updateSubscriptionFromStripe(userId, userEmail, supabaseAdmin);
-    logStep("Returning fresh subscription data from Stripe", result);
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
+    const stripe = new Stripe(stripeKey, {
+      apiVersion: "2023-10-16",
     });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { 
-      message: errorMessage,
-      responseBody: {
-        error: errorMessage,
+
+    // Find the customer in Stripe
+    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
+    
+    if (customers.data.length === 0) {
+      // No Stripe customer found for this user
+      logStep("No Stripe customer found");
+      
+      // Update subscription in database as inactive with flame_seeker role
+      await supabaseAdmin.from("subscriptions").upsert({
+        user_id: userId,
+        status: "inactive",
+        tier: "basic",
+        customer_id: null,
+        price_id: null,
+        current_period_end: null,
+        created_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      
+      // Update user_roles table with flame_seeker role
+      await supabaseAdmin.from("user_roles").upsert({
+        user_id: userId,
+        role: "flame_seeker",
+        last_role_change: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      
+      logStep("Updated user as flame_seeker (free tier)");
+      
+      return new Response(JSON.stringify({ 
         subscribed: false,
         subscription_tier: "basic",
         user_role: "flame_seeker",
-        subscription_end: null
-      },
-      status: 200
-    });
-    
-    return new Response(JSON.stringify({ 
-      error: errorMessage,
-      subscribed: false,
-      subscription_tier: "basic",
-      user_role: "flame_seeker",
-      subscription_end: null 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200, // Return 200 with error info instead of 500 to prevent frontend blocking
-    });
-  }
-}
+        subscription_end: null 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
-// Extract the Stripe check into a separate function for reuse
-async function updateSubscriptionFromStripe(userId: string, userEmail: string, supabaseAdmin: any) {
-  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-  if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-  
-  const stripe = new Stripe(stripeKey, {
-    apiVersion: "2023-10-16",
-  });
-
-  // Find the customer in Stripe
-  const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
-  
-  if (customers.data.length === 0) {
-    // No Stripe customer found for this user
-    logStep("No Stripe customer found");
+    const customerId = customers.data[0].id;
+    logStep("Found Stripe customer", { customerId });
     
-    // Update subscription in database as inactive with flame_seeker role
-    await supabaseAdmin.from("subscriptions").upsert({
-      user_id: userId,
-      status: "inactive",
-      tier: "basic",
-      customer_id: null,
-      price_id: null,
-      current_period_end: null,
-      created_at: new Date().toISOString()
-    }, { onConflict: 'user_id' });
-    
-    // Update user_roles table with flame_seeker role
-    await supabaseAdmin.from("user_roles").upsert({
-      user_id: userId,
-      role: "flame_seeker",
-      last_role_change: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'user_id' });
-    
-    logStep("Updated user as flame_seeker (free tier)");
-    
-    return { 
-      subscribed: false,
-      subscription_tier: "basic",
-      user_role: "flame_seeker",
-      subscription_end: null 
-    };
-  }
-
-  const customerId = customers.data[0].id;
-  logStep("Found Stripe customer", { customerId });
-  
-  try {
     // Check for active subscriptions
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
@@ -325,22 +215,22 @@ async function updateSubscriptionFromStripe(userId: string, userEmail: string, s
       role: userRole
     });
 
-    return {
+    return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,
       user_role: userRole,
       subscription_end: subscriptionEnd
-    };
-  } catch (stripeError: any) {
-    logStep("Stripe API error", { error: stripeError.message });
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message: errorMessage });
     
-    // Return default free tier info even when Stripe fails
-    return { 
-      subscribed: false,
-      subscription_tier: "basic",
-      user_role: "flame_seeker",
-      subscription_end: null,
-      error: stripeError.message
-    };
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
-}
+});

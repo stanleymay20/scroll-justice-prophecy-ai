@@ -19,21 +19,14 @@ export async function flagIntegrityViolation(
       petitionId
     );
     
-    // Update the petition's integrity score directly
-    const { data } = await supabase
-      .from('scroll_petitions')
-      .select('scroll_integrity_score')
-      .eq('id', petitionId)
-      .single();
-      
-    const currentScore = data?.scroll_integrity_score ?? 100;
-    const newScore = Math.max(0, Math.min(100, currentScore - 10)); // Ensure score stays within 0-100
-    
-    // Now update with the calculated score
+    // Update the petition's integrity score
     const { error } = await supabase
       .from('scroll_petitions')
       .update({
-        scroll_integrity_score: newScore
+        scroll_integrity_score: supabase.rpc('calculate_new_score', { 
+          current_score: 100, 
+          impact: -10 
+        })
       })
       .eq('id', petitionId);
       
@@ -64,12 +57,8 @@ export async function checkSelfVerdict(petitionId: string): Promise<boolean> {
       
     if (error) throw error;
     
-    // Type guard to ensure data exists before accessing properties
-    if (!data) return false;
-    
     // Check if user is both petitioner and judge
-    const isSelfVerdict = data.petitioner_id === userId && data.assigned_judge_id === userId;
-    return isSelfVerdict;
+    return data.petitioner_id === userId && data.assigned_judge_id === userId;
   } catch (error) {
     console.error('Error checking for self verdict:', error);
     return false;
@@ -132,15 +121,10 @@ export async function getUserIntegrityScore(userId: string): Promise<number> {
       
     if (error) throw error;
     
-    if (!data || data.length === 0) return 100; // Default score for new users
+    if (data.length === 0) return 100; // Default score for new users
     
     // Calculate average
-    const total = data.reduce((sum, petition) => {
-      // Type guard to ensure scroll_integrity_score exists
-      const score = petition.scroll_integrity_score || 0;
-      return sum + score;
-    }, 0);
-    
+    const total = data.reduce((sum, petition) => sum + petition.scroll_integrity_score, 0);
     return Math.round(total / data.length);
   } catch (error) {
     console.error('Error getting user integrity score:', error);
@@ -157,7 +141,7 @@ export async function analyzeContent(content: string): Promise<{
 }> {
   try {
     // For demo purposes, we'll use a simple analysis
-    const flaggedTerms: string[] = [];
+    const flaggedTerms = [];
     let integrityScore = 100;
     
     // Check for potentially problematic terms
