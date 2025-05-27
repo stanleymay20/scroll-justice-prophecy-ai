@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_audit_logs: {
+        Row: {
+          action_type: string
+          ai_model: string
+          created_at: string
+          id: string
+          input_summary: string | null
+          output_summary: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          ai_model: string
+          created_at?: string
+          id?: string
+          input_summary?: string | null
+          output_summary?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          ai_model?: string
+          created_at?: string
+          id?: string
+          input_summary?: string | null
+          output_summary?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       court_session_participants: {
         Row: {
           id: string
@@ -532,6 +562,78 @@ export type Database = {
         }
         Relationships: []
       }
+      user_onboarding: {
+        Row: {
+          community_sent: boolean | null
+          community_sent_at: string | null
+          created_at: string | null
+          id: string
+          next_email_date: string | null
+          next_email_type: string | null
+          opted_out: boolean | null
+          opted_out_at: string | null
+          petition_sent: boolean | null
+          petition_sent_at: string | null
+          preferences: Json | null
+          privacy_sent: boolean | null
+          privacy_sent_at: string | null
+          sequence_position: number | null
+          subscription_sent: boolean | null
+          subscription_sent_at: string | null
+          updated_at: string | null
+          user_email: string
+          user_id: string | null
+          welcome_sent: boolean | null
+          welcome_sent_at: string | null
+        }
+        Insert: {
+          community_sent?: boolean | null
+          community_sent_at?: string | null
+          created_at?: string | null
+          id?: string
+          next_email_date?: string | null
+          next_email_type?: string | null
+          opted_out?: boolean | null
+          opted_out_at?: string | null
+          petition_sent?: boolean | null
+          petition_sent_at?: string | null
+          preferences?: Json | null
+          privacy_sent?: boolean | null
+          privacy_sent_at?: string | null
+          sequence_position?: number | null
+          subscription_sent?: boolean | null
+          subscription_sent_at?: string | null
+          updated_at?: string | null
+          user_email: string
+          user_id?: string | null
+          welcome_sent?: boolean | null
+          welcome_sent_at?: string | null
+        }
+        Update: {
+          community_sent?: boolean | null
+          community_sent_at?: string | null
+          created_at?: string | null
+          id?: string
+          next_email_date?: string | null
+          next_email_type?: string | null
+          opted_out?: boolean | null
+          opted_out_at?: string | null
+          petition_sent?: boolean | null
+          petition_sent_at?: string | null
+          preferences?: Json | null
+          privacy_sent?: boolean | null
+          privacy_sent_at?: string | null
+          sequence_position?: number | null
+          subscription_sent?: boolean | null
+          subscription_sent_at?: string | null
+          updated_at?: string | null
+          user_email?: string
+          user_id?: string | null
+          welcome_sent?: boolean | null
+          welcome_sent_at?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -611,7 +713,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_table_exists: {
+        Args: { table_name: string }
+        Returns: boolean
+      }
+      create_ai_audit_logs_table: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       post_category:

@@ -1,164 +1,124 @@
 
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
-// Pages
-import Index from "@/pages/Index";
-import PrecedentExplorer from "@/pages/PrecedentExplorer";
-import ScrollMemory from "@/pages/ScrollMemory";
-import PrinciplesPage from "@/pages/PrinciplesPage";
-import CaseSearch from "@/pages/CaseSearch";
-import Analytics from "@/pages/Analytics";
-import ScrollTimePage from "@/pages/ScrollTimePage";
-import LegalSystems from "@/pages/LegalSystems";
-import CaseClassification from "@/pages/CaseClassification";
-import DocumentUpload from "@/pages/DocumentUpload";
-import SimulationTrial from "@/pages/SimulationTrial";
-import AITraining from "@/pages/AITraining";
-import NotFound from "@/pages/NotFound";
+// Public pages
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+
+// Protected pages
+import Dashboard from "@/pages/Dashboard";
+import PetitionNew from "@/pages/PetitionNew";
+import PetitionList from "@/pages/PetitionList";
+import PetitionDetail from "@/pages/PetitionDetail";
+import JudgmentChamber from "@/pages/JudgmentChamber";
+import PublicArchive from "@/pages/PublicArchive";
+import Simulation from "@/pages/Simulation";
+import Billing from "@/pages/Billing";
+import AdminPanel from "@/pages/AdminPanel";
 import Profile from "@/pages/Profile";
-import { CommunityForum } from "@/components/community/CommunityForum";
-import DeveloperDashboard from "@/pages/Admin/DeveloperDashboard";
-import MCPDashboard from "@/pages/Admin/MCPDashboard";
-import Courtroom from "@/pages/Courtroom";
-import Witness from "@/pages/Witness";
-import AIUsagePolicy from "@/pages/policy/AIUsagePolicy";
-import Blessing from "@/pages/Blessing";
 
-// Auth Pages
-import SignIn from "@/pages/Auth/SignIn";
-import SignUp from "@/pages/Auth/SignUp";
-import ResetPassword from "@/pages/Auth/ResetPassword";
-import UpdatePassword from "@/pages/Auth/UpdatePassword";
-import AuthCallback from "@/pages/Auth/AuthCallback";
-
-// Subscription Pages
-import SubscriptionPlans from "@/pages/Subscription/Plans";
-import SubscriptionSuccess from "@/pages/Subscription/Success";
-import ManageSubscription from "@/pages/Subscription/Manage";
+// Route protection component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-justice-dark to-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-justice-primary"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 export const AppRoutes = () => {
+  const { user } = useAuth();
+
   return (
     <TooltipProvider>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Index />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/update-password" element={<UpdatePassword />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
-        
-        {/* Blessing and Onboarding */}
-        <Route path="/blessing" element={<Blessing />} />
-        
-        {/* Policy Routes */}
-        <Route path="/policy/ai-usage" element={<AIUsagePolicy />} />
-        
-        {/* Subscription Routes */}
-        <Route path="/subscription/plans" element={<SubscriptionPlans />} />
-        <Route path="/subscription/success" element={<SubscriptionSuccess />} />
         <Route 
-          path="/subscription/manage" 
-          element={
-            <ProtectedRoute>
-              <ManageSubscription />
-            </ProtectedRoute>
-          } 
+          path="/login" 
+          element={user ? <Navigate to="/dashboard" replace /> : <Login />} 
+        />
+        <Route 
+          path="/register" 
+          element={user ? <Navigate to="/dashboard" replace /> : <Register />} 
         />
         
-        {/* Admin Routes */}
+        {/* Default route */}
         <Route 
-          path="/admin/dashboard" 
-          element={
-            <ProtectedRoute>
-              <DeveloperDashboard />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/admin/mcp" 
-          element={
-            <ProtectedRoute>
-              <MCPDashboard />
-            </ProtectedRoute>
-          } 
+          path="/" 
+          element={<Navigate to={user ? "/dashboard" : "/login"} replace />} 
         />
         
         {/* Protected Routes */}
-        <Route 
-          path="/profile" 
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
         
-        {/* Courtroom Routes */}
-        <Route path="/courtroom" element={<Courtroom />} />
-        <Route path="/courtroom/:id" element={<Courtroom />} />
+        <Route path="/petition/new" element={
+          <ProtectedRoute>
+            <PetitionNew />
+          </ProtectedRoute>
+        } />
         
-        {/* Witness Routes */}
-        <Route path="/witness/:id" element={<Witness />} />
+        <Route path="/petitions" element={
+          <ProtectedRoute>
+            <PetitionList />
+          </ProtectedRoute>
+        } />
         
-        {/* Community Forum */}
-        <Route path="/community" element={<CommunityForum />} />
+        <Route path="/petition/:id" element={
+          <ProtectedRoute>
+            <PetitionDetail />
+          </ProtectedRoute>
+        } />
         
-        {/* Basic Tier Routes - Free or any subscription */}
-        <Route path="/precedent" element={<PrecedentExplorer />} />
-        <Route path="/scroll-memory" element={<ScrollMemory />} />
-        <Route path="/principles" element={<PrinciplesPage />} />
-        <Route path="/search" element={<CaseSearch />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/scroll-time" element={<ScrollTimePage />} />
-        <Route path="/legal-systems" element={<LegalSystems />} />
+        <Route path="/judgment-chamber" element={
+          <ProtectedRoute>
+            <JudgmentChamber />
+          </ProtectedRoute>
+        } />
         
-        {/* Professional Tier Routes */}
-        <Route 
-          path="/case-classification" 
-          element={
-            <ProtectedRoute requireSubscription requiredTier="professional">
-              <CaseClassification />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/document-upload" 
-          element={
-            <ProtectedRoute requireSubscription requiredTier="professional">
-              <DocumentUpload />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/simulation-trial" 
-          element={
-            <ProtectedRoute requireSubscription requiredTier="professional">
-              <SimulationTrial />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/public-archive" element={<PublicArchive />} />
         
-        {/* Enterprise Tier Routes */}
-        <Route 
-          path="/ai-training" 
-          element={
-            <ProtectedRoute requireSubscription requiredTier="enterprise">
-              <AITraining />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/simulation" element={
+          <ProtectedRoute>
+            <Simulation />
+          </ProtectedRoute>
+        } />
         
-        {/* Redirects */}
-        <Route path="/file-manager" element={<Navigate to="/document-upload" />} />
-        <Route path="/docs" element={<Navigate to="/legal-systems" />} />
-        <Route path="/dashboard" element={<Navigate to="/" />} />
+        <Route path="/billing" element={
+          <ProtectedRoute>
+            <Billing />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AdminPanel />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
         
         {/* Catch-all route */}
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </TooltipProvider>
   );
