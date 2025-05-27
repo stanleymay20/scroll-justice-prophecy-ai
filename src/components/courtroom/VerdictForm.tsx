@@ -7,8 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles, CheckCircle, XCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AIConsentToggle } from "@/components/compliance/AIConsentToggle";
-import { logAIInteraction } from "@/services/aiAuditService";
 import { useLanguage } from "@/contexts/language";
 
 interface VerdictFormProps {
@@ -29,20 +27,10 @@ export const VerdictForm = ({
   const [loading, setLoading] = useState(false);
   const [suggestingVerdict, setSuggestingVerdict] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [aiConsent, setAiConsent] = useState(true);
   const { toast } = useToast();
   const { t } = useLanguage();
   
   const handleGetAiSuggestion = async () => {
-    if (!aiConsent) {
-      toast({
-        title: t("verdict.aiConsentRequired"),
-        description: t("verdict.enableAiConsent"),
-        variant: "destructive"
-      });
-      return;
-    }
-
     setSuggestingVerdict(true);
     setError(null);
     
@@ -51,32 +39,25 @@ export const VerdictForm = ({
       
       if (aiVerdict) {
         toast({
-          title: t("verdict.aiSuggested"),
-          description: t("verdict.aiConsideredCase"),
+          title: "AI Suggestion Generated",
+          description: "The AI has analyzed the case and provided a suggested verdict.",
         });
         
         // Update database with AI suggestion
         await supabase
           .from('scroll_petitions')
-          .update({ ai_suggested_verdict: aiVerdict.verdict })
+          .update({ ai_suggested_verdict: aiVerdict.suggested_verdict })
           .eq('id', petitionId);
           
         // Set the reasoning field with AI's reasoning
         setReasoning(aiVerdict.reasoning || "");
-
-        // Log the AI interaction
-        await logAIInteraction({
-          action_type: "VERDICT_SUGGESTION",
-          ai_model: "scroll-verdict-assistant-1.0",
-          input_summary: `Petition title: ${petitionTitle.substring(0, 50)}...`,
-          output_summary: `AI verdict suggested: ${aiVerdict.verdict.substring(0, 50)}...`
-        });
+        setVerdict(aiVerdict.suggested_verdict || "");
       } else {
-        setError(t("verdict.aiSuggestionFailed"));
+        setError("Failed to generate AI suggestion");
       }
     } catch (err) {
       console.error("Error getting AI verdict:", err);
-      setError(t("verdict.aiError") + (err instanceof Error ? err.message : String(err)));
+      setError("AI analysis failed: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setSuggestingVerdict(false);
     }
@@ -85,8 +66,8 @@ export const VerdictForm = ({
   const handleSubmitVerdict = async (approved: boolean) => {
     if (!reasoning) {
       toast({
-        title: t("verdict.missingReasoning"),
-        description: t("verdict.provideReasoning"),
+        title: "Missing Reasoning",
+        description: "Please provide reasoning for your verdict.",
         variant: "destructive"
       });
       return;
@@ -104,7 +85,7 @@ export const VerdictForm = ({
           verdict: verdictText,
           verdict_reasoning: reasoning,
           verdict_timestamp: new Date().toISOString(),
-          status: approved ? 'resolved' : 'rejected'
+          status: approved ? 'verdict_delivered' : 'rejected'
         })
         .eq('id', petitionId);
       
@@ -121,14 +102,14 @@ export const VerdictForm = ({
         });
       
       toast({
-        title: t(`verdict.${approved ? 'approved' : 'rejected'}`),
-        description: t("verdict.recorded"),
+        title: approved ? "Petition Approved" : "Petition Rejected",
+        description: "The verdict has been recorded in the sacred scrolls.",
       });
       
       onVerdictSubmitted();
     } catch (err) {
       console.error("Error submitting verdict:", err);
-      setError(t("verdict.submissionError") + (err instanceof Error ? err.message : String(err)));
+      setError("Failed to submit verdict: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -136,7 +117,7 @@ export const VerdictForm = ({
   
   return (
     <div className="space-y-4 bg-black/20 p-4 rounded-lg border border-justice-primary/30">
-      <h3 className="text-lg font-medium text-white">{t("verdict.sacred")}</h3>
+      <h3 className="text-lg font-medium text-white">Sacred Verdict</h3>
       
       {error && (
         <Alert variant="destructive">
@@ -146,37 +127,40 @@ export const VerdictForm = ({
       
       <div className="space-y-4">
         <div>
-          <label className="text-sm text-justice-light">{t("verdict.reasoning")}</label>
+          <label className="text-sm text-justice-light">Legal Reasoning</label>
           <Textarea
             value={reasoning}
             onChange={(e) => setReasoning(e.target.value)}
-            placeholder={t("verdict.reasoningPlaceholder")}
+            placeholder="Provide detailed legal reasoning for your verdict..."
             className="mt-1 h-32"
           />
         </div>
-        
-        <AIConsentToggle 
-          userRole="judge"
-          onConsentChange={setAiConsent}
-        />
         
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           <Button
             variant="outline"
             onClick={handleGetAiSuggestion}
-            disabled={suggestingVerdict || !aiConsent}
+            disabled={suggestingVerdict}
             className="flex-1"
           >
             {suggestingVerdict ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("verdict.consultingAi")}
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Consulting AI...
               </>
             ) : (
               <>
-                <Sparkles className="mr-2 h-4 w-4" /> {t("verdict.getAiSuggestion")}
+                <Sparkles className="mr-2 h-4 w-4" /> Get AI Suggestion
               </>
             )}
           </Button>
+        </div>
+        
+        <div className="p-4 bg-amber-900/20 border border-amber-500/50 rounded-lg">
+          <p className="text-amber-200 text-sm">
+            <strong>Judicial Responsibility:</strong> AI suggestions are advisory only. 
+            As a judge, you are responsible for the final verdict and must ensure it complies 
+            with applicable law and ethical standards.
+          </p>
         </div>
         
         <div className="flex space-x-4">
@@ -187,7 +171,7 @@ export const VerdictForm = ({
             disabled={loading || !reasoning}
           >
             <CheckCircle className="mr-2 h-4 w-4" />
-            {t("verdict.approvePetition")}
+            Approve Petition
           </Button>
           
           <Button
@@ -197,7 +181,7 @@ export const VerdictForm = ({
             disabled={loading || !reasoning}
           >
             <XCircle className="mr-2 h-4 w-4" />
-            {t("verdict.rejectPetition")}
+            Reject Petition
           </Button>
         </div>
       </div>

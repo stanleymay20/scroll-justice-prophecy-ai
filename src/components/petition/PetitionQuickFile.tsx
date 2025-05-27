@@ -10,6 +10,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { InjusticeCategory } from '@/types';
 
+// Extend the Window interface to include speech recognition
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
 interface PetitionQuickFileProps {
   onSuccess?: () => void;
 }
@@ -51,7 +59,7 @@ export const PetitionQuickFile: React.FC<PetitionQuickFileProps> = ({ onSuccess 
       setIsRecording(true);
     };
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setFormData(prev => ({
         ...prev,
@@ -59,7 +67,7 @@ export const PetitionQuickFile: React.FC<PetitionQuickFileProps> = ({ onSuccess 
       }));
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       toast({
         title: 'Voice input error',
@@ -86,15 +94,10 @@ export const PetitionQuickFile: React.FC<PetitionQuickFileProps> = ({ onSuccess 
         .insert({
           title: formData.title,
           description: formData.description,
-          category: formData.category,
           petitioner_id: user.id,
-          status: 'filed',
-          country: user.user_metadata?.country || 'US',
-          region: '',
-          ai_confidence_score: 0,
-          is_simulation: false,
-          is_public: true,
-          language: 'en'
+          status: 'pending',
+          scroll_integrity_score: 100,
+          is_sealed: false
         });
 
       if (error) throw error;
@@ -177,6 +180,14 @@ export const PetitionQuickFile: React.FC<PetitionQuickFileProps> = ({ onSuccess 
           rows={4}
           className="bg-black/30 border-justice-primary/30 text-white"
         />
+      </div>
+
+      <div className="p-4 bg-amber-900/20 border border-amber-500/50 rounded-lg">
+        <p className="text-amber-200 text-sm">
+          <strong>Legal Disclaimer:</strong> This petition will be processed by AI for advisory analysis only. 
+          AI-generated verdicts do not constitute professional legal advice and should not be relied upon for 
+          actual legal decisions. Consult qualified legal professionals for binding legal counsel.
+        </p>
       </div>
 
       <Button

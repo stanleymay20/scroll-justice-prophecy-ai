@@ -44,6 +44,12 @@ export const AppRoutes = () => {
   return (
     <TooltipProvider>
       <Routes>
+        {/* Default route - redirect to login if not authenticated */}
+        <Route 
+          path="/" 
+          element={<Navigate to="/login" replace />} 
+        />
+        
         {/* Public Routes */}
         <Route 
           path="/login" 
@@ -54,11 +60,8 @@ export const AppRoutes = () => {
           element={user ? <Navigate to="/dashboard" replace /> : <Register />} 
         />
         
-        {/* Default route */}
-        <Route 
-          path="/" 
-          element={<Navigate to={user ? "/dashboard" : "/login"} replace />} 
-        />
+        {/* Public archive is accessible to everyone */}
+        <Route path="/public-archive" element={<PublicArchive />} />
         
         {/* Protected Routes */}
         <Route path="/dashboard" element={
@@ -91,8 +94,6 @@ export const AppRoutes = () => {
           </ProtectedRoute>
         } />
         
-        <Route path="/public-archive" element={<PublicArchive />} />
-        
         <Route path="/simulation" element={
           <ProtectedRoute>
             <Simulation />
@@ -118,7 +119,7 @@ export const AppRoutes = () => {
         } />
         
         {/* Catch-all route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </TooltipProvider>
   );

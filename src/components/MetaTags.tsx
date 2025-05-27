@@ -1,44 +1,33 @@
 
-import { Helmet } from "react-helmet";
-import { useLanguage } from "@/contexts/language";
+import { Helmet } from 'react-helmet-async';
 
 interface MetaTagsProps {
   title?: string;
   description?: string;
-  imageUrl?: string;
   keywords?: string;
+  url?: string;
 }
 
-export function MetaTags({ 
-  title, 
-  description,
-  imageUrl = "/lovable-uploads/54136c6b-c4a6-40ac-9c48-47c0ecd617e9.png",
-  keywords
-}: MetaTagsProps) {
-  const { t, language } = useLanguage();
-  
-  const siteTitle = t("app.title");
-  const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
-  const pageDescription = description || t("app.tagline");
-
+export const MetaTags: React.FC<MetaTagsProps> = ({
+  title = "ScrollJustice AI - Sacred Legal AI Platform",
+  description = "AI-powered legal analysis and verdict generation platform providing sacred legal wisdom.",
+  keywords = "legal AI, artificial intelligence, legal platform, justice, verdicts, petitions, legal analysis",
+  url = "https://scrolljustice.ai"
+}) => {
   return (
     <Helmet>
-      <html lang={language} />
-      <title>{pageTitle}</title>
-      <meta name="description" content={pageDescription} />
-      {keywords && <meta name="keywords" content={keywords} />}
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <meta name="keywords" content={keywords} />
       
-      {/* Open Graph / Facebook */}
-      <meta property="og:type" content="website" />
-      <meta property="og:title" content={pageTitle} />
-      <meta property="og:description" content={pageDescription} />
-      <meta property="og:image" content={imageUrl} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={url} />
       
-      {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={pageTitle} />
-      <meta name="twitter:description" content={pageDescription} />
-      <meta name="twitter:image" content={imageUrl} />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
+      
+      <meta name="legal-disclaimer" content="All AI-generated verdicts are advisory only and do not constitute professional legal advice" />
     </Helmet>
   );
-}
+};
